@@ -1,0 +1,40 @@
+package com.fpt.sep490.configuration;
+
+import com.fpt.sep490.utils.ProjectConstants;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+public class MessagesConfiguration {
+    @Bean
+    MessageSource generalMessageSource() {
+        final ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages/general/GeneralMessages");
+        messageSource.setDefaultEncoding(ProjectConstants.DEFAULT_ENCODING);
+        return messageSource;
+    }
+
+    @Bean
+    MessageSource exceptionMessageSource() {
+        final ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages/exception/ExceptionMessages");
+        messageSource.setDefaultEncoding(ProjectConstants.DEFAULT_ENCODING);
+        return messageSource;
+    }
+
+    @Bean
+    MessageSource validationMessageSource() {
+        final ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages/validation/ValidationMessages");
+        messageSource.setDefaultEncoding(ProjectConstants.DEFAULT_ENCODING);
+        return messageSource;
+    }
+
+    @Bean
+    public LocalValidatorFactoryBean getValidator() {
+        final LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+        bean.setValidationMessageSource(validationMessageSource());
+        return bean;
+    }
+}
