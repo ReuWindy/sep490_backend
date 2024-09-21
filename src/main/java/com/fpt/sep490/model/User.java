@@ -1,10 +1,7 @@
 package com.fpt.sep490.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
@@ -31,5 +28,5 @@ public abstract class User {
     private Date updateAt;
     private boolean active;
     @Enumerated(EnumType.STRING)
-    private UserType userType; // TYPE_CUSTOMER, TYPE_EMPLOYEE
+    private UserType userType;
 }

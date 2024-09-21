@@ -1,10 +1,7 @@
 package com.fpt.sep490.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +10,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @Entity
+@Builder
 @NoArgsConstructor
 @Table(name = "customers")
 public class Customer extends User {

@@ -3,9 +3,11 @@ package com.fpt.sep490.configuration;
 import com.fpt.sep490.utils.ProjectConstants;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+@Configuration
 public class MessagesConfiguration {
     @Bean
     MessageSource generalMessageSource() {
