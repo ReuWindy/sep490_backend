@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/supplier")
+@RequestMapping("/suppliers")
 public class SupplierController {
 
     private  final SupplierService supplierService;
@@ -22,7 +22,7 @@ public class SupplierController {
         this.supplierService = supplierService;
     }
 
-    @GetMapping("/getAllSupplier")
+    @GetMapping("/")
     public ResponseEntity<?> getAllSupplier(){
         List<Supplier> suppliers = supplierService.getAllSupplier();
         if(!suppliers.isEmpty()){
@@ -31,7 +31,7 @@ public class SupplierController {
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
-    @GetMapping("/getSupplierById/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getSupplierById(@PathVariable int id){
         Supplier supplier = supplierService.getSupplierById(id);
         if (supplier != null) {
@@ -41,7 +41,7 @@ public class SupplierController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping("/getSupplierByName/{name}")
+    @GetMapping("/{name}")
     public ResponseEntity<?> getSupplierByName(@PathVariable String name) {
         Supplier supplier = supplierService.getSupplierByName(name);
         if (supplier != null) {

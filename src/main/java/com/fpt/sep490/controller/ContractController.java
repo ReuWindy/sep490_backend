@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/contract")
+@RequestMapping("/contracts")
 public class ContractController {
     private final ContractService contractService;
 
@@ -21,7 +21,7 @@ public class ContractController {
         this.contractService = contractService;
     }
 
-    @GetMapping("/getAllContract")
+    @GetMapping("/")
     public ResponseEntity<?> getAllContracts(){
         List<Contract> contracts = contractService.getAllContracts();
         if(!contracts.isEmpty()){
@@ -30,7 +30,7 @@ public class ContractController {
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
-    @GetMapping("/getContractById/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getContractById(@PathVariable int id){
         Contract contract = contractService.getContractById(id);
         if (contract != null) {
@@ -40,7 +40,7 @@ public class ContractController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping("/getContractByContractNumber/{contractNumber}")
+    @GetMapping("/{contractNumber}")
     public ResponseEntity<?> getContractByName(@PathVariable String contractNumber) {
         Contract contract = contractService.getContractByContractNumber(contractNumber);
         if (contract != null) {

@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/warehouse")
+@RequestMapping("/warehouses")
 public class WarehouseController {
 
     private final WarehouseService warehouseService;
@@ -23,7 +23,7 @@ public class WarehouseController {
         this.warehouseService = warehouseService;
     }
 
-    @GetMapping("/getAllWarehouse")
+    @GetMapping("/")
     public ResponseEntity<?> getAllWarehouses(){
         List<Warehouse> warehouses = warehouseService.getAllWarehouse();
         if(!warehouses.isEmpty()){
@@ -32,7 +32,7 @@ public class WarehouseController {
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
-    @GetMapping("/getWarehouseById/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getWarehouseById(@PathVariable int id){
         Warehouse warehouse = warehouseService.getWarehouseById(id);
         if (warehouse != null) {
@@ -42,7 +42,7 @@ public class WarehouseController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping("/getWarehouseByName/{name}")
+    @GetMapping("/{name}")
     public ResponseEntity<?> getWarehouseByName(@PathVariable String name) {
         Warehouse warehouse = warehouseService.getWarehouseByName(name);
         if (warehouse != null) {

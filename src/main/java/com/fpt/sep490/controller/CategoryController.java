@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -20,7 +20,7 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/getAllCategories")
+    @GetMapping("/")
     public ResponseEntity<?> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         if (!categories.isEmpty()) {
@@ -29,7 +29,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
     }
 
-    @GetMapping("/getCategoryById/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getCategoryById(@PathVariable int id) {
         Category category = categoryService.getCategoryById(id);
         if (category != null) {
@@ -39,7 +39,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping("/getCategoryByName/{name}")
+    @GetMapping("/{name}")
     public ResponseEntity<?> getCategoryByName(@PathVariable String name) {
         Category category = categoryService.getCategoryByName(name);
         if (category != null) {

@@ -29,5 +29,8 @@ public class WarehouseReceipt {
     @OneToMany(mappedBy = "warehouseReceipt", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ReceiptDetail> receiptDetails;  // Chi tiết hoá đơn
 
+    @OneToMany(mappedBy = "warehouseReceipt", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Batch> batches;
+
     private String document; // Đường dẫn lưu file hoá đơn (PDF, ảnh)
 }

@@ -22,6 +22,7 @@ public class Product {
     private String description;
     private double price;
     private String image;
+    private String productCode;
 
     @ManyToOne
     @JoinColumn(name = "supplier_id")
@@ -36,4 +37,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProductWarehouse> productWarehouses;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<BatchProduct> batchProducts;
 }
