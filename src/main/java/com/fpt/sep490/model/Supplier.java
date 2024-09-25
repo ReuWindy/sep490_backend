@@ -29,6 +29,4 @@ public class Supplier {
 
     private String address;
 
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Product> products;
 }

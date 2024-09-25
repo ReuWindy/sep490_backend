@@ -2,10 +2,12 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.BatchDto;
 import com.fpt.sep490.dto.BatchProductDto;
+import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -18,13 +20,21 @@ public class BatchServiceImpl implements BatchService {
     private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
     private final BatchProductRepository batchProductRepository;
+    private final WarehouseReceiptRepository warehouseReceiptRepository;
+    private final BatchProductService batchProductService;
+    private final ProductWareHouseRepository productWareHouseRepository;
+    private final ProductService productService;
 
-    public BatchServiceImpl(BatchRepository batchRepository, SupplierRepository supplierRepository, ProductRepository productRepository, WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository) {
+    public BatchServiceImpl(BatchRepository batchRepository, SupplierRepository supplierRepository, ProductRepository productRepository, WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository, WarehouseReceiptRepository warehouseReceiptRepository, BatchProductService batchProductService, ProductWareHouseRepository productWareHouseRepository, ProductService productService) {
         this.batchRepository = batchRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.warehouseRepository = warehouseRepository;
         this.batchProductRepository = batchProductRepository;
+        this.warehouseReceiptRepository = warehouseReceiptRepository;
+        this.batchProductService = batchProductService;
+        this.productWareHouseRepository = productWareHouseRepository;
+        this.productService = productService;
     }
 
     @Override
@@ -42,9 +52,6 @@ public class BatchServiceImpl implements BatchService {
     public Batch createBatch(BatchDto batchDto) {
         Batch batch = new Batch();
         batch.setBatchCode(batchDto.getBatchCode());
-        batch.setNumberOfBags(batchDto.getNumberOfBags());
-        batch.setTotalWeight(batchDto.getTotalWeight());
-        batch.setTotalPrice(batchDto.getTotalPrice());
         batch.setImportDate(batchDto.getImportDate());
         batch.setDamaged(batchDto.isDamaged());
 
@@ -56,19 +63,69 @@ public class BatchServiceImpl implements BatchService {
         batch.setSupplier(supplier);
         batch.setWarehouse(warehouse);
 
-        // Save the batch to get the generated ID
-        batchRepository.save(batch);
+        int totalBags = 0;
+        double totalWeight = 0;
+        double totalPrice = 0;
 
-        Set<BatchProduct> batchProducts = batchDto.getBatchProducts().stream()
-                .map(batchProductDTO -> {
-                    BatchProduct batchProduct = new BatchProduct();
-                    return getBatchProduct(batch, batchProductDTO, batchProduct);
-                })
-                .collect(Collectors.toSet());
+        Set<BatchProduct> batchProducts = new HashSet<>();
+        for (BatchProductDto batchProductDto : batchDto.getBatchProducts()) {
+            // Try to find the product by ID
+            Product product = productRepository.findById(batchProductDto.getProductId())
+                    .orElseGet(() -> {
+                        // If product doesn't exist, create a new one using createProduct method
+                        ProductDto productDto = new ProductDto();
+                        productDto.setName("Product " + batchProductDto.getProductId()); // Set a default name
+                        productDto.setDescription("Description for product " + batchProductDto.getProductId());
+                        productDto.setPrice(batchProductDto.getPrice());
+                        productDto.setImage("default_image.jpg"); // Default image
+                        productDto.setSupplierId(batchDto.getSupplierId());
+                        productDto.setUnitOfMeasureId(1L); // You can set a default unit of measure if needed
+                        productDto.setWarehouseId(batchDto.getWarehouseId()); // Optional, if needed
 
+                        // Create the product
+                        return productService.createProduct(productDto);
+                    });
+
+            // Now check or create the ProductWarehouse
+            ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseId(product.getId(), warehouse.getId())
+                    .orElseGet(() -> {
+                        ProductWarehouse pw = new ProductWarehouse();
+                        pw.setProduct(product);
+                        pw.setWarehouse(warehouse);
+                        pw.setQuantity(0); // Initial quantity is zero
+                        return productWareHouseRepository.save(pw);
+                    });
+
+            // Create BatchProduct and link to the batch and product
+            BatchProduct batchProduct = new BatchProduct();
+            batchProduct.setBatch(batch);
+            batchProduct.setProduct(product);
+            batchProduct.setQuantity(batchProductDto.getQuantity());
+            batchProduct.setWeight(batchProductDto.getWeight());
+            batchProduct.setPrice(batchProductDto.getPrice());
+
+            batchProducts.add(batchProduct);
+
+            // Update total values for batch
+            totalBags += batchProductDto.getQuantity();
+            totalWeight += batchProductDto.getWeight();
+            totalPrice += batchProductDto.getPrice();
+
+            // Update warehouse stock for product
+            productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProductDto.getQuantity());
+            productWareHouseRepository.save(productWarehouse);
+        }
+
+        // Set calculated totals
+        batch.setNumberOfBags(totalBags);
+        batch.setTotalWeight(totalWeight);
+        batch.setTotalPrice(totalPrice);
         batch.setBatchProducts(batchProducts);
+
+        // Save the batch
         return batchRepository.save(batch);
     }
+
 
     @Override
     public Batch updateBatch(Long batchId, BatchDto batchDto) {
@@ -122,6 +179,10 @@ public class BatchServiceImpl implements BatchService {
     }
 
     private BatchProduct getBatchProduct(Batch batch, BatchProductDto batchProductDTO, BatchProduct batchProduct) {
+        return getBatchProduct(batch, batchProductDTO, batchProduct, productRepository, batchProductRepository);
+    }
+
+    static BatchProduct getBatchProduct(Batch batch, BatchProductDto batchProductDTO, BatchProduct batchProduct, ProductRepository productRepository, BatchProductRepository batchProductRepository) {
         Product product = productRepository.findById(batchProductDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
