@@ -14,6 +14,6 @@ public interface SupplierService {
     Supplier createSupplier(Supplier supplier);
     Supplier updateSupplier(Supplier supplier);
     Supplier deleteSupplier(int id);
-    Page<Supplier> getSupplierByPage(int page, int size);
+    Page<Supplier> getSupplierByFilter(String name, String email, String phoneNumber, int pageNumber, int pageSize );
 
 }
