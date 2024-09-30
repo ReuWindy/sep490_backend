@@ -3,6 +3,7 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Product;
+import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.ProductWarehouseService;
 import com.fpt.sep490.service.WarehouseService;
@@ -13,14 +14,17 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
 public class ProductController {
     private final ProductService productService;
+    private final ProductRepository productRepository;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ProductRepository productRepository) {
         this.productService = productService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/")
@@ -65,5 +69,16 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(products);
         }
         return ResponseEntity.ok(products);
+    }
+
+    @PutMapping("/update/{productCode}")
+    public ResponseEntity<?> updateProductStatus(@PathVariable String productCode) {
+        Optional<Product> product= productRepository.findByProductCode(productCode);
+        if (product.isPresent()) {
+            productService.updateProductStatus(productCode);
+            return ResponseEntity.status(HttpStatus.OK).body(product.get().getIsDeleted());
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Update Status Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

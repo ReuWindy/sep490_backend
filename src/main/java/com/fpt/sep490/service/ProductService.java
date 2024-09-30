@@ -12,4 +12,5 @@ public interface ProductService {
     Product updateProduct(long id, ProductDto productDto);
     double getTotalProductQuantity(long productId);
     List<Product> getProductsByWarehouse(Long warehouseId);
+    void updateProductStatus(String productCode);
 }

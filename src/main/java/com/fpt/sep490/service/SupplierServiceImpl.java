@@ -2,6 +2,7 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.repository.SupplierRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -62,6 +63,11 @@ public class SupplierServiceImpl implements SupplierService{
 
     @Override
     public Supplier deleteSupplier(int id) {
+        return null;
+    }
+
+    @Override
+    public Page<Supplier> getSupplierByPage(int page, int size) {
         return null;
     }
 }
