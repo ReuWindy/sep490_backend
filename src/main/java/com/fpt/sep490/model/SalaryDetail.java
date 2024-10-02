@@ -19,4 +19,9 @@ public class SalaryDetail {
     private double dailyWage;
     private int daysWorked;
     private double monthlySalary;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
+
 }

@@ -4,6 +4,8 @@ package com.fpt.sep490.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @Entity
@@ -16,7 +18,17 @@ public class Employee extends User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String bankDetail;
+    @Column(unique = true)
+    private String employeeCode;
+
+    private String employeeName;
+    private Date joinDate;
+    private String bankName;
+    private String bankNumber;
+    private boolean isActive;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
+    private SalaryDetail salaryDetail;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "role_id")
