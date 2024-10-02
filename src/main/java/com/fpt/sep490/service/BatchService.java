@@ -3,6 +3,7 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.dto.BatchDto;
 import com.fpt.sep490.model.Batch;
 
+import java.util.Date;
 import java.util.List;
 
 public interface BatchService {
@@ -13,4 +14,7 @@ public interface BatchService {
     Batch getBatchByBatchCode(String code);
     Batch getBatchBySupplierName(String supplierName);
     Batch getBatchByProductCode(String code);
+    List<Batch> getBatchesByImportDate(Date importDate);
 }
+
+

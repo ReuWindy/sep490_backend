@@ -7,10 +7,7 @@ import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -214,5 +211,10 @@ public class BatchServiceImpl implements BatchService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         return batchRepository.findFirstByProduct(product)
                 .orElseThrow(() -> new RuntimeException("No batch found for this product"));
+    }
+
+    @Override
+    public List<Batch> getBatchesByImportDate(Date importDate) {
+        return batchRepository.findAllByImportDate(importDate);
     }
 }

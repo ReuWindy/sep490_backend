@@ -2,6 +2,10 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.repository.CategoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,5 +61,17 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category deleteCategory(int id) {
         return null;
+    }
+
+    @Override
+    public Page<Category> getCategoriesByFilter(String name, int pageNumber, int pageSize) {
+        try {
+            Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+            Specification<Category> specification = CategorySpecification.hasName(name);
+            return categoryRepository.findAll(specification, pageable);
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -6,6 +6,7 @@ import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -80,6 +81,16 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getProductsByWarehouse(Long warehouseId) {
         return productWareHouseRepository.findProductsByWarehouseId(warehouseId);
     }
+
+    @Override
+    public void updateProductStatus(String productCode) {
+        Optional<Product> product = productRepository.findByProductCode(productCode);
+        if(product.isPresent()) {
+            product.get().setUpdateAt(new Date());
+            product.get().setIsDeleted(!product.get().getIsDeleted());
+        }
+    }
+
     @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)

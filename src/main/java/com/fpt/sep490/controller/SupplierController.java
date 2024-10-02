@@ -4,9 +4,13 @@ import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.model.Warehouse;
 import com.fpt.sep490.service.SupplierService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.hateoas.EntityModel;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -22,7 +26,7 @@ public class SupplierController {
         this.supplierService = supplierService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<?> getAllSupplier(){
         List<Supplier> suppliers = supplierService.getAllSupplier();
         if(!suppliers.isEmpty()){
@@ -69,5 +73,20 @@ public class SupplierController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<PagedModel<EntityModel<Supplier>>> getAllSuppliersByFilter(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            PagedResourcesAssembler<Supplier> pagedResourcesAssembler) {
+        Page<Supplier> supplierPage = supplierService.getSupplierByFilter(name, email, phoneNumber, pageNumber, pageSize);
+
+        PagedModel<EntityModel<Supplier>> pagedModel = pagedResourcesAssembler.toModel(supplierPage);
+
+        return ResponseEntity.ok(pagedModel);
     }
 }

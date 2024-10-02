@@ -2,6 +2,11 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.repository.SupplierRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,5 +68,16 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier deleteSupplier(int id) {
         return null;
+    }
+
+    @Override
+    public Page<Supplier> getSupplierByFilter(String name, String email, String phoneNumber, int pageNumber, int pageSize) {
+        try {
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(name, phoneNumber, email);
+            return supplierRepository.findAll(specification, pageable);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

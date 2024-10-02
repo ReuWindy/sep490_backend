@@ -2,7 +2,12 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
+import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.service.CategoryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +25,7 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<?> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         if (!categories.isEmpty()) {
@@ -68,5 +73,17 @@ public class CategoryController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<PagedModel<EntityModel<Category>>> getCategoriesByFilter(
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            PagedResourcesAssembler<Category> pagedResourcesAssembler
+    ) {
+        Page<Category> categories = categoryService.getCategoriesByFilter(name, pageNumber, pageSize);
+        PagedModel<EntityModel<Category>> pagedModel = pagedResourcesAssembler.toModel(categories);
+        return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 }
