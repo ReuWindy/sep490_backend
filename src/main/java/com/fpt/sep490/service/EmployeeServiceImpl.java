@@ -2,10 +2,13 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.EmployeeDTO;
 import com.fpt.sep490.model.*;
-import com.fpt.sep490.repository.EmployeeRepository;
-import com.fpt.sep490.repository.SalaryDetailRepository;
+import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomEmployeeCodeGenerator;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
 
 import java.util.*;
 
@@ -14,10 +17,15 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final EmployeeRepository employeeRepository;
     private final SalaryDetailRepository salaryDetailRepository;
+    private final UserTypeRepository userTypeRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, SalaryDetailRepository salaryDetailRepository){
+    private final RoleRepository roleRepository;
+
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, SalaryDetailRepository salaryDetailRepository, UserTypeRepository userTypeRepository, RoleRepository roleRepository){
         this.employeeRepository = employeeRepository;
         this.salaryDetailRepository = salaryDetailRepository;
+        this.userTypeRepository = userTypeRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -32,11 +40,14 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
-    public List<Employee> searchByCriteria(String keyword) {
-        if(keyword == null || keyword.trim().isEmpty()){
-            return Collections.emptyList();
-        }
-        return employeeRepository.searchByKeyword(keyword);
+    public Page<Employee> getEmployeeByFilter(String employeeCode, String employeeName, String phoneNumber, int pageNumber, int pageSize) {
+           try{
+               Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+               Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrEmployeeNameOrPhoneNumber(employeeCode, employeeName, phoneNumber);
+               return employeeRepository.findAll(specification,pageable);
+           }catch (Exception e){
+               return null;
+           }
     }
 
     @Override
@@ -51,12 +62,22 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setCreateAt(new Date());
         employee.setUpdateAt(new Date());
         employee.setActive(true);
+
+        // Tìm UserType dựa vào id
+        UserType userType = userTypeRepository.findById(employeeDTO.getUserTypeId()).orElseThrow(() -> new RuntimeException("UserType not found"));
+        employee.setUserType(userType);
+
         // set các thuộc tính của Employee
         employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
         employee.setEmployeeName(employeeDTO.getEmployeeName());
         employee.setJoinDate(new Date());
         employee.setBankName(employeeDTO.getBankName());
         employee.setBankNumber(employeeDTO.getBankNumber());
+
+        // Tìm Role dựa trên id
+        Role role = roleRepository.findById(employeeDTO.getRoleId()).orElseThrow(()-> new RuntimeException("Role not found"));
+        employee.setRole(role);
+
         // Lưu employee để có id
         Employee savedEmployee = employeeRepository.save(employee);
 
