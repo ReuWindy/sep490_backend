@@ -1,6 +1,7 @@
 package com.fpt.sep490.model;
 
 
+import com.fpt.sep490.Enum.SalaryType;
 import jakarta.persistence.*;
 import lombok.*;
 

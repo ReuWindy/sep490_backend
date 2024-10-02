@@ -51,8 +51,6 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setCreateAt(new Date());
         employee.setUpdateAt(new Date());
         employee.setActive(true);
-        employee.setUserType(UserType.TYPE_EMPLOYEE);
-
         // set các thuộc tính của Employee
         employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
         employee.setEmployeeName(employeeDTO.getEmployeeName());

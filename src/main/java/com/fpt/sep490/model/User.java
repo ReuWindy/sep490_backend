@@ -27,6 +27,8 @@ public abstract class User {
     private Date createAt;
     private Date updateAt;
     private boolean active;
-    @Enumerated(EnumType.STRING)
+
+    @ManyToOne
+    @JoinColumn(name="user_type_id", referencedColumnName = "id")
     private UserType userType;
 }

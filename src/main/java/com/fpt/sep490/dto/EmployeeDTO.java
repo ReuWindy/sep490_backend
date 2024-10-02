@@ -1,10 +1,7 @@
 package com.fpt.sep490.dto;
 
-import com.fpt.sep490.model.SalaryType;
-import jakarta.persistence.Column;
+import com.fpt.sep490.Enum.SalaryType;
 import lombok.Data;
-
-import java.util.Date;
 
 @Data
 public class EmployeeDTO {

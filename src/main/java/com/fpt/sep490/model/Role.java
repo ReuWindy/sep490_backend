@@ -15,7 +15,8 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name ="employee_role_id", referencedColumnName = "id", nullable = false)
     private EmployeeRole employeeRole;
 
     @Column(columnDefinition = "NVARCHAR(1000)")

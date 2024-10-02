@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import jakarta.persistence.*;
 import lombok.*;
 
