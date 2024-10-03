@@ -4,6 +4,7 @@ import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.model.Warehouse;
 import com.fpt.sep490.service.SupplierService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.hateoas.EntityModel;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -88,5 +90,32 @@ public class SupplierController {
         PagedModel<EntityModel<Supplier>> pagedModel = pagedResourcesAssembler.toModel(supplierPage);
 
         return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/names")
+    public ResponseEntity<?> getAllSupplierNames() {
+        List<String> resultList = supplierService.getAllSupplierNames();
+        if(!resultList.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body(resultList);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
+    }
+
+    @PostMapping("/{id}/disable")
+    public ResponseEntity<?> disableSupplierAndReassignProducts(@PathVariable Long id, @RequestBody Long defaultSupplierId) {
+        supplierService.disableSupplierAndReassignProducts(id, defaultSupplierId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/reinstate")
+    public ResponseEntity<?> reinstateSupplier(@PathVariable Long id) {
+        supplierService.reinstateSupplier(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<Void> exportSuppliers(HttpServletResponse response) throws IOException {
+        supplierService.exportToExcel(response);
+        return ResponseEntity.ok().build();
     }
 }

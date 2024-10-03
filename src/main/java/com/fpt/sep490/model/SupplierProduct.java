@@ -17,6 +17,7 @@ public class SupplierProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    private long previousSupplierId;
     private double price;
 
     @ManyToOne
