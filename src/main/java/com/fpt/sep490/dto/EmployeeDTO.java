@@ -16,4 +16,6 @@ public class EmployeeDTO {
     private String bankNumber;
     private SalaryType salaryType;
     private double dailyWage;
+    private long roleId;
+    private long userTypeId;
 }
