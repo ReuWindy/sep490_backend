@@ -22,14 +22,12 @@ public class Employee extends User {
     @Column(unique = true)
     private String employeeCode;
 
-    private String employeeName;
+
     private Date joinDate;
     private String bankName;
     private String bankNumber;
     private boolean isActive;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "employee")
-    private SalaryDetail salaryDetail;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "role_id")

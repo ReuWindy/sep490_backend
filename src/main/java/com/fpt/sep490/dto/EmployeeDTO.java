@@ -8,14 +8,15 @@ public class EmployeeDTO {
 
     private String username;
     private String password;
-    private long phoneNumber;
+    private Long phoneNumber;
     private String email;
     private String address;
-    private String employeeName;
+    private String fullName;
     private String bankName;
     private String bankNumber;
     private SalaryType salaryType;
-    private double dailyWage;
-    private long roleId;
-    private long userTypeId;
+    private Double dailyWage;
+    private Long userTypeId;
+    private Long employeeRoleId;
+    private String description;
 }

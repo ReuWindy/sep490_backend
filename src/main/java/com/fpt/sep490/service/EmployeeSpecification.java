@@ -9,15 +9,15 @@ import java.util.List;
 
 public class EmployeeSpecification {
 
-    public static Specification<Employee> hasEmployeeCodeOrEmployeeNameOrPhoneNumber(String employeeCode, String employeeName, String phoneNumber) {
+    public static Specification<Employee> hasEmployeeCodeOrFullNameOrPhoneNumber(String employeeCode, String fullName, String phoneNumber) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (employeeCode != null && !employeeCode.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + employeeCode + "%"));
             }
-            if (employeeName != null && !employeeName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + employeeName + "%"));
+            if (fullName != null && !fullName.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + fullName + "%"));
             }
             if (phoneNumber != null && !phoneNumber.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("email"), "%" + phoneNumber + "%"));

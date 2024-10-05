@@ -40,13 +40,13 @@ public class EmployeeController {
     @GetMapping("/")
     public ResponseEntity<PagedModel<EntityModel<Employee>>> getAllEmployeesByFilter(
             @RequestParam(required = false) String employeeCode,
-            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<Employee> pagedResourcesAssembler
     ){
-        Page<Employee> employeePage = employeeService.getEmployeeByFilter(employeeCode, employeeName, phoneNumber, pageNumber, pageSize);
+        Page<Employee> employeePage = employeeService.getEmployeeByFilter(employeeCode, fullName, phoneNumber, pageNumber, pageSize);
 
         PagedModel<EntityModel<Employee>> pagedModel = pagedResourcesAssembler.toModel(employeePage);
 
