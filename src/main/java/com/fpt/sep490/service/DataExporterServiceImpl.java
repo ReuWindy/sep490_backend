@@ -19,7 +19,7 @@ public class DataExporterServiceImpl implements DataExporterService {
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(FLUSH_THRESHOLD)) {
             SXSSFSheet sheet = workbook.createSheet("Data");
             Row headerRow = sheet.createRow(0);
-            Set<String> headers = dataList.getFirst().keySet();
+            Set<String> headers = dataList.get(0).keySet();
             int cellNum = 0;
             for (String header : headers) {
                 headerRow.createCell(cellNum++).setCellValue(header);

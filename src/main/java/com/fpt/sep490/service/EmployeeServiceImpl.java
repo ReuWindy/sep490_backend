@@ -17,14 +17,12 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final EmployeeRepository employeeRepository;
     private final SalaryDetailRepository salaryDetailRepository;
-    private final UserTypeRepository userTypeRepository;
 
     private final RoleRepository roleRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, SalaryDetailRepository salaryDetailRepository, UserTypeRepository userTypeRepository, RoleRepository roleRepository){
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository){
         this.employeeRepository = employeeRepository;
         this.salaryDetailRepository = salaryDetailRepository;
-        this.userTypeRepository = userTypeRepository;
         this.roleRepository = roleRepository;
     }
 
@@ -56,16 +54,12 @@ public class EmployeeServiceImpl implements EmployeeService{
         // set các thuộc tính của User
         employee.setUsername(employeeDTO.getUsername());
         employee.setPassword(employeeDTO.getPassword());
-        employee.setPhoneNumber(employeeDTO.getPhoneNumber());
+        employee.setPhone(employeeDTO.getPhoneNumber());
         employee.setEmail(employeeDTO.getEmail());
         employee.setAddress(employeeDTO.getAddress());
         employee.setCreateAt(new Date());
         employee.setUpdateAt(new Date());
         employee.setActive(true);
-
-        // Tìm UserType dựa vào id
-        UserType userType = userTypeRepository.findById(employeeDTO.getUserTypeId()).orElseThrow(() -> new RuntimeException("UserType not found"));
-        employee.setUserType(userType);
 
         // set các thuộc tính của Employee
         employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());

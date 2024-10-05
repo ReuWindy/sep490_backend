@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    @Query("SELECT e from Employee e WHERE e.employeeCode LIKE :keyword OR e.phoneNumber = :keyword OR e.employeeName LIKE :keyword")
+    @Query("SELECT e from Employee e WHERE e.employeeCode LIKE :keyword OR e.phone = :keyword OR e.employeeName LIKE :keyword")
     List<Employee> searchByKeyword(@Param("keyword") String keyword);
 
     Page<Employee> findAll(Specification<Employee> specification, Pageable pageable);
