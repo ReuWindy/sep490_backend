@@ -29,4 +29,6 @@ public class Supplier {
 
     private String address;
 
+    private boolean active = true;
+
 }

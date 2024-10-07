@@ -12,7 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class User {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -20,7 +20,7 @@ public abstract class User {
     private String username;
     private String password;
     @Column(unique = true)
-    private long phoneNumber;
+    private String phone;
     @Column(unique = true)
     private String email;
     @Column(columnDefinition = "NVARCHAR(1000)")
@@ -28,8 +28,8 @@ public abstract class User {
     private Date createAt;
     private Date updateAt;
     private boolean active;
-
-    @ManyToOne
-    @JoinColumn(name="user_type_id", referencedColumnName = "id")
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private UserType userType;
+
 }
