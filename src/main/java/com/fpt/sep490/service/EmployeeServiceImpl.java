@@ -89,7 +89,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setActive(true);
         employee.setUserType(userType);
 
-        // set các thuộc tính của Employee
+        // set attributes of Employee
         employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
         employee.setJoinDate(new Date());
         employee.setBankName(employeeDTO.getBankName());
@@ -106,6 +106,10 @@ public class EmployeeServiceImpl implements EmployeeService{
     public Employee updateEmployee(Employee employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
         if(existingEmployee != null){
+            existingEmployee.setFullName(employee.getFullName());
+            existingEmployee.setEmail(employee.getEmail());
+            existingEmployee.setPhoneNumber(employee.getPhoneNumber());
+            existingEmployee.setAddress(employee.getAddress());
             existingEmployee.setBankName(employee.getBankName());
             existingEmployee.setBankNumber(employee.getBankNumber());
             employeeRepository.save(existingEmployee);

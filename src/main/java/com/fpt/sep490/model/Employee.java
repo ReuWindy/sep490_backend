@@ -1,6 +1,7 @@
 package com.fpt.sep490.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fpt.sep490.Enum.SalaryType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,6 +32,7 @@ public class Employee extends User {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "role_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Role role;
 
     public double calculateSalary(int daysWorked) {
