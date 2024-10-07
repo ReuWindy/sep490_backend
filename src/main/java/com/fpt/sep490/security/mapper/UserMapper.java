@@ -10,7 +10,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring",unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+    //UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     User convertToUser(RegistrationRequest registrationRequest);
 

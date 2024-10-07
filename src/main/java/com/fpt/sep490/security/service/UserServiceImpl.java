@@ -30,14 +30,16 @@ public class UserServiceImpl implements UserService {
     private final UserValidationService userValidationService;
     private final GeneralMessageAccessor generalMessageAccessor;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository) {
+    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper) {
         this.jwtTokenManager = jwtTokenManager;
         this.sendMail = sendMail;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userValidationService = userValidationService;
         this.generalMessageAccessor = generalMessageAccessor;
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
 
@@ -95,9 +97,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegistrationResponse registration(RegistrationRequest registrationRequest) {
 
-        userValidationService.validateUser(registrationRequest);
+        //userValidationService.validateUser(registrationRequest);
 
-        final User user = UserMapper.INSTANCE.convertToUser(registrationRequest);
+        final User user = userMapper.convertToUser(registrationRequest);
 
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
@@ -119,7 +121,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType) {
         userValidationService.validateUser(registrationRequest);
-        final User user = UserMapper.INSTANCE.convertToUser(registrationRequest);
+        final User user = userMapper.convertToUser(registrationRequest);
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setUserType(userType);
         userRepository.save(user);
@@ -132,7 +134,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthenticatedUserDto findAuthenticatedUserByUsername(String username) {
         final User user = findByUsername(username);
-        return UserMapper.INSTANCE.convertToAuthenticatedUserDto(user);
+        return userMapper.convertToAuthenticatedUserDto(user);
     }
 
     @Override

@@ -42,7 +42,7 @@ public class SecurityConfiguration {
             http
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
-                            .requestMatchers("/register", "/login/loginRequest","/swagger-ui","/user/**").permitAll()
+                            .requestMatchers("/register", "/login/loginRequest","/swagger-ui","/user/**", "/employees/**").permitAll()
                             .requestMatchers("/suppliers/**","/categories/**").hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
