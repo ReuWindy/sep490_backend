@@ -2,6 +2,7 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.repository.CategoryRepository;
+import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +15,10 @@ import java.util.Optional;
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    private final ProductRepository productRepository;
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
     }
 
     @Override
@@ -59,8 +61,21 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category deleteCategory(int id) {
-        return null;
+    public void disableCategoryAndReassignProduct(int id, long defaultCategoryId) {
+        Category existingCategory = categoryRepository.findById((long) id)
+                .orElseThrow(()-> new RuntimeException("Category not found!!!"));
+        Category defaultCategory = categoryRepository.findById(defaultCategoryId)
+                .orElseGet(() -> {
+                    Category newCategory = new Category();
+                    newCategory.setName("Default Category");
+                    newCategory.setDescription("Default Category");
+                    return categoryRepository.save(newCategory);
+                });
+        productRepository.findByCategoryId((long) id)
+                .stream()
+                .peek(product -> product.setCategory(defaultCategory))
+                .forEach(productRepository::save);
+        existingCategory.setActive(false);
     }
 
     @Override
