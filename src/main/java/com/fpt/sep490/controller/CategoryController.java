@@ -3,7 +3,10 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Supplier;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.CategoryService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -20,9 +23,13 @@ import java.util.List;
 @RequestMapping("/categories")
 public class CategoryController {
     private final CategoryService categoryService;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
         this.categoryService = categoryService;
+        this.jwtTokenManager = jwtTokenManager;
+        this.userActivityService = userActivityService;
     }
 
     @GetMapping("/all")
@@ -55,8 +62,11 @@ public class CategoryController {
     }
 
     @PostMapping("/createCategory")
-    public ResponseEntity<?> createCategory(@RequestBody Category category) {
+    public ResponseEntity<?> createCategory(HttpServletRequest request, @RequestBody Category category) {
         Category createdCategory = categoryService.createCategory(category);
+        String token = jwtTokenManager.resolveToken(request);
+        String username = jwtTokenManager.getUsernameFromToken(token);
+        userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", category.getName());
         if (createdCategory != null) {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);

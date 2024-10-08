@@ -40,6 +40,10 @@ public class Product {
     private Boolean
             isDeleted;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProductWarehouse> productWarehouses;
 

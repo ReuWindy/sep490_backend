@@ -5,7 +5,6 @@ import com.fpt.sep490.security.dto.AuthenticatedUserDto;
 import com.fpt.sep490.security.dto.RegistrationRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
 
 
 @Mapper(componentModel = "spring",unmappedTargetPolicy = ReportingPolicy.IGNORE)

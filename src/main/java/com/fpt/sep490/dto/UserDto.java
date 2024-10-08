@@ -8,7 +8,8 @@ public class UserDto {
     private String name;
     private String phone;
     private String username;
-    private String password;
+    private String password = "No password for you pussy!!!";
+    private String createdAt;
     private String email;
     private String userType;
     private String address;
