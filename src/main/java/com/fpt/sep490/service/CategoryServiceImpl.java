@@ -43,6 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category newCategory = new Category();
         newCategory.setName(category.getName());
         newCategory.setDescription(category.getDescription());
+        newCategory.setActive(true);
         categoryRepository.save(newCategory);
         return newCategory;
     }

@@ -8,6 +8,7 @@ import com.fpt.sep490.model.UserType;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,21 +22,25 @@ public class JwtTokenManager {
     public String generateToken(User user) {
         final String username = user.getUsername();
         final UserType userType = user.getUserType();
-        log.info("Generating token for user: {}, role: {}", username, userType);
-        String token = JWT.create()
+        return JWT.create()
                 .withSubject(username)
                 .withIssuer(jwtProperties.getIssuer())
                 .withClaim("role", userType.name())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMinute() * 60 * 1000))
                 .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
-        log.info("Generated token: {}", token);
-        return token;
     }
-
     public String getUsernameFromToken(String token) {
         final DecodedJWT jwt = JWT.decode(token);
         return jwt.getSubject();
+    }
+
+    public String resolveToken(HttpServletRequest req) {
+        String bearerToken = req.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     public static FirebaseToken verifyIdToken(String idToken) throws FirebaseAuthException {

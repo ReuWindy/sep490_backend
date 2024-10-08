@@ -42,7 +42,6 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
     }
 
-
     @Override
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
@@ -97,7 +96,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegistrationResponse registration(RegistrationRequest registrationRequest) {
 
-        //userValidationService.validateUser(registrationRequest);
+        userValidationService.validateUser(registrationRequest);
 
         final User user = userMapper.convertToUser(registrationRequest);
 
@@ -113,8 +112,6 @@ public class UserServiceImpl implements UserService {
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
 
-        log.info("{} registered successfully!", username);
-
         return new RegistrationResponse(registrationSuccessMessage);
     }
 
@@ -127,7 +124,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
-        log.info("{} registered successfully!", username);
         return new RegistrationResponse(registrationSuccessMessage);
     }
 
