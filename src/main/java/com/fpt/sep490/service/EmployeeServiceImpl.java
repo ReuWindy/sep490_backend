@@ -18,15 +18,13 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
-    private final UserTypeRepository userTypeRepository;
     private final SalaryDetailRepository salaryDetailRepository;
 
     private final RoleRepository roleRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, UserTypeRepository userTypeRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository){
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository){
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
-        this.userTypeRepository = userTypeRepository;
         this.roleRepository = roleRepository;
         this.salaryDetailRepository = salaryDetailRepository;
     }
@@ -56,8 +54,6 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public Employee createEmployee(EmployeeDTO employeeDTO) {
 
-        // Find UserType by id
-        UserType userType = userTypeRepository.findById(employeeDTO.getUserTypeId()).orElseThrow(() -> new RuntimeException("UserType not found"));
 
         // Find employeeRole by id
         EmployeeRole employeeRole = employeeRoleRepository.findById(employeeDTO.getEmployeeRoleId()).orElseThrow(() ->new RuntimeException("Employee Role not found"));
@@ -81,13 +77,13 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setFullName(employeeDTO.getFullName());
         employee.setUsername(employeeDTO.getUsername());
         employee.setPassword(employeeDTO.getPassword());
-        employee.setPhoneNumber(employeeDTO.getPhoneNumber());
+        employee.setPhone(employeeDTO.getPhoneNumber());
         employee.setEmail(employeeDTO.getEmail());
         employee.setAddress(employeeDTO.getAddress());
         employee.setCreateAt(new Date());
         employee.setUpdateAt(new Date());
         employee.setActive(true);
-        employee.setUserType(userType);
+        employee.setUserType(UserType.ROLE_EMPLOYEE);
 
         // set attributes of Employee
         employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
@@ -108,7 +104,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         if(existingEmployee != null){
             existingEmployee.setFullName(employee.getFullName());
             existingEmployee.setEmail(employee.getEmail());
-            existingEmployee.setPhoneNumber(employee.getPhoneNumber());
+            existingEmployee.setPhone(employee.getPhone());
             existingEmployee.setAddress(employee.getAddress());
             existingEmployee.setBankName(employee.getBankName());
             existingEmployee.setBankNumber(employee.getBankNumber());

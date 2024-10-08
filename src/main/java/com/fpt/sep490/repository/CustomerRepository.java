@@ -9,11 +9,11 @@ import java.util.List;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    @Query("SELECT u.fullName, u.email, u.phoneNumber, u.address, SUM(ct.amount) AS contractPrice " +
+    @Query("SELECT u.fullName, u.email, u.phone, u.address, SUM(ct.amount) AS contractPrice " +
             "FROM User u " +
             "JOIN Customer c ON u.id = c.id " +
             "LEFT JOIN Contract ct ON c.id = ct.customer.id " +
-            "GROUP BY u.id, u.fullName, u.email, u.phoneNumber, u.address")
+            "GROUP BY u.id, u.fullName, u.email, u.phone, u.address")
     List<CustomerDto> findAllCustomerWithContractPrice();
 
 
