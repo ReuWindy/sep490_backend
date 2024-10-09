@@ -37,8 +37,7 @@ public class Product {
     private UnitOfMeasure unitOfMeasure;
     private Date createAt;
     private Date updateAt;
-    private Boolean
-            isDeleted;
+    private Boolean isDeleted;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

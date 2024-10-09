@@ -17,6 +17,11 @@ public class BatchProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    private int quantity;
+    private double price;
+    private double weight;
+    private String unit;
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "batch_id")
@@ -26,7 +31,7 @@ public class BatchProduct {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private int quantity;
-    private double weight;
-    private double price;
+    @ManyToOne
+    @JoinColumn(name = "discount_id")
+    private Discount discount;
 }

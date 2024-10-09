@@ -3,7 +3,6 @@ package com.fpt.sep490.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
 import java.util.Set;
 
 @Getter
@@ -30,7 +29,4 @@ public class SupplierProduct {
 
     @OneToMany(mappedBy = "supplierProduct", cascade = CascadeType.ALL)
     private Set<Discount> discounts;
-
-    @OneToMany(mappedBy = "supplierProduct", cascade = CascadeType.ALL)
-    private Set<Promotion> promotions;
 }
