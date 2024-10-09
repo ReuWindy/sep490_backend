@@ -5,5 +5,5 @@ import com.fpt.sep490.model.Batch;
 import com.fpt.sep490.model.BatchProduct;
 
 public interface BatchProductService {
-    BatchProduct createBatchProduct(BatchProductDto batchProductDto);
+    BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchId);
 }

@@ -26,6 +26,4 @@ public class ProductWarehouse {
     @ManyToOne
     @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
-
-    private double quantity;
 }

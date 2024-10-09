@@ -23,24 +23,17 @@ import java.util.Set;
 @Table(name = "batchs")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Batch {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     private String batchCode;
-    private int numberOfBags;
-    private double totalWeight;
-    private double totalPrice;
-
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    private LocalDateTime importDate;
+    private String batchStatus;
 
     @ManyToOne
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
-
-    private Date importDate;
 
     @ManyToOne
     @JoinColumn(name = "warehouse_id")
@@ -53,5 +46,7 @@ public class Batch {
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<BatchProduct> batchProducts;
 
-    private boolean isDamaged;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User batchCreator;
 }

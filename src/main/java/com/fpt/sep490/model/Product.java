@@ -33,16 +33,15 @@ public class Product {
     private Supplier supplier;
 
     @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @ManyToOne
     @JoinColumn(name = "unit_of_measure_id")
     private UnitOfMeasure unitOfMeasure;
     private Date createAt;
     private Date updateAt;
-    private Boolean
-            isDeleted;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProductWarehouse> productWarehouses;

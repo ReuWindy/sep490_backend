@@ -1,6 +1,5 @@
 package com.fpt.sep490.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,9 +15,12 @@ import java.util.Set;
 @Table(name = "customers")
 public class Customer extends User {
     private String name;
+    boolean isSupporter= false;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
     private Set<Contract> contracts = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name = "discount_id")
+    private Discount discount;
 }

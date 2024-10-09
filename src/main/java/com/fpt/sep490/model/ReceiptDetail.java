@@ -3,6 +3,9 @@ package com.fpt.sep490.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -20,8 +23,6 @@ public class ReceiptDetail {
     private WarehouseReceipt warehouseReceipt;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-
-    private double quantity;
+    @JoinColumn(name = "batch_id")
+    private Batch batch;
 }

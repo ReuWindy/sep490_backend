@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fpt.sep490.Enum.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,11 +20,12 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    private Order order;  // Đơn hàng liên quan
+    private Order order;
 
     private double amount;
     private Date transactionDate;
     private String paymentMethod;
 
-    private String status;  // Trạng thái giao dịch (success, failed, pending)
+    @Enumerated(EnumType.STRING)
+    private StatusEnum status;
 }

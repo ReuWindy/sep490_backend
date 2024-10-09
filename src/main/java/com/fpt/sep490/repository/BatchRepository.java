@@ -12,6 +12,4 @@ import java.util.Optional;
 public interface BatchRepository extends JpaRepository<Batch,Long> {
     Batch findByBatchCode(String name);
     Optional<Batch> findFirstBySupplier(Supplier supplier);
-    Optional<Batch> findFirstByProduct(Product product);
-    List<Batch> findAllByImportDate(Date date);
 }

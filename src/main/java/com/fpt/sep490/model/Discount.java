@@ -3,6 +3,8 @@ package com.fpt.sep490.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -14,10 +16,18 @@ public class Discount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(name = "description")
+    private String description;
+    @Column(name = "amount_per_unit")
+    private double amountPerUnit;
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+    @Column(name = "is_active")
+    private boolean isActive = true;
 
     @ManyToOne
     @JoinColumn(name = "supplier_product_id")
-    private SupplierProduct supplierProduct;  // Liên kết đến sản phẩm của nhà cung cấp
-
-    private double discountPercentage;  // Phần trăm chiết khấu
+    private SupplierProduct supplierProduct;
 }
