@@ -14,13 +14,13 @@ public class EmployeeSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             if (employeeCode != null && !employeeCode.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("name"), "%" + employeeCode + "%"));
+                predicates.add(criteriaBuilder.like(root.get("employeeCode"), "%" + employeeCode + "%"));
             }
             if (fullName != null && !fullName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + fullName + "%"));
+                predicates.add(criteriaBuilder.like(root.get("fullName"), "%" + fullName + "%"));
             }
             if (phoneNumber != null && !phoneNumber.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("email"), "%" + phoneNumber + "%"));
+                predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + phoneNumber + "%"));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

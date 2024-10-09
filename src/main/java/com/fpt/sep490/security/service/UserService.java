@@ -18,7 +18,7 @@ public interface UserService {
     User updateUserProfile(String token, UserDto userDto);
     User changePassword(String token, PasswordRequest request);
     RegistrationResponse registration(RegistrationRequest registrationRequest);
-    RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType);
+    RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, long employeeRoleId);
     AuthenticatedUserDto findAuthenticatedUserByUsername(String username);
     boolean sendPasswordToEmail(String email);
     User findByPhoneNumber(String phoneNumber);

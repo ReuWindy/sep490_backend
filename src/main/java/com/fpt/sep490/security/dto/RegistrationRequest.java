@@ -1,5 +1,7 @@
 package com.fpt.sep490.security.dto;
 
+import com.fpt.sep490.Enum.SalaryType;
+import com.fpt.sep490.model.EmployeeRole;
 import com.fpt.sep490.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -23,4 +25,9 @@ public class RegistrationRequest {
     @NotEmpty(message = "{registration_email_not_empty}")
     private String email;
     private String address;
+    private String description;
+    private SalaryType salaryType;
+    private double dailyWage;
+    private String bankName;
+    private String bankNumber;
 }

@@ -43,7 +43,7 @@ public class SecurityConfiguration {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                             .requestMatchers("/register", "/login/loginRequest","/swagger-ui","/user/**", "/employees/**").permitAll()
-                            .requestMatchers("/suppliers/**","/categories/**").hasRole("ADMIN"))
+                            .requestMatchers("/suppliers/**","/categories/**","/employees/**").hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {

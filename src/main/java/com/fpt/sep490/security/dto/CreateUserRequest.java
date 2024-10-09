@@ -1,5 +1,7 @@
 package com.fpt.sep490.security.dto;
 
+import com.fpt.sep490.Enum.SalaryType;
+import com.fpt.sep490.model.EmployeeRole;
 import com.fpt.sep490.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -26,5 +28,11 @@ public class CreateUserRequest {
     private String address;
     private Date dateOfBirth;
     private UserType userType;
+    private long employeeRoleId;
+    private String description;
+    private SalaryType salaryType;
+    private double dailyWage;
+    private String bankName;
+    private String bankNumber;
 }
 

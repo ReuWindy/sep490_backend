@@ -2,9 +2,8 @@ package com.fpt.sep490.security.service;
 
 import com.fpt.sep490.dto.PasswordRequest;
 import com.fpt.sep490.dto.UserDto;
-import com.fpt.sep490.model.User;
-import com.fpt.sep490.model.UserType;
-import com.fpt.sep490.repository.UserRepository;
+import com.fpt.sep490.model.*;
+import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.dto.AuthenticatedUserDto;
 import com.fpt.sep490.security.dto.RegistrationRequest;
 import com.fpt.sep490.security.dto.RegistrationResponse;
@@ -12,12 +11,14 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.security.mapper.UserMapper;
 import com.fpt.sep490.service.UserValidationService;
 import com.fpt.sep490.utils.GeneralMessageAccessor;
+import com.fpt.sep490.utils.RandomEmployeeCodeGenerator;
 import com.fpt.sep490.utils.RandomPasswordGenerator;
 import com.fpt.sep490.utils.SendMail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -31,8 +32,12 @@ public class UserServiceImpl implements UserService {
     private final GeneralMessageAccessor generalMessageAccessor;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final SalaryDetailRepository salaryDetailRepository;
+    private final RoleRepository roleRepository;
+    private final EmployeeRoleRepository employeeRoleRepository;
+    private final EmployeeRepository employeeRepository;
 
-    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository,EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository) {
         this.jwtTokenManager = jwtTokenManager;
         this.sendMail = sendMail;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -40,6 +45,10 @@ public class UserServiceImpl implements UserService {
         this.generalMessageAccessor = generalMessageAccessor;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.salaryDetailRepository = salaryDetailRepository;
+        this.roleRepository = roleRepository;
+        this.employeeRoleRepository = employeeRoleRepository;
+        this.employeeRepository = employeeRepository;
     }
 
     @Override
@@ -116,12 +125,53 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType) {
+    public RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, long employeeRoleId) {
         userValidationService.validateUser(registrationRequest);
-        final User user = userMapper.convertToUser(registrationRequest);
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        user.setUserType(userType);
-        userRepository.save(user);
+        if(userType == UserType.ROLE_EMPLOYEE){
+
+            // find employee role by id
+            EmployeeRole employeeRole = employeeRoleRepository.findById(employeeRoleId).orElseThrow(() ->new RuntimeException("Employee Role not found"));
+
+            // set attributes of salary detail
+            SalaryDetail salaryDetail = new SalaryDetail();
+            salaryDetail.setSalaryType(registrationRequest.getSalaryType());
+            salaryDetail.setDailyWage(registrationRequest.getDailyWage());
+            salaryDetail.setDaysWorked(0);
+            salaryDetail.setMonthlySalary(0);
+
+            // set attributes of role
+            Role role = new Role();
+            role.setSalaryDetail(salaryDetail);
+            role.setEmployeeRole(employeeRole);
+            role.setDescription(registrationRequest.getDescription());
+
+            // set attributes of employee
+            Employee employee = new Employee();
+            employee.setFullName(registrationRequest.getName());
+            employee.setUsername(registrationRequest.getUsername());
+            employee.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
+            employee.setPhone(registrationRequest.getPhone());
+            employee.setEmail(registrationRequest.getEmail());
+            employee.setAddress(registrationRequest.getAddress());
+            employee.setActive(true);
+            employee.setUserType(userType);
+
+            // set attributes of Employee
+            employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
+            employee.setJoinDate(new Date());
+            employee.setBankName(registrationRequest.getBankName());
+            employee.setBankNumber(registrationRequest.getBankNumber());
+            employee.setRole(role);
+
+            salaryDetailRepository.save(salaryDetail);
+            roleRepository.save(role);
+            employeeRepository.save(employee);
+        }else{
+            final User user = userMapper.convertToUser(registrationRequest);
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            user.setUserType(userType);
+            userRepository.save(user);
+        }
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
         return new RegistrationResponse(registrationSuccessMessage);
