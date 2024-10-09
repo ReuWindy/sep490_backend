@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 
 @Mapper(componentModel = "spring",unmappedTargetPolicy = ReportingPolicy.IGNORE)
-
 public interface UserMapper {
     //UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
