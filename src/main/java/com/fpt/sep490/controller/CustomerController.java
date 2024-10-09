@@ -23,7 +23,7 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<?> getAllCustomerWithContractPrice(){
         List<CustomerDto> customers = customerService.getAllCustomersWithContractPrice();
         if(!customers.isEmpty()){
@@ -42,14 +42,19 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @PostMapping("/createContract")
+    @PostMapping("/createCustomer")
     public ResponseEntity<?> createCustomer(@RequestBody Customer customer) {
         return null;
     }
 
-    @PostMapping("/updateContract")
+    @PostMapping("/updateCustomer")
     public ResponseEntity<?> updateCustomer(@RequestBody Customer customer) {
-       return null;
+        Customer existingCustomer = customerService.updateCustomer(customer);
+        if(existingCustomer != null){
+            return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST,LocalDateTime.now());
+       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
 }
