@@ -23,23 +23,29 @@ import java.util.Set;
 @Table(name = "batchs")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Batch {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String batchCode;
+    private LocalDateTime importDate;
+    private String batchStatus;
+
     @ManyToOne
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
-    private Date importDate;
+
     @ManyToOne
     @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
+
     @ManyToOne
     @JoinColumn(name = "warehouse_receipt_id")
     private WarehouseReceipt warehouseReceipt;
+
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<BatchProduct> batchProducts;
-    private String batchStatus;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User batchCreator;

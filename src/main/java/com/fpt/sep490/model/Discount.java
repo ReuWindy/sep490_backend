@@ -26,4 +26,8 @@ public class Discount {
     private LocalDateTime endDate;
     @Column(name = "is_active")
     private boolean isActive = true;
+
+    @ManyToOne
+    @JoinColumn(name = "supplier_product_id")
+    private SupplierProduct supplierProduct;
 }

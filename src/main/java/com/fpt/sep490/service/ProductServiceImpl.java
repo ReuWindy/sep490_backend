@@ -6,7 +6,6 @@ import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -69,13 +68,12 @@ public class ProductServiceImpl implements ProductService {
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
-            productWarehouse.setQuantity(0);  // Gán số lượng ban đầu, có thể cập nhật sau
 
             // Lưu ProductWarehouse
             productWareHouseRepository.save(productWarehouse);
         }
 
-        return savedProduct; // Trả về product sau khi đã lưu và tạo ProductWarehouse
+        return savedProduct;
     }
 
     public List<Product> getProductsByWarehouse(Long warehouseId) {
@@ -110,12 +108,6 @@ public class ProductServiceImpl implements ProductService {
         product.setUnitOfMeasure(unitOfMeasure);
 
         return productRepository.save(product);
-    }
-
-    @Override
-    public double getTotalProductQuantity(long productId) {
-        List<ProductWarehouse> productWarehouses = productWareHouseRepository.findByProductId(productId);
-        return productWarehouses.stream().mapToDouble(ProductWarehouse::getQuantity).sum();
     }
 
     private ProductDto toDto(Product product) {

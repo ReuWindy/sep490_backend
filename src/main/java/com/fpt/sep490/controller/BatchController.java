@@ -75,20 +75,5 @@ public class BatchController {
         ApiExceptionResponse response = new ApiExceptionResponse("Batch Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
-    @GetMapping("/product/{code}")
-    public ResponseEntity<?> getBatchByProductCode(@PathVariable String code) {
-        Batch batch = batchService.getBatchByProductCode(code);
-        if (batch != null) {
-            return ResponseEntity.ok(batch);
-        }
-        ApiExceptionResponse response = new ApiExceptionResponse("Batch Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
-    @GetMapping("/pruducts")
-    public ResponseEntity<?> getPruductsByBatchCode(@RequestParam String batchCode) {
-        return null;
-    }
 }
 

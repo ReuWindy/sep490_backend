@@ -20,7 +20,6 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         ProductWarehouse productWarehouse = new ProductWarehouse();
         productWarehouse.setProduct(productRepository.findById(productWarehouseDto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found")));
-        productWarehouse.setQuantity(productWarehouseDto.getQuantity());
         productWarehouse.setWarehouse(warehouseRepository.findById(productWarehouseDto.getWarehouseId())
                 .orElseThrow(() -> new RuntimeException("Warehouse not found")));
         return productWarehouse;

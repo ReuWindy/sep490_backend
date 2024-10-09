@@ -42,8 +42,8 @@ public class SecurityConfiguration {
             http
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
-                            .requestMatchers("/register", "/login/loginRequest","/swagger-ui","/user/**", "/employees/**").permitAll()
-                            .requestMatchers("/suppliers/**","/categories/**").hasRole("ADMIN"))
+                            .requestMatchers("/register", "/login/loginRequest","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/user/**", "/employees/**", "/actuator/**").permitAll()
+                            .requestMatchers("/suppliers/**","/categories/**", "/batchproducts/**", "/products/**", "/WarehouseReceipt/**" ).hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {

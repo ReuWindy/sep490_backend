@@ -56,11 +56,6 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @GetMapping("/{id}/totalQuantity")
-    public ResponseEntity<?> getTotalProductQuantity(@PathVariable long id) {
-        double totalQuantity = productService.getTotalProductQuantity(id);
-        return ResponseEntity.status(HttpStatus.OK).body(totalQuantity);
-    }
 
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<List<Product>> getProductsByWarehouse(@PathVariable Long warehouseId) {

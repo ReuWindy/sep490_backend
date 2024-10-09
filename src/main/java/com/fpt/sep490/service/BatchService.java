@@ -13,8 +13,6 @@ public interface BatchService {
     Batch updateBatch(Long batchId, BatchDto batchDto);
     Batch getBatchByBatchCode(String code);
     Batch getBatchBySupplierName(String supplierName);
-    Batch getBatchByProductCode(String code);
-    List<Batch> getBatchesByImportDate(Date importDate);
 }
 
 
