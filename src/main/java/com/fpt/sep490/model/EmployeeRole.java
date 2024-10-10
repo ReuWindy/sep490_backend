@@ -15,6 +15,6 @@ public class EmployeeRole {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(columnDefinition = "NVARCHAR(255)", nullable = false, unique = true)
+    @Column(name = "role_name",columnDefinition = "NVARCHAR(255)", nullable = false, unique = true)
     private String roleName;
 }

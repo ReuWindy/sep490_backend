@@ -3,6 +3,7 @@ package com.fpt.sep490.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,8 +28,16 @@ public class Batch {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(name = "batch_code")
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]")
     private String batchCode;
+
+    @Column(name = "import_date")
     private LocalDateTime importDate;
+
+    @Column(name = "batch_status")
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]")
     private String batchStatus;
 
     @ManyToOne

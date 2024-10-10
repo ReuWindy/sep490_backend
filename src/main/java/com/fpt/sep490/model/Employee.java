@@ -20,14 +20,17 @@ public class Employee extends User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(unique = true)
+    @Column(name = "epmloyee_code", unique = true)
     private String employeeCode;
 
-
+    @Column(name = "employee_join_date")
     private Date joinDate;
+
+    @Column(name = "category_bank_name")
     private String bankName;
+
+    @Column(name = "employee_bank_number")
     private String bankNumber;
-    private boolean isActive;
 
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

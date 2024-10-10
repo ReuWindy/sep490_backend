@@ -137,11 +137,6 @@ public class UserController {
         request.setUsername(createUserRequest.getUsername());
         request.setAddress(createUserRequest.getAddress());
         request.setPassword(createUserRequest.getPassword());
-        request.setSalaryType(createUserRequest.getSalaryType());
-        request.setDailyWage(createUserRequest.getDailyWage());
-        request.setDescription(createUserRequest.getDescription());
-        request.setBankName(createUserRequest.getBankName());
-        request.setBankNumber(createUserRequest.getBankNumber());
         final RegistrationResponse registrationResponse = userService.createUserByAdmin(request, createUserRequest.getUserType(), createUserRequest.getEmployeeRoleId());
         return ResponseEntity.status(HttpStatus.CREATED).body(registrationResponse);
     }

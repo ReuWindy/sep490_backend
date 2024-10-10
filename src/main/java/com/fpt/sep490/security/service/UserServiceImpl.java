@@ -17,9 +17,12 @@ import com.fpt.sep490.utils.SendMail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponse;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -105,76 +108,34 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegistrationResponse registration(RegistrationRequest registrationRequest) {
 
-        userValidationService.validateUser(registrationRequest);
+        RegistrationResponse errorResponse = userValidationService.validateUser(registrationRequest);
+        if (errorResponse.getMessage().isEmpty()) {
+            final User user = userMapper.convertToUser(registrationRequest);
 
-        final User user = userMapper.convertToUser(registrationRequest);
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password cannot be null or empty");
+            }
 
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            throw new IllegalArgumentException("Password cannot be null or empty");
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            user.setFullName(registrationRequest.getName());
+            user.setCreateAt(new Date());
+            user.setActive(true);
+            user.setUserType(UserType.ROLE_CUSTOMER);
+
+            userRepository.save(user);
+
+            final String username = registrationRequest.getUsername();
+            final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
+
+            return new RegistrationResponse(registrationSuccessMessage);
+        }else {
+            return errorResponse;
         }
-
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        user.setUserType(UserType.ROLE_CUSTOMER);
-
-        userRepository.save(user);
-
-        final String username = registrationRequest.getUsername();
-        final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
-
-        return new RegistrationResponse(registrationSuccessMessage);
     }
 
     @Override
     public RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, long employeeRoleId) {
-        userValidationService.validateUser(registrationRequest);
-        if(userType == UserType.ROLE_EMPLOYEE){
-
-            // find employee role by id
-            EmployeeRole employeeRole = employeeRoleRepository.findById(employeeRoleId).orElseThrow(() ->new RuntimeException("Employee Role not found"));
-
-            // set attributes of salary detail
-            SalaryDetail salaryDetail = new SalaryDetail();
-            salaryDetail.setSalaryType(registrationRequest.getSalaryType());
-            salaryDetail.setDailyWage(registrationRequest.getDailyWage());
-            salaryDetail.setDaysWorked(0);
-            salaryDetail.setMonthlySalary(0);
-
-            // set attributes of role
-            Role role = new Role();
-            role.setSalaryDetail(salaryDetail);
-            role.setEmployeeRole(employeeRole);
-            role.setDescription(registrationRequest.getDescription());
-
-            // set attributes of employee
-            Employee employee = new Employee();
-            employee.setFullName(registrationRequest.getName());
-            employee.setUsername(registrationRequest.getUsername());
-            employee.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
-            employee.setPhone(registrationRequest.getPhone());
-            employee.setEmail(registrationRequest.getEmail());
-            employee.setAddress(registrationRequest.getAddress());
-            employee.setActive(true);
-            employee.setUserType(userType);
-
-            // set attributes of Employee
-            employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
-            employee.setJoinDate(new Date());
-            employee.setBankName(registrationRequest.getBankName());
-            employee.setBankNumber(registrationRequest.getBankNumber());
-            employee.setRole(role);
-
-            salaryDetailRepository.save(salaryDetail);
-            roleRepository.save(role);
-            employeeRepository.save(employee);
-        }else{
-            final User user = userMapper.convertToUser(registrationRequest);
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            user.setUserType(userType);
-            userRepository.save(user);
-        }
-        final String username = registrationRequest.getUsername();
-        final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
-        return new RegistrationResponse(registrationSuccessMessage);
+        return null;
     }
 
     @Override

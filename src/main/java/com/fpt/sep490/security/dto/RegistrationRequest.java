@@ -21,13 +21,9 @@ public class RegistrationRequest {
     private String password;
     private String passwordConfirmation;
     private String phone;
+    private boolean active = true;
     @Email(message = "{registration_email_is_not_valid}")
     @NotEmpty(message = "{registration_email_not_empty}")
     private String email;
     private String address;
-    private String description;
-    private SalaryType salaryType;
-    private double dailyWage;
-    private String bankName;
-    private String bankNumber;
 }

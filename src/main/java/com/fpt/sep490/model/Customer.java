@@ -15,6 +15,7 @@ import java.util.Set;
 @Table(name = "customers")
 public class Customer extends User {
     private String name;
+    @Column(name = "customer_supporter")
     boolean isSupporter= false;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

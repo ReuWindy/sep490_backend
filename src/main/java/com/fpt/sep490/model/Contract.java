@@ -18,8 +18,13 @@ public class Contract {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String contractNumber; // Số hợp đồng
-    private Date contractTime;  // thời gian ký kết
+    @Column(name = "contract_number")
+    private String contractNumber;
+
+    @Column(name = "contract_time")// Số hợp đồng
+    private Date contractTime;
+
+    @Column(name = "contract_amount")// thời gian ký kết
     private double amount;          // Giá trị hợp đồng
 
     @ManyToOne
