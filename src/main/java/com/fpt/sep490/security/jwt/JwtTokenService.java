@@ -19,7 +19,6 @@ public class JwtTokenService {
     private final JwtTokenManager jwtTokenManager;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
-    private final UserMapper userMapper;
 
     public LoginResponse getLoginResponse(LoginRequest loginRequest) {
 
@@ -32,7 +31,7 @@ public class JwtTokenService {
 
         final AuthenticatedUserDto authenticatedUserDto = userService.findAuthenticatedUserByUsername(username);
 
-        final User user = userMapper.convertToUser(authenticatedUserDto);
+        final User user = UserMapper.INSTANCE.convertToUser(authenticatedUserDto);
         final String token = jwtTokenManager.generateToken(user);
 
         log.info("{} has successfully logged in!", user.getUsername());
