@@ -35,15 +35,25 @@ public class UserServiceImpl implements UserService {
     private final UserValidationService userValidationService;
     private final GeneralMessageAccessor generalMessageAccessor;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final SalaryDetailRepository salaryDetailRepository;
+    private final RoleRepository roleRepository;
+    private final EmployeeRoleRepository employeeRoleRepository;
+    private final EmployeeRepository employeeRepository;
 
 
-    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository) {
+    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository,EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository) {
         this.jwtTokenManager = jwtTokenManager;
         this.sendMail = sendMail;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userValidationService = userValidationService;
         this.generalMessageAccessor = generalMessageAccessor;
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.salaryDetailRepository = salaryDetailRepository;
+        this.roleRepository = roleRepository;
+        this.employeeRoleRepository = employeeRoleRepository;
+        this.employeeRepository = employeeRepository;
 
     }
 
