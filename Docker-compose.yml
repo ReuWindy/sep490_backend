@@ -9,7 +9,7 @@ services:
       MYSQL_USER: edward
       MYSQL_PASSWORD: ku9456123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
@@ -23,7 +23,7 @@ services:
     depends_on:
       - mysql-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/SEP490
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3307/SEP490
       SPRING_DATASOURCE_USERNAME: edward
       SPRING_DATASOURCE_PASSWORD: ku9456123
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
