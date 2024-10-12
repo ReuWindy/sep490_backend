@@ -1,15 +1,15 @@
-version: '3.8'
+version: "3.8"
+
 services:
   mysql-db:
-    image: mysql:8.0
-    container_name: mysql-container
+    image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: ku9456123
       MYSQL_DATABASE: SEP490
       MYSQL_USER: edward
       MYSQL_PASSWORD: ku9456123
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
@@ -19,14 +19,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: spring-container
     depends_on:
       - mysql-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3307/SEP490
-      SPRING_DATASOURCE_USERNAME: edward
-      SPRING_DATASOURCE_PASSWORD: ku9456123
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
     networks:

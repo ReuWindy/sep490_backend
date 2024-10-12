@@ -45,5 +45,5 @@ public class News {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    private User createBy;
 }
