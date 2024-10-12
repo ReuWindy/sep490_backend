@@ -5,6 +5,7 @@ import com.fpt.sep490.dto.UserDto;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
 import com.fpt.sep490.security.dto.AuthenticatedUserDto;
+import com.fpt.sep490.security.dto.CreateUserRequest;
 import com.fpt.sep490.security.dto.RegistrationRequest;
 import com.fpt.sep490.security.dto.RegistrationResponse;
 
@@ -18,7 +19,7 @@ public interface UserService {
     User updateUserProfile(String token, UserDto userDto);
     User changePassword(String token, PasswordRequest request);
     RegistrationResponse registration(RegistrationRequest registrationRequest);
-    RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, long employeeRoleId);
+    RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, CreateUserRequest createUserRequest);
     AuthenticatedUserDto findAuthenticatedUserByUsername(String username);
     boolean sendPasswordToEmail(String email);
     User findByPhoneNumber(String phoneNumber);

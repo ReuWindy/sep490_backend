@@ -23,8 +23,8 @@ public class CreateUserRequest {
     @NotEmpty(message = "{registration_username_not_empty}")
     private String username;
     @NotEmpty(message = "{registration_password_not_empty}")
-    private boolean active = true;
     private String password;
+    private boolean active = true;
     private String phone;
     private String address;
     private Date dateOfBirth;
