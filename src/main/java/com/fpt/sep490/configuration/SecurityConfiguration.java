@@ -43,7 +43,7 @@ public class SecurityConfiguration {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                             .requestMatchers("/register", "/login/loginRequest","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/user/**", "/employees/**", "/actuator/**").permitAll()
-                            .requestMatchers("/suppliers/**","/categories/**", "/batchproducts/**", "/products/**", "/WarehouseReceipt/**", "/employeerole/**" ).hasRole("ADMIN"))
+                            .requestMatchers("/suppliers/**","/categories/**", "/batchproducts/**", "/products/**", "/WarehouseReceipt/**", "/employeerole/**", "/news/" ).hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
@@ -51,7 +51,9 @@ public class SecurityConfiguration {
                         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
-                                RequestMethod.POST.name()
+                                RequestMethod.POST.name(),
+                                RequestMethod.PUT.name(),
+                                RequestMethod.DELETE.name()
                         ));
                         corsConfiguration.setAllowCredentials(true);
                         corsConfiguration.setAllowedHeaders(List.of("*"));
