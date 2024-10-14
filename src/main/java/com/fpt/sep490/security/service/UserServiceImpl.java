@@ -165,6 +165,8 @@ public class UserServiceImpl implements UserService {
             employee.setPhone(registrationRequest.getPhone());
             employee.setEmail(registrationRequest.getEmail());
             employee.setAddress(registrationRequest.getAddress());
+            employee.setDob(createUserRequest.getDateOfBirth());
+            employee.setGender(createUserRequest.isGender());
             employee.setUserType(userType);
 
             // set attributes of Employee

@@ -49,4 +49,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_type",length = 50)
     private UserType userType;
+
+    @Column(name = "dob")
+    private Date dob;
+
+    @Column(name = "gender")
+    private boolean gender;
 }

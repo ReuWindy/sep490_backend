@@ -2,9 +2,13 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.CustomerDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.Customer;
+import com.fpt.sep490.model.User;
 import com.fpt.sep490.service.CustomerService;
+import org.springframework.data.domain.Page;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,16 +29,30 @@ public class CustomerController {
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllCustomerWithContractPrice(){
-        List<CustomerDto> customers = customerService.getAllCustomersWithContractPrice();
+        List<CustomerDto> customers = customerService.getAllCustomers();
         if(!customers.isEmpty()){
             return ResponseEntity.status(HttpStatus.OK).body(customers);
         }
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
+    @GetMapping("/")
+    public ResponseEntity<PagedModel<EntityModel<Customer>>> getAllCustomerByFilter(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            PagedResourcesAssembler<Customer> pagedResourcesAssembler){
+        Page<Customer> customerPage = customerService.getSupplierByFilter(fullName, email, phone, pageNumber, pageSize);
+        PagedModel<EntityModel<Customer>> pagedModel = pagedResourcesAssembler.toModel(customerPage);
+
+        return ResponseEntity.ok(pagedModel);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getCustomerById(@PathVariable int id){
-        Customer customer = customerService.getCustomerById(id);
+        User customer = customerService.getCustomerById(id);
         if (customer != null) {
             return ResponseEntity.status(HttpStatus.OK).body(customer);
         }
@@ -49,7 +67,7 @@ public class CustomerController {
 
     @PostMapping("/updateCustomer")
     public ResponseEntity<?> updateCustomer(@RequestBody Customer customer) {
-        Customer existingCustomer = customerService.updateCustomer(customer);
+        User existingCustomer = customerService.updateCustomer(customer);
         if(existingCustomer != null){
             return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
         }
