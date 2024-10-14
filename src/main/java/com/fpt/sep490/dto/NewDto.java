@@ -3,13 +3,12 @@ package com.fpt.sep490.dto;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.Set;
-
 @Data
-public class ProductDto {
-    private long id;
+public class NewDto {
     private String name;
-    private String description;
-    private double price;
     private String image;
+    private String type;
+    private String description;
+    private String content;
+    private int userId;
 }

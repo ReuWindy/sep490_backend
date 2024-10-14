@@ -88,6 +88,7 @@ public class UserServiceImpl implements UserService {
         String username = jwtTokenManager.getUsernameFromToken(token);
         User u = userRepository.findByUsername(userDto.getUsername());
         if(username.equals(u.getUsername())){
+            u.setImage(userDto.getImage());
             u.setAddress(userDto.getAddress());
             userRepository.save(u);
             return u;

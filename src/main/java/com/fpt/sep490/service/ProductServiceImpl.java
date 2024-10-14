@@ -44,35 +44,7 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
         product.setProductCode(RandomProductCodeGenerator.generateProductCode());
-
-        // Tìm supplier theo id
-        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-
-        // Tìm đơn vị đo lường (unitOfMeasure) theo id
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
-
-        product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
-
-        // Lưu product trước để có id
         Product savedProduct = productRepository.save(product);
-
-        // Nếu có warehouseId trong ProductDto, tạo ProductWarehouse
-        if (productDto.getWarehouseId() != null) {
-            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-
-            // Tạo ProductWarehouse và gán thông tin
-            ProductWarehouse productWarehouse = new ProductWarehouse();
-            productWarehouse.setProduct(savedProduct);
-            productWarehouse.setWarehouse(warehouse);
-
-            // Lưu ProductWarehouse
-            productWareHouseRepository.save(productWarehouse);
-        }
-
         return savedProduct;
     }
 
@@ -99,50 +71,6 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
 
-        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
-
-        product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
-
         return productRepository.save(product);
-    }
-
-    private ProductDto toDto(Product product) {
-        ProductDto productDto = new ProductDto();
-        productDto.setId(product.getId());
-        productDto.setName(product.getName());
-        productDto.setDescription(product.getDescription());
-        productDto.setPrice(product.getPrice());
-        productDto.setImage(product.getImage());
-        productDto.setProductCode(product.getProductCode());
-        productDto.setSupplierId(product.getSupplier().getId());
-        productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-        productDto.setCreateAt(product.getCreateAt());
-        productDto.setUpdateAt(product.getUpdateAt());
-        productDto.setIsDeleted(product.getIsDeleted());
-        return productDto;
-    }
-
-    private Product toModel(ProductDto productDto) {
-        Product product = new Product();
-        product.setId(productDto.getId());
-        product.setName(productDto.getName());
-        product.setDescription(productDto.getDescription());
-        product.setPrice(productDto.getPrice());
-        product.setImage(productDto.getImage());
-        product.setProductCode(productDto.getProductCode());
-
-        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
-
-        product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
-
-        return product;
     }
 }
