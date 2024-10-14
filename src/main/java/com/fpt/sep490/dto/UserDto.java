@@ -6,6 +6,7 @@ import lombok.Data;
 public class UserDto {
     private Long id;
     private String name;
+    private String image;
     private String phone;
     private String username;
     private String password = "No password for you pussy!!!";
