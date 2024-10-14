@@ -28,6 +28,7 @@ public class CreateUserRequest {
     private String phone;
     private String address;
     private Date dateOfBirth;
+    private boolean gender;
     private UserType userType;
     private long employeeRoleId;
     private String description;

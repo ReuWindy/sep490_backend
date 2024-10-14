@@ -61,9 +61,7 @@ public class SecurityConfiguration {
                         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
-                                RequestMethod.POST.name(),
-                                RequestMethod.PUT.name(),
-                                RequestMethod.DELETE.name()
+                                RequestMethod.POST.name()
                         ));
                         corsConfiguration.setAllowCredentials(true);
                         corsConfiguration.setAllowedHeaders(List.of("*"));

@@ -88,6 +88,7 @@ public class UserServiceImpl implements UserService {
         String username = jwtTokenManager.getUsernameFromToken(token);
         User u = userRepository.findByUsername(userDto.getUsername());
         if(username.equals(u.getUsername())){
+            u.setImage(userDto.getImage());
             u.setAddress(userDto.getAddress());
             userRepository.save(u);
             return u;
@@ -165,6 +166,8 @@ public class UserServiceImpl implements UserService {
             employee.setPhone(registrationRequest.getPhone());
             employee.setEmail(registrationRequest.getEmail());
             employee.setAddress(registrationRequest.getAddress());
+            employee.setDob(createUserRequest.getDateOfBirth());
+            employee.setGender(createUserRequest.isGender());
             employee.setUserType(userType);
 
             // set attributes of Employee

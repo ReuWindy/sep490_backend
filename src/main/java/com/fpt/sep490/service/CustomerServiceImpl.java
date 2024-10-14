@@ -1,13 +1,18 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.CustomerDto;
-import com.fpt.sep490.model.Customer;
-import com.fpt.sep490.model.Employee;
+import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.CustomerRepository;
+import com.fpt.sep490.repository.UserRepository;
 import jakarta.persistence.Tuple;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,20 +21,40 @@ import java.util.stream.Collectors;
 public class CustomerServiceImpl implements CustomerService{
 
     private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository){
+    public CustomerServiceImpl(CustomerRepository customerRepository, UserRepository userRepository){
         this.customerRepository = customerRepository;
+        this.userRepository = userRepository;
     }
     @Override
-    public List<CustomerDto> getAllCustomersWithContractPrice() {
-        List<Customer> customers = customerRepository.findAll();
-        return customers.stream().map(this::convertToDTO).collect(Collectors.toList());
+    public List<CustomerDto> getAllCustomers() {
+        List<User> users = userRepository.findAllByUserType(UserType.ROLE_CUSTOMER);
+        return users.stream().map(user -> {
+            if (user instanceof Customer) {
+                Customer customer = (Customer) user;
+                return convertCustomerToDTO(customer);
+            } else {
+                return convertUserToCustomerDTO(user);
+            }
+        }).collect(Collectors.toList());
     }
-
     @Override
-    public Customer getCustomerById(int id) {
-        Optional<Customer> customer = customerRepository.findById((long) id);
-        return customer.orElse(null);
+    public User getCustomerById(int id) {
+        Optional<User> customerOptional = userRepository.findById((long) id);
+        if(customerOptional.isPresent()){
+            User user = customerOptional.get();
+            if(user instanceof Customer){
+                Customer customer = (Customer) user;
+                if(customer.getContracts() != null){
+                    ((Customer) user).setContracts(customer.getContracts());
+                } else {
+                    ((Customer) user).setContracts(new HashSet<>());
+                }
+            }
+            return user;
+        }
+        return null;
     }
 
     @Override
@@ -38,13 +63,14 @@ public class CustomerServiceImpl implements CustomerService{
     }
 
     @Override
-    public Customer updateCustomer(Customer customer) {
-        Customer existingCustomer = customerRepository.findById(customer.getId()).orElse(null);
+    public User updateCustomer(User user) {
+        User existingCustomer = userRepository.findById(user.getId()).orElse(null);
         if(existingCustomer != null){
-            existingCustomer.setPhone(customer.getPhone());
-            existingCustomer.setFullName(customer.getFullName());
-            existingCustomer.setAddress(customer.getAddress());
-            customerRepository.save(existingCustomer);
+            existingCustomer.setPhone(user.getPhone());
+            existingCustomer.setFullName(user.getFullName());
+            existingCustomer.setAddress(user.getAddress());
+            existingCustomer.setEmail(user.getEmail());
+            userRepository.save(existingCustomer);
             return existingCustomer;
         }
         return null;
@@ -55,19 +81,56 @@ public class CustomerServiceImpl implements CustomerService{
         return null;
     }
 
-    private CustomerDto convertToDTO(Customer customer) {
-        double totalContractValue = customer.getContracts().stream()
-                .mapToDouble(contract -> contract.getAmount())
-                .sum();
-
-        return new CustomerDto(
-                customer.getId(),
-                customer.getName(),
-                customer.getPhone(),
-                customer.getEmail(),
-                customer.getAddress(),
-                totalContractValue
-        );
+    @Override
+    public Page<Customer> getSupplierByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
+        try {
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
+            return customerRepository.findAll(specification, pageable);
+        } catch (Exception e) {
+            return null;
+        }
     }
+
+    // Hàm chuyển đổi Customer sang CustomerDto
+    private CustomerDto convertCustomerToDTO(Customer customer) {
+        CustomerDto dto = new CustomerDto();
+        dto.setId(customer.getId());
+        dto.setFullName(customer.getFullName());
+        dto.setPhoneNumber(customer.getPhone());
+        dto.setEmail(customer.getEmail());
+        dto.setAddress(customer.getAddress());
+        dto.setContracts(customer.getContracts());
+        return dto;
+    }
+
+    // Hàm chuyển đổi User sang CustomerDto (dành cho người chưa có hợp đồng)
+    private CustomerDto convertUserToCustomerDTO(User user) {
+        CustomerDto dto = new CustomerDto();
+        dto.setId(user.getId());
+        dto.setFullName(user.getFullName());
+        dto.setEmail(user.getEmail());
+        dto.setAddress(user.getAddress());
+        dto.setContracts(new HashSet<>());
+        return dto;
+    }
+
+//    private CustomerDto convertToDTO(Customer customer) {
+//        double totalContractValue = 0;
+//        if(customer.getContracts() != null && !customer.getContracts().isEmpty()) {
+//            totalContractValue = customer.getContracts().stream()
+//                    .mapToDouble(contract -> contract.getAmount())
+//                    .sum();
+//        }
+//
+//        return new CustomerDto(
+//                customer.getId(),
+//                customer.getName(),
+//                customer.getPhone(),
+//                customer.getEmail(),
+//                customer.getAddress(),
+//                totalContractValue
+//        );
+//    }
 
 }

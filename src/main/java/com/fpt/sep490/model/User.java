@@ -21,6 +21,9 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "user_image")
+    private String image;
+
     @Column(name = "user_name")
     private String username;
 
@@ -49,4 +52,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_type",length = 50)
     private UserType userType;
+
+    @Column(name = "dob")
+    private Date dob;
+
+    @Column(name = "gender")
+    private boolean gender;
 }

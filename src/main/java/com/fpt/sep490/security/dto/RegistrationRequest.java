@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @Data
@@ -26,4 +28,6 @@ public class RegistrationRequest {
     @NotEmpty(message = "{registration_email_not_empty}")
     private String email;
     private String address;
+    private Date dob;
+    private boolean gender;
 }

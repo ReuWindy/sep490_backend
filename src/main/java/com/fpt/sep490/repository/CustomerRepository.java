@@ -2,7 +2,11 @@ package com.fpt.sep490.repository;
 
 import com.fpt.sep490.dto.CustomerDto;
 import com.fpt.sep490.model.Customer;
+import com.fpt.sep490.model.Supplier;
 import jakarta.persistence.Tuple;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -17,5 +21,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             "GROUP BY u.id, u.fullName, u.email, u.phone, u.address")
     List<Tuple> findAllCustomerWithContractPrice();
 
-
+    Page<Customer> findAll(Specification<Supplier> specification, Pageable pageable);
 }
