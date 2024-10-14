@@ -6,6 +6,8 @@ import com.fpt.sep490.security.dto.LoginRequest;
 import com.fpt.sep490.security.dto.LoginResponse;
 import com.fpt.sep490.security.mapper.UserMapper;
 import com.fpt.sep490.security.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +21,7 @@ public class JwtTokenService {
     private final JwtTokenManager jwtTokenManager;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    final int cookieExpirationDuration = 7*24*60*60;
 
     public LoginResponse getLoginResponse(LoginRequest loginRequest) {
 
@@ -33,7 +36,12 @@ public class JwtTokenService {
 
         final User user = UserMapper.INSTANCE.convertToUser(authenticatedUserDto);
         final String token = jwtTokenManager.generateToken(user);
-
+        Cookie cookie = new Cookie("token", token);
+        cookie.setMaxAge(cookieExpirationDuration);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        log.info("Cookie details: Name = {}, Value = {}, MaxAge = {}, HttpOnly = {}, Secure = {}, Path = {}", cookie.getName(), cookie.getValue(), cookie.getMaxAge(), cookie.isHttpOnly(), cookie.getSecure(), cookie.getPath());
         log.info("{} has successfully logged in!", user.getUsername());
 
         return new LoginResponse(token, user.getUserType(), user.getUsername());
