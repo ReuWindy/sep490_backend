@@ -12,12 +12,8 @@ public class ProductDto {
     private String description;
     private double price;
     private String image;
-    private String productCode;
     private Long supplierId;
     private Long unitOfMeasureId;
-    private Date createAt;
-    private Date updateAt;
-    private Boolean isDeleted;
     private Long warehouseId;
     private Long batchId;
 }

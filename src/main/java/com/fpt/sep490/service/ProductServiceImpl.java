@@ -4,6 +4,7 @@ import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -68,6 +69,8 @@ public class ProductServiceImpl implements ProductService {
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
+            product.setCreateAt(new Date());
+            product.setIsDeleted(false);
 
             // Lưu ProductWarehouse
             productWareHouseRepository.save(productWarehouse);
@@ -90,6 +93,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<Product> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, int pageNumber, int pageSize) {
+        return null;
+    }
+
+
+    @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -108,41 +117,5 @@ public class ProductServiceImpl implements ProductService {
         product.setUnitOfMeasure(unitOfMeasure);
 
         return productRepository.save(product);
-    }
-
-    private ProductDto toDto(Product product) {
-        ProductDto productDto = new ProductDto();
-        productDto.setId(product.getId());
-        productDto.setName(product.getName());
-        productDto.setDescription(product.getDescription());
-        productDto.setPrice(product.getPrice());
-        productDto.setImage(product.getImage());
-        productDto.setProductCode(product.getProductCode());
-        productDto.setSupplierId(product.getSupplier().getId());
-        productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-        productDto.setCreateAt(product.getCreateAt());
-        productDto.setUpdateAt(product.getUpdateAt());
-        productDto.setIsDeleted(product.getIsDeleted());
-        return productDto;
-    }
-
-    private Product toModel(ProductDto productDto) {
-        Product product = new Product();
-        product.setId(productDto.getId());
-        product.setName(productDto.getName());
-        product.setDescription(productDto.getDescription());
-        product.setPrice(productDto.getPrice());
-        product.setImage(productDto.getImage());
-        product.setProductCode(productDto.getProductCode());
-
-        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
-
-        product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
-
-        return product;
     }
 }

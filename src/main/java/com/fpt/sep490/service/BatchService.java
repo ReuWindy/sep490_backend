@@ -13,6 +13,7 @@ public interface BatchService {
     Batch updateBatch(Long batchId, BatchDto batchDto);
     Batch getBatchByBatchCode(String code);
     Batch getBatchBySupplierName(String supplierName);
+    void deleteBatch(Long batchId);
 }
 
 
