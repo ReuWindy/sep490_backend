@@ -53,53 +53,11 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     public Employee createEmployee(EmployeeDTO employeeDTO) {
-
-
-        // Find employeeRole by id
-        EmployeeRole employeeRole = employeeRoleRepository.findById(employeeDTO.getEmployeeRoleId()).orElseThrow(() ->new RuntimeException("Employee Role not found"));
-
-        // set attributes of salaryDetail
-        SalaryDetail salaryDetail = new SalaryDetail();
-        salaryDetail.setSalaryType(employeeDTO.getSalaryType());
-        salaryDetail.setDailyWage(employeeDTO.getDailyWage());
-        salaryDetail.setDaysWorked(0);
-        salaryDetail.setMonthlySalary(0);
-
-        // set attributes of Role
-        Role role = new Role();
-        role.setSalaryDetail(salaryDetail);
-        role.setEmployeeRole(employeeRole);
-        role.setDescription(employeeDTO.getDescription());
-
-
-        // st attributes of User
-        Employee employee = new Employee();
-        employee.setFullName(employeeDTO.getFullName());
-        employee.setUsername(employeeDTO.getUsername());
-        employee.setPassword(employeeDTO.getPassword());
-        employee.setPhone(employeeDTO.getPhoneNumber());
-        employee.setEmail(employeeDTO.getEmail());
-        employee.setAddress(employeeDTO.getAddress());
-        employee.setCreateAt(new Date());
-        employee.setUpdateAt(new Date());
-        employee.setActive(true);
-        employee.setUserType(UserType.ROLE_EMPLOYEE);
-
-        // set attributes of Employee
-        employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
-        employee.setJoinDate(new Date());
-        employee.setBankName(employeeDTO.getBankName());
-        employee.setBankNumber(employeeDTO.getBankNumber());
-        employee.setRole(role);
-
-        salaryDetailRepository.save(salaryDetail);
-        roleRepository.save(role);
-        employeeRepository.save(employee);
-        return employee;
+        return null;
     }
 
     @Override
-    public Employee updateEmployee(Employee employee) {
+    public Employee updateEmployee(EmployeeDTO employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
         if(existingEmployee != null){
             existingEmployee.setFullName(employee.getFullName());
@@ -108,6 +66,8 @@ public class EmployeeServiceImpl implements EmployeeService{
             existingEmployee.setAddress(employee.getAddress());
             existingEmployee.setBankName(employee.getBankName());
             existingEmployee.setBankNumber(employee.getBankNumber());
+            existingEmployee.setDob(employee.getDob());
+            existingEmployee.setGender(employee.isGender());
             employeeRepository.save(existingEmployee);
             return existingEmployee;
         }

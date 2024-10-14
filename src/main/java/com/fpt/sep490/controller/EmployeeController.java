@@ -74,8 +74,8 @@ public class EmployeeController {
     }
 
     @PostMapping("/updateEmployee")
-    public ResponseEntity<?> updateEmployee(@RequestBody Employee employee){
-           Employee updatedEmployee = employeeService.updateEmployee(employee);
+    public ResponseEntity<?> updateEmployee(@RequestBody EmployeeDTO employeeDTO){
+           Employee updatedEmployee = employeeService.updateEmployee(employeeDTO);
            if(updatedEmployee != null){
                return ResponseEntity.status(HttpStatus.OK).body(updatedEmployee);
            }

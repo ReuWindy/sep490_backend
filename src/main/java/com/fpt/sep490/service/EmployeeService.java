@@ -12,7 +12,7 @@ public interface EmployeeService {
     Employee getEmployeeById(int id);
     Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, int pageNumber, int pageSize);
     Employee createEmployee(EmployeeDTO employeeDTO);
-    Employee updateEmployee(Employee employee);
+    Employee updateEmployee(EmployeeDTO employee);
     Employee deleteEmployee(int id);
 
 }
