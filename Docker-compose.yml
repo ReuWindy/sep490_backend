@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   mysql-db:
-    image: mysql:latest
+    image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: ku9456123
       MYSQL_DATABASE: SEP490
