@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,6 +29,15 @@ public class SecurityConfiguration {
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
+
+    List<String> publicEndpoints = Arrays.asList("/register", "/login/loginRequest",
+                                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                                 "/user/**", "/employees/**", "/actuator/**"
+                                                 );
+
+    List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
+                                                "/WarehouseReceipt/**", "/employeerole/**",
+                                                "/news/", "/unitOfMeasures/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -42,8 +52,8 @@ public class SecurityConfiguration {
             http
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
-                            .requestMatchers("/register", "/login/loginRequest","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/user/**", "/employees/**", "/actuator/**").permitAll()
-                            .requestMatchers("/suppliers/**","/categories/**", "/batchproducts/**", "/products/**", "/WarehouseReceipt/**", "/employeerole/**", "/news/", "/customer/**" ).hasRole("ADMIN"))
+                            .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
+                            .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {

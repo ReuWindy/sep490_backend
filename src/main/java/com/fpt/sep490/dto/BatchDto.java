@@ -12,9 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatchDto {
-    private String batchCode;
     private long supplierId;
     private long warehouseId;
-    private String batchStatus;
-    private List<BatchProductDto> batchProducts;
 }

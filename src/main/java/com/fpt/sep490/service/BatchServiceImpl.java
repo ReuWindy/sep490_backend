@@ -6,6 +6,7 @@ import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
+import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class BatchServiceImpl implements BatchService {
     @Override
     public Batch createBatch(BatchDto batchDto) {
         Batch batch = new Batch();
-        batch.setBatchCode(batchDto.getBatchCode());
+        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
         batch.setImportDate(LocalDateTime.now());
 
         Supplier supplier = supplierRepository.findById(batchDto.getSupplierId())
@@ -62,10 +63,10 @@ public class BatchServiceImpl implements BatchService {
 
         Warehouse warehouse = warehouseRepository.findById(batchDto.getWarehouseId())
                 .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-
+        batch.setBatchStatus("OK");
         batch.setSupplier(supplier);
         batch.setWarehouse(warehouse);
-        batch.setBatchStatus(batchDto.getBatchStatus());
+
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
@@ -80,8 +81,6 @@ public class BatchServiceImpl implements BatchService {
     public Batch updateBatch(Long batchId, BatchDto batchDto) {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
-
-        batch.setBatchCode(batchDto.getBatchCode());
 
         if (batch.getSupplier().getId() != batchDto.getSupplierId()) {
             Supplier supplier = supplierRepository.findById(batchDto.getSupplierId())
@@ -115,5 +114,11 @@ public class BatchServiceImpl implements BatchService {
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
         return batchRepository.findFirstBySupplier(supplier)
                 .orElseThrow(() -> new RuntimeException("No batch found for this supplier"));
+    }
+
+    @Override
+    public void deleteBatch(Long batchId) {
+        Batch batch = getBatchById(Math.toIntExact(batchId));
+        batchRepository.delete(batch);
     }
 }

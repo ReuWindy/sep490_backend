@@ -4,7 +4,6 @@ import lombok.*;
 
 @Data
 public class BatchProductDto {
-    private long id;
     private int quantity;
     private double price;
     private double weight;

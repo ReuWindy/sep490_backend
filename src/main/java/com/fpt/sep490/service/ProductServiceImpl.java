@@ -1,9 +1,14 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -44,7 +49,32 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
         product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+
+        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
+                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
+                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+
+        product.setSupplier(supplier);
+        product.setUnitOfMeasure(unitOfMeasure);
+
         Product savedProduct = productRepository.save(product);
+
+        if (productDto.getWarehouseId() != null) {
+            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
+                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+
+            // Tạo ProductWarehouse và gán thông tin
+            ProductWarehouse productWarehouse = new ProductWarehouse();
+            productWarehouse.setProduct(savedProduct);
+            productWarehouse.setWarehouse(warehouse);
+            product.setCreateAt(new Date());
+            product.setIsDeleted(false);
+
+            productWareHouseRepository.save(productWarehouse);
+        }
+
         return savedProduct;
     }
 
@@ -62,6 +92,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+        ProductSpecification productSpecs = new ProductSpecification();
+        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, batchCode, importDate, priceOrder, sortDirection);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        return products.map(this::convertToAdminProductDto);
+    }
+
+    @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -71,6 +110,34 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
 
+        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
+                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
+                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+
+        product.setSupplier(supplier);
+        product.setUnitOfMeasure(unitOfMeasure);
+
         return productRepository.save(product);
+    }
+
+    private AdminProductDto convertToAdminProductDto(Product product) {
+        AdminProductDto dto = new AdminProductDto();
+        dto.setId((int) product.getId());
+        dto.setProductCode(product.getProductCode());
+        dto.setProductName(product.getName());
+        if (product.getBatchProducts() != null && !product.getBatchProducts().isEmpty()) {
+            BatchProduct firstBatchProduct = product.getBatchProducts().iterator().next();
+            if (firstBatchProduct.getBatch() != null) {
+                dto.setBatchCode(firstBatchProduct.getBatch().getBatchCode());
+            }
+        }
+        dto.setImportDate(product.getCreateAt());
+        dto.setPrice((long) product.getPrice());
+        if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
+            dto.setProductQuantity(String.valueOf(
+                    product.getProductWarehouses().iterator().next().getQuantity()));
+        }
+        return dto;
     }
 }

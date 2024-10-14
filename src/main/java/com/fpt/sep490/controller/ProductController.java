@@ -1,18 +1,23 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Product;
 import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.service.ProductService;
-import com.fpt.sep490.service.ProductWarehouseService;
-import com.fpt.sep490.service.WarehouseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,5 +80,22 @@ public class ProductController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Update Status Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @GetMapping("/admin/products")
+    public ResponseEntity<PagedModel<EntityModel<AdminProductDto>>> adminProductPage(
+            @RequestParam(required = false) String productCode,
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date importDate,
+            @RequestParam(required = false) String productQuantity,
+            @RequestParam(defaultValue = "asc") String sortDirection,
+            @RequestParam(defaultValue = "price") String priceOrder,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            PagedResourcesAssembler<AdminProductDto> pagedResourcesAssembler) {
+        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
+        PagedModel<EntityModel<AdminProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
+        return ResponseEntity.ok(pagedModel);
     }
 }
