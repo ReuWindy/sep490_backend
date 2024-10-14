@@ -85,7 +85,7 @@ public class NewController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PutMapping("/disable/{id}")
+    @PutMapping("/enable/{id}")
     public ResponseEntity<?> enableNew(@PathVariable int id) {
         newService.enableNews(id);
         return ResponseEntity.status(HttpStatus.OK).build();
