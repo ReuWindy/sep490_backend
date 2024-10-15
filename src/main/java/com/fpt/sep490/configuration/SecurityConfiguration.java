@@ -37,7 +37,7 @@ public class SecurityConfiguration {
 
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**",
-                                                "/news/", "/unitOfMeasures/**");
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
