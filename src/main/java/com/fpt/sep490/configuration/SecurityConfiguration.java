@@ -58,7 +58,7 @@ public class SecurityConfiguration {
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                         CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
                                 RequestMethod.POST.name()

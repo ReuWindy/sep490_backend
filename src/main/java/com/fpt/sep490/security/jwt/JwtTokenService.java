@@ -21,7 +21,7 @@ public class JwtTokenService {
     private final JwtTokenManager jwtTokenManager;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
-    final int cookieExpirationDuration = 7*24*60*60;
+    final int cookieExpirationDuration = 7*24*60*60*1000;
 
     public LoginResponse getLoginResponse(LoginRequest loginRequest, HttpServletResponse response) {
 
@@ -42,7 +42,7 @@ public class JwtTokenService {
         cookie.setSecure(false);
         cookie.setPath("/");
         response.addCookie(cookie);
-        log.info("Cookie details: Name = {}, Value = {}, MaxAge = {}, HttpOnly = {}, Secure = {}, Path = {}", cookie.getName(), cookie.getValue(), cookie.getMaxAge(), cookie.isHttpOnly(), cookie.getSecure(), cookie.getPath());
+        //log.info("Cookie details: Name = {}, Value = {}, MaxAge = {}, HttpOnly = {}, Secure = {}, Path = {}", cookie.getName(), cookie.getValue(), cookie.getMaxAge(), cookie.isHttpOnly(), cookie.getSecure(), cookie.getPath());
         log.info("{} has successfully logged in!", user.getUsername());
 
         return new LoginResponse(token, user.getUserType(), user.getUsername());
