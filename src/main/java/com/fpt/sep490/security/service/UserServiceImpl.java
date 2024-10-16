@@ -169,6 +169,7 @@ public class UserServiceImpl implements UserService {
             employee.setDob(createUserRequest.getDateOfBirth());
             employee.setGender(createUserRequest.isGender());
             employee.setUserType(userType);
+            employee.setImage(createUserRequest.getImage());
 
             // set attributes of Employee
             employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
