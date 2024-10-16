@@ -8,6 +8,8 @@ import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BatchProductServiceImpl implements BatchProductService {
     private final BatchProductRepository batchProductRepository;
@@ -34,5 +36,10 @@ public class BatchProductServiceImpl implements BatchProductService {
         Batch batch = batchRepository.findByBatchCode(batchCode);
         batchProduct.setBatch(batch);
         return batchProductRepository.save(batchProduct);
+    }
+
+    @Override
+    public List<BatchProduct> getListBatchProducts(String batchId) {
+        return batchProductRepository.findByBatchId(Long.valueOf(batchId));
     }
 }
