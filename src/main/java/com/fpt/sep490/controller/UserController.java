@@ -10,6 +10,7 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.security.jwt.JwtTokenService;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.ApiSuccessResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -112,22 +113,21 @@ public class UserController {
     }
 
     @PutMapping("/passwordEdit/{token}")
-    public ResponseEntity<?> profileEdit(@PathVariable String token, @RequestBody PasswordRequest request) {
+    public ResponseEntity<?> profileEdit(@PathVariable String token, @RequestBody PasswordRequest request, HttpServletResponse response) {
         String username = jwtTokenManager.getUsernameFromToken(token);
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername(username);
         loginRequest.setPassword(request.getOldpass());
-        LoginResponse loginResponse = jwtTokenService.getLoginResponse(loginRequest);
+        LoginResponse loginResponse = jwtTokenService.getLoginResponse(loginRequest, response);
         if(loginResponse != null) {
             User u = userService.changePassword(token, request);
             if(u != null) {
                 return  ResponseEntity.status(HttpStatus.OK).body(null);
             }
         }
-        ApiExceptionResponse response = new ApiExceptionResponse("User not found!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        ApiExceptionResponse responseAPI = new ApiExceptionResponse("User not found!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseAPI);
     }
-
     @PostMapping("/create")
     public ResponseEntity<RegistrationResponse> registrationRequest(@Valid @RequestBody CreateUserRequest createUserRequest) {
         RegistrationRequest request = new RegistrationRequest();

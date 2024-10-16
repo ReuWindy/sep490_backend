@@ -91,7 +91,7 @@ public class ProductController {
             @RequestParam(required = false) String productQuantity,
             @RequestParam(defaultValue = "asc") String sortDirection,
             @RequestParam(defaultValue = "price") String priceOrder,
-            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<AdminProductDto> pagedResourcesAssembler) {
         Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);

@@ -4,11 +4,11 @@ import com.fpt.sep490.security.service.UserDetailServiceImpl;
 import com.fpt.sep490.security.utils.SecurityConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +30,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-
         final String requestURI = req.getRequestURI();
 
         if (requestURI.contains(SecurityConstants.LOGIN_REQUEST_URI) || requestURI.contains(SecurityConstants.REGISTRATION_REQUEST_URI)) {
@@ -38,21 +37,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String header = req.getHeader(SecurityConstants.HEADER_STRING);
-        log.info("Authorization Header: {}", header);
         String username = null;
         String authToken = null;
-        if (Objects.nonNull(header) && header.startsWith(SecurityConstants.TOKEN_PREFIX)) {
-
-            authToken = header.replace(SecurityConstants.TOKEN_PREFIX, StringUtils.EMPTY);
-            log.info("Extracted Token: {}", authToken);
-            try {
-                username = jwtTokenManager.getUsernameFromToken(authToken);
-            }
-            catch (Exception e) {
-                log.error("Authentication Exception : {}", e.getMessage());
+        Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for(Cookie cookie : cookies) {
+                if("token".equals(cookie.getName())) {
+                    authToken = cookie.getValue();
+                    try {
+                        username = jwtTokenManager.getUsernameFromToken(authToken);
+                    } catch (Exception e) {
+                        log.error("Authentication Exception : {}", e.getMessage());
+                    }
+                    break;
+                }
             }
         }
+        log.info("Extracted Token: {}", authToken);
 
         final SecurityContext securityContext = SecurityContextHolder.getContext();
 
@@ -62,9 +63,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtTokenManager.validateToken(authToken, userDetails.getUsername())) {
                 log.info("Token is valid for username: {}", username);
-                final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-                log.info("Authentication successful. Logged in username : {} ", username);
+                log.info("Authenticated user: {} ", username);
                 securityContext.setAuthentication(authentication);
             } else {
                 log.warn("Invalid token for username: {}", username);

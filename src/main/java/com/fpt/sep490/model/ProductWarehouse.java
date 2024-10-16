@@ -31,6 +31,9 @@ public class ProductWarehouse {
     @Column(name = "product_unit")
     private String unit;
 
+    @Column(name = "batch_code")
+    private String batchCode;
+
     @Column(name = "batch_product_description")
     private String description;
 

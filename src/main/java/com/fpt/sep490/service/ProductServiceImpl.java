@@ -20,13 +20,15 @@ public class ProductServiceImpl implements ProductService {
     private final UnitOfMeasureRepository unitOfMeasureRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
     private final WarehouseRepository warehouseRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, WarehouseRepository warehouseRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
         this.productWareHouseRepository = productWareHouseRepository1;
         this.warehouseRepository = warehouseRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -50,12 +52,16 @@ public class ProductServiceImpl implements ProductService {
         product.setImage(productDto.getImage());
         product.setProductCode(RandomProductCodeGenerator.generateProductCode());
 
+        Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
         UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
                 .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
 
+        product.setCategory(category);
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
 
