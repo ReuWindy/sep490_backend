@@ -60,6 +60,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     public Employee updateEmployee(EmployeeDTO employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
         if(existingEmployee != null){
+            existingEmployee.setUsername(employee.getUserName());
             existingEmployee.setFullName(employee.getFullName());
             existingEmployee.setEmail(employee.getEmail());
             existingEmployee.setPhone(employee.getPhone());
@@ -68,6 +69,17 @@ public class EmployeeServiceImpl implements EmployeeService{
             existingEmployee.setBankNumber(employee.getBankNumber());
             existingEmployee.setDob(employee.getDob());
             existingEmployee.setGender(employee.isGender());
+            EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
+            if(newEmployeeRole != null){
+                Role currentRole = existingEmployee.getRole();
+                if(currentRole != null){
+                    currentRole.setEmployeeRole(newEmployeeRole);
+                }else{
+                    Role newRole = new Role();
+                    currentRole.setEmployeeRole(newEmployeeRole);
+                    existingEmployee.setRole(newRole);
+                }
+            }
             employeeRepository.save(existingEmployee);
             return existingEmployee;
         }

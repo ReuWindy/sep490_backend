@@ -8,6 +8,7 @@ import java.util.Date;
 @Data
 public class EmployeeDTO {
     private long id;
+    private String userName;
     private String phone;
     private String email;
     private String address;
@@ -16,4 +17,5 @@ public class EmployeeDTO {
     private String bankNumber;
     private Date dob;
     private boolean gender;
+    private long employeeRoleId;
 }

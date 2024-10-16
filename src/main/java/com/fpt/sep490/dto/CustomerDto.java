@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -17,6 +18,7 @@ public class CustomerDto {
     private String email;
     private String phoneNumber;
     private String address;
-    private double contractPrice;
+    private Date dateOfBirth;
+    private boolean gender;
     private Set<Contract> contracts;
 }

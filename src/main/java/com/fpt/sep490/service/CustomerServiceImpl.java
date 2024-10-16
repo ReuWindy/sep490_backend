@@ -28,16 +28,9 @@ public class CustomerServiceImpl implements CustomerService{
         this.userRepository = userRepository;
     }
     @Override
-    public List<CustomerDto> getAllCustomers() {
+    public List<User> getAllCustomers() {
         List<User> users = userRepository.findAllByUserType(UserType.ROLE_CUSTOMER);
-        return users.stream().map(user -> {
-            if (user instanceof Customer) {
-                Customer customer = (Customer) user;
-                return convertCustomerToDTO(customer);
-            } else {
-                return convertUserToCustomerDTO(user);
-            }
-        }).collect(Collectors.toList());
+        return users;
     }
     @Override
     public User getCustomerById(int id) {
@@ -66,6 +59,9 @@ public class CustomerServiceImpl implements CustomerService{
     public User updateCustomer(User user) {
         User existingCustomer = userRepository.findById(user.getId()).orElse(null);
         if(existingCustomer != null){
+            existingCustomer.setUsername(user.getUsername());
+            existingCustomer.setDob(user.getDob());
+            existingCustomer.setGender(user.isGender());
             existingCustomer.setPhone(user.getPhone());
             existingCustomer.setFullName(user.getFullName());
             existingCustomer.setAddress(user.getAddress());
@@ -82,10 +78,10 @@ public class CustomerServiceImpl implements CustomerService{
     }
 
     @Override
-    public Page<Customer> getSupplierByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
+    public Page<Customer> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
+            Specification<Customer> specification = CustomerSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
             return customerRepository.findAll(specification, pageable);
         } catch (Exception e) {
             return null;
@@ -100,7 +96,6 @@ public class CustomerServiceImpl implements CustomerService{
         dto.setPhoneNumber(customer.getPhone());
         dto.setEmail(customer.getEmail());
         dto.setAddress(customer.getAddress());
-        dto.setContracts(customer.getContracts());
         return dto;
     }
 
@@ -111,7 +106,6 @@ public class CustomerServiceImpl implements CustomerService{
         dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
         dto.setAddress(user.getAddress());
-        dto.setContracts(new HashSet<>());
         return dto;
     }
 

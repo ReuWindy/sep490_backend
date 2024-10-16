@@ -10,10 +10,10 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface CustomerService {
-    public List<CustomerDto> getAllCustomers();
+    public List<User> getAllCustomers();
     User getCustomerById(int id);
     Customer createCustomer(Customer customer);
     User updateCustomer(User user);
     Customer deleteCustomer(int id);
-    Page<Customer> getSupplierByFilter(String fullName, String email, String phone, int pageNumber, int pageSize );
+    Page<Customer> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize );
 }

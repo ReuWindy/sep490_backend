@@ -28,8 +28,8 @@ public class CustomerController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllCustomerWithContractPrice(){
-        List<CustomerDto> customers = customerService.getAllCustomers();
+    public ResponseEntity<?> getAllCustomer(){
+        List<User> customers = customerService.getAllCustomers();
         if(!customers.isEmpty()){
             return ResponseEntity.status(HttpStatus.OK).body(customers);
         }
@@ -44,7 +44,7 @@ public class CustomerController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<Customer> pagedResourcesAssembler){
-        Page<Customer> customerPage = customerService.getSupplierByFilter(fullName, email, phone, pageNumber, pageSize);
+        Page<Customer> customerPage = customerService.getCustomerByFilter(fullName, email, phone, pageNumber, pageSize);
         PagedModel<EntityModel<Customer>> pagedModel = pagedResourcesAssembler.toModel(customerPage);
 
         return ResponseEntity.ok(pagedModel);

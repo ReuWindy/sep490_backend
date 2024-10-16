@@ -21,5 +21,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             "GROUP BY u.id, u.fullName, u.email, u.phone, u.address")
     List<Tuple> findAllCustomerWithContractPrice();
 
-    Page<Customer> findAll(Specification<Supplier> specification, Pageable pageable);
+    Page<Customer> findAll(Specification<Customer> specification, Pageable pageable);
 }
