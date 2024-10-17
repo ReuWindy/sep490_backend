@@ -78,11 +78,11 @@ public class CustomerServiceImpl implements CustomerService{
     }
 
     @Override
-    public Page<Customer> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
+    public Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<Customer> specification = CustomerSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
-            return customerRepository.findAll(specification, pageable);
+            Specification<User> specification = CustomerSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
+            return userRepository.findAll(specification, pageable);
         } catch (Exception e) {
             return null;
         }
