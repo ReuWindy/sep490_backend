@@ -1,6 +1,7 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Employee;
+import com.fpt.sep490.model.UserType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -22,6 +23,8 @@ public class EmployeeSpecification {
             if (phoneNumber != null && !phoneNumber.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + phoneNumber + "%"));
             }
+
+            predicates.add(criteriaBuilder.equal(root.get("userType"), UserType.ROLE_EMPLOYEE));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
