@@ -183,6 +183,8 @@ public class UserServiceImpl implements UserService {
             employeeRepository.save(employee);
         }else{
             final User user = userMapper.convertToUser(registrationRequest);
+            user.setFullName(registrationRequest.getName());
+            user.setCreateAt(new Date());
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             user.setUserType(userType);
             userRepository.save(user);
