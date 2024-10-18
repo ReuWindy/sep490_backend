@@ -56,6 +56,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
 
 //    private static String getHtmlFromTemplate(WarehouseReceipt receipt, String htmlTemplatePath) throws IOException {
 //        String html = new String(Files.readAllBytes(Paths.get(htmlTemplatePath)));
+//
 //        html = html.replace("#{receiptId}", receipt.getId());
 //        html = html.replace("#{batchId}", receipt.getBatch().getId());
 //        html = html.replace("#{receiptType}", receipt.getReceiptType());

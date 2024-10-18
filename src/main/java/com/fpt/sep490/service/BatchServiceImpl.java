@@ -119,6 +119,19 @@ public class BatchServiceImpl implements BatchService {
     @Override
     public void deleteBatch(Long batchId) {
         Batch batch = getBatchById(Math.toIntExact(batchId));
-        batchRepository.delete(batch);
+        if(batch.getBatchProducts().isEmpty()){
+            batchRepository.delete(batch);
+        }
+    }
+
+    @Override
+    public void deleteBatchWithProduct(Long batchId) {
+        Batch batch = getBatchById(Math.toIntExact(batchId));
+        if (!batch.getBatchProducts().isEmpty()) {
+            batchProductRepository.deleteAll(batch.getBatchProducts());
+            batchRepository.delete(batch);
+        } else {
+            throw new IllegalArgumentException("Batch doesn't have products");
+        }
     }
 }
