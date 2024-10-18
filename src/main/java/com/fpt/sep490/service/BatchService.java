@@ -14,6 +14,7 @@ public interface BatchService {
     Batch getBatchByBatchCode(String code);
     Batch getBatchBySupplierName(String supplierName);
     void deleteBatch(Long batchId);
+    void deleteBatchWithProduct(Long batchId);
 }
 
 

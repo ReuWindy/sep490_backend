@@ -75,5 +75,17 @@ public class BatchController {
         ApiExceptionResponse response = new ApiExceptionResponse("Batch Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteBatch(@PathVariable Long id) {
+        batchService.deleteBatch(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Ok");
+    }
+
+    @PostMapping("/deletebatchwithproduct/{id}")
+    public ResponseEntity<?> deleteBatchWithProduct(@PathVariable Long id) {
+        batchService.deleteBatchWithProduct(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Ok");
+    }
 }
 
