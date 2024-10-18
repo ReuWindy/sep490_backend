@@ -107,6 +107,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String categoryId, String supplierId, int pageNumber, int pageSize) {
+        return null;
+    }
+
+    @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
