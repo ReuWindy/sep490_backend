@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -107,8 +108,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String name, String categoryId, String supplierId, int pageNumber, int pageSize) {
-        return null;
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String categoryName, String supplierName, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
+        ProductSpecification productSpecification = new ProductSpecification();
+        Specification<Product> specification = productSpecification.hasNameOrCategoryNameOrSupplierName(name, categoryName, supplierName);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        return products.map(this::toProductDto);
     }
 
     @Override
@@ -151,4 +156,30 @@ public class ProductServiceImpl implements ProductService {
         }
         return dto;
     }
+
+    private ProductDto toProductDto(Product product) {
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        productDto.setImage(product.getImage());
+        if (product.getCategory() != null) {
+            productDto.setCategoryId(String.valueOf(product.getCategory().getId()));
+        }
+        if (product.getSupplier() != null) {
+            productDto.setSupplierId(product.getSupplier().getId());
+        }
+        if (product.getUnitOfMeasure() != null) {
+            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+        }
+        if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
+            productDto.setWarehouseId(product.getProductWarehouses().iterator().next().getWarehouse().getId());
+        }
+        if (product.getBatchProducts() != null && !product.getBatchProducts().isEmpty()) {
+            productDto.setBatchId(product.getBatchProducts().iterator().next().getBatch().getId());
+        }
+        return productDto;
+    }
+
 }
