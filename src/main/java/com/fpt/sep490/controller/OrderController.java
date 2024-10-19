@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
@@ -34,8 +35,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @GetMapping("/details/{id}")
+    @GetMapping("/details/{orderId}")
     public ResponseEntity<?> getOrderHistoryDetailByOrderId(@PathVariable long orderId){
-        return null;
+        List<OrderDetailDto> orderDetails = orderService.getOrderHistoryDetailByOrderId(orderId);
+        if(orderDetails != null){
+            return ResponseEntity.status(HttpStatus.OK).body(orderDetails);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
