@@ -24,7 +24,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @GetMapping("/history/{id}")
+    @GetMapping("/history/{customerId}")
     public ResponseEntity<?> getOrderHistoryByCustomerId(@PathVariable long customerId){
         List<OrderDto> orders = orderService.getOrderHistoryByCustomerId(customerId);
         if(orders != null){
