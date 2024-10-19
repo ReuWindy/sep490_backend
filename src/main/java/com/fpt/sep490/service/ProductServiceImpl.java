@@ -175,9 +175,13 @@ public class ProductServiceImpl implements ProductService {
         }
         if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
             productDto.setWarehouseId(product.getProductWarehouses().iterator().next().getWarehouse().getId());
+            productDto.setProductUnit(product.getProductWarehouses().iterator().next().getUnit());
         }
         if (product.getBatchProducts() != null && !product.getBatchProducts().isEmpty()) {
             productDto.setBatchId(product.getBatchProducts().iterator().next().getBatch().getId());
+            if(productDto.getProductUnit() == null){
+                productDto.setProductUnit(product.getBatchProducts().iterator().next().getUnit());
+            }
         }
         return productDto;
     }
