@@ -1,12 +1,16 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.model.Order;
+import com.fpt.sep490.model.OrderDetail;
 import com.fpt.sep490.repository.OrderRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class OrderServiceImpl implements OrderService{
 
     private final OrderRepository orderRepository;
@@ -29,6 +33,16 @@ public class OrderServiceImpl implements OrderService{
         orderDTO.setRemainingAmount(order.getRemainingAmount());
         orderDTO.setStatus(order.getStatus());
         return orderDTO;
+    }
+
+    private OrderDetailDto convertToOrderDetailDTO(OrderDetail orderDetail) {
+        OrderDetailDto detailDTO = new OrderDetailDto();
+        detailDTO.setId(orderDetail.getId());
+        detailDTO.setName(orderDetail.getSupplierProduct().getProduct().getName());  // Lấy tên sản phẩm
+        detailDTO.setQuantity(orderDetail.getQuantity());
+        detailDTO.setUnitPrice(orderDetail.getUnitPrice());
+        detailDTO.setTotalPrice(orderDetail.getTotalPrice());
+        return detailDTO;
     }
 
 }

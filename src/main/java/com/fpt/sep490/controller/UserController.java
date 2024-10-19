@@ -137,6 +137,9 @@ public class UserController {
         request.setUsername(createUserRequest.getUsername());
         request.setAddress(createUserRequest.getAddress());
         request.setPassword(createUserRequest.getPassword());
+        request.setGender(createUserRequest.isGender());
+        request.setDob(createUserRequest.getDateOfBirth());
+        request.setImage(createUserRequest.getImage());
         final RegistrationResponse registrationResponse = userService.createUserByAdmin(request, createUserRequest.getUserType(), createUserRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(registrationResponse);
     }

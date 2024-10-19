@@ -30,4 +30,5 @@ public class RegistrationRequest {
     private String address;
     private Date dob;
     private boolean gender;
+    private String image;
 }

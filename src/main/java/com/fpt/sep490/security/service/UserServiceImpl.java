@@ -186,6 +186,7 @@ public class UserServiceImpl implements UserService {
             final User user = userMapper.convertToUser(registrationRequest);
             user.setFullName(registrationRequest.getName());
             user.setCreateAt(new Date());
+            user.setImage(registrationRequest.getImage());
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             user.setUserType(userType);
             userRepository.save(user);
