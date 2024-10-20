@@ -21,8 +21,6 @@ public class JwtTokenService {
     private final JwtTokenManager jwtTokenManager;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
-    final int cookieExpirationDuration = 7*24*60*60*1000;
-
     public LoginResponse getLoginResponse(LoginRequest loginRequest, HttpServletResponse response) {
 
         final String username = loginRequest.getUsername();
@@ -37,7 +35,7 @@ public class JwtTokenService {
         final User user = UserMapper.INSTANCE.convertToUser(authenticatedUserDto);
         final String token = jwtTokenManager.generateToken(user);
         Cookie cookie = new Cookie("token", token);
-        cookie.setMaxAge(cookieExpirationDuration);
+        cookie.setMaxAge(604800);
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");

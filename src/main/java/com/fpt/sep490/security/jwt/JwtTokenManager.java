@@ -27,7 +27,7 @@ public class JwtTokenManager {
                 .withIssuer(jwtProperties.getIssuer())
                 .withClaim("role", userType.name())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMinute() * 60 * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
                 .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
     }
     public String getUsernameFromToken(String token) {
