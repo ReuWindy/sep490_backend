@@ -49,7 +49,7 @@ public class ProductSpecification {
             if(categoryName != null && !categoryName.isEmpty()){
                 predicates.add(criteriaBuilder.equal(root.get("category").get("name"), categoryName));
             }
-            if(supplierName != null && !categoryName.isEmpty()){
+            if(supplierName != null && !supplierName.isEmpty()){
                 predicates.add(criteriaBuilder.equal(root.get("supplier").get("name"),supplierName));
             }
 
