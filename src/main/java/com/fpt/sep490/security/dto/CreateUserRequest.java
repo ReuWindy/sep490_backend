@@ -36,5 +36,6 @@ public class CreateUserRequest {
     private double dailyWage;
     private String bankName;
     private String bankNumber;
+    private String image;
 }
 

@@ -169,6 +169,8 @@ public class UserServiceImpl implements UserService {
             employee.setDob(createUserRequest.getDateOfBirth());
             employee.setGender(createUserRequest.isGender());
             employee.setUserType(userType);
+            employee.setImage(createUserRequest.getImage());
+            employee.setCreateAt(new Date());
 
             // set attributes of Employee
             employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
@@ -183,6 +185,9 @@ public class UserServiceImpl implements UserService {
         }else{
             final User user = userMapper.convertToUser(registrationRequest);
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            user.setFullName(createUserRequest.getName());
+            user.setImage(createUserRequest.getImage());
+            user.setCreateAt(new Date());
             user.setUserType(userType);
             userRepository.save(user);
         }

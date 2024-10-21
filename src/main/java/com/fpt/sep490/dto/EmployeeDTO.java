@@ -16,4 +16,5 @@ public class EmployeeDTO {
     private String bankNumber;
     private Date dob;
     private boolean gender;
+    private String image;
 }

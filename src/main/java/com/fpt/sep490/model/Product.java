@@ -48,4 +48,6 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<BatchProduct> batchProducts;
+
+    private double importPrice;
 }

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -70,6 +71,10 @@ public class CustomerServiceImpl implements CustomerService{
             existingCustomer.setFullName(user.getFullName());
             existingCustomer.setAddress(user.getAddress());
             existingCustomer.setEmail(user.getEmail());
+            existingCustomer.setDob(user.getDob());
+            existingCustomer.setGender(user.isGender());
+            existingCustomer.setImage(user.getImage());
+            existingCustomer.setUpdateAt(new Date());
             userRepository.save(existingCustomer);
             return existingCustomer;
         }

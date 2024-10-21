@@ -28,6 +28,6 @@ public class RegistrationRequest {
     @NotEmpty(message = "{registration_email_not_empty}")
     private String email;
     private String address;
-    private Date dob;
+    private Date dateOfBirth;
     private boolean gender;
 }

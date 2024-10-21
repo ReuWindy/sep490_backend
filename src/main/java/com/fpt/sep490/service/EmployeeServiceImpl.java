@@ -68,6 +68,8 @@ public class EmployeeServiceImpl implements EmployeeService{
             existingEmployee.setBankNumber(employee.getBankNumber());
             existingEmployee.setDob(employee.getDob());
             existingEmployee.setGender(employee.isGender());
+            existingEmployee.setImage(employee.getImage());
+            existingEmployee.setUpdateAt(new Date());
             employeeRepository.save(existingEmployee);
             return existingEmployee;
         }

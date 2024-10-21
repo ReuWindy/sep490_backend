@@ -24,4 +24,8 @@ public class Customer extends User {
     @ManyToOne
     @JoinColumn(name = "discount_id")
     private Discount discount;
+
+    @ManyToOne
+    @JoinColumn(name = "price_id")
+    private Price price;
 }
