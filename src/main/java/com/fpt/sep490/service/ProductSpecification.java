@@ -40,6 +40,23 @@ public class ProductSpecification {
         };
     }
 
+    public Specification<Product> hasNameOrCategoryNameOrSupplierName(String name, String categoryName, String supplierName){
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if(name != null && !name.isEmpty()){
+                predicates.add(criteriaBuilder.equal(root.get("name"), name));
+            }
+            if(categoryName != null && !categoryName.isEmpty()){
+                predicates.add(criteriaBuilder.equal(root.get("category").get("name"), categoryName));
+            }
+            if(supplierName != null && !categoryName.isEmpty()){
+                predicates.add(criteriaBuilder.equal(root.get("supplier").get("name"),supplierName));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     private static List<Order> getSortByField(Root<Product> root, CriteriaBuilder criteriaBuilder, String priceOrder, String sortDirection) {
         List<Order> orders = new ArrayList<>();
 

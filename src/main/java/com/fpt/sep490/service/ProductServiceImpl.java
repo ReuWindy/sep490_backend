@@ -107,6 +107,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String categoryName, String supplierName, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
+        ProductSpecification productSpecification = new ProductSpecification();
+        Specification<Product> specification = productSpecification.hasNameOrCategoryNameOrSupplierName(name, categoryName, supplierName);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        return products.map(this::toProductDto);
+    }
+
+    @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -146,4 +155,34 @@ public class ProductServiceImpl implements ProductService {
         }
         return dto;
     }
+
+    private ProductDto toProductDto(Product product) {
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        productDto.setImage(product.getImage());
+        if (product.getCategory() != null) {
+            productDto.setCategoryId(String.valueOf(product.getCategory().getId()));
+        }
+        if (product.getSupplier() != null) {
+            productDto.setSupplierId(product.getSupplier().getId());
+        }
+        if (product.getUnitOfMeasure() != null) {
+            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+        }
+        if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
+            productDto.setWarehouseId(product.getProductWarehouses().iterator().next().getWarehouse().getId());
+            productDto.setProductUnit(product.getProductWarehouses().iterator().next().getUnit());
+        }
+        if (product.getBatchProducts() != null && !product.getBatchProducts().isEmpty()) {
+            productDto.setBatchId(product.getBatchProducts().iterator().next().getBatch().getId());
+            if(productDto.getProductUnit() == null){
+                productDto.setProductUnit(product.getBatchProducts().iterator().next().getUnit());
+            }
+        }
+        return productDto;
+    }
+
 }

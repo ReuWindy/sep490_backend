@@ -98,4 +98,17 @@ public class ProductController {
         PagedModel<EntityModel<AdminProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
+
+    @GetMapping("/customer/products")
+    public ResponseEntity<PagedModel<EntityModel<ProductDto>>> customerProductPage(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String supplierName,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            PagedResourcesAssembler<ProductDto> pagedResourcesAssembler){
+        Page<ProductDto> productPage = productService.getProductByFilterForCustomer(name, categoryName, supplierName, pageNumber, pageSize);
+        PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
+        return ResponseEntity.ok(pagedModel);
+    }
 }

@@ -17,4 +17,5 @@ public class ProductDto {
     private Long unitOfMeasureId;
     private Long warehouseId;
     private Long batchId;
+    private String productUnit;
 }
