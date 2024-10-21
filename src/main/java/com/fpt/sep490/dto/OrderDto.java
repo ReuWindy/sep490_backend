@@ -19,5 +19,6 @@ public class OrderDto {
     private double totalAmount;
     private double deposit;  // Số tiền đặt cọc
     private double remainingAmount;  // Số tiền còn lại cần thanh toán
+    private long contractId;
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
 }

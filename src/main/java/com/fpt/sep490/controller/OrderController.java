@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.ContractDto;
 import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
@@ -40,6 +41,16 @@ public class OrderController {
         List<OrderDetailDto> orderDetails = orderService.getOrderHistoryDetailByOrderId(orderId);
         if(orderDetails != null){
             return ResponseEntity.status(HttpStatus.OK).body(orderDetails);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @GetMapping("/contract/{contractId}")
+    public ResponseEntity<?> getContractDetailByContractId(@PathVariable long contractId){
+        ContractDto contractDto = orderService.getContractDetailByContractId(contractId);
+        if(contractDto != null){
+            return ResponseEntity.status(HttpStatus.OK).body(contractDto);
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.ContractDto;
 import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.model.Order;
@@ -12,4 +13,6 @@ public interface OrderService {
     List<OrderDto> getOrderHistoryByCustomerId(long customerId);
 
     List<OrderDetailDto> getOrderHistoryDetailByOrderId(long orderId);
+
+    ContractDto getContractDetailByContractId(long contractId);
 }
