@@ -1,8 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.BatchDto;
-import com.fpt.sep490.dto.BatchProductDto;
-import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
@@ -11,33 +9,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class BatchServiceImpl implements BatchService {
     private final BatchRepository batchRepository;
-    private final SupplierRepository supplierRepository;
-    private final ProductRepository productRepository;
-    private final WarehouseRepository warehouseRepository;
-    private final BatchProductRepository batchProductRepository;
-    private final WarehouseReceiptRepository warehouseReceiptRepository;
-    private final BatchProductService batchProductService;
-    private final ProductWareHouseRepository productWareHouseRepository;
-    private final ProductService productService;
+
     private final UserService userService;
 
-    public BatchServiceImpl(BatchRepository batchRepository, SupplierRepository supplierRepository, ProductRepository productRepository, WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository, WarehouseReceiptRepository warehouseReceiptRepository, BatchProductService batchProductService, ProductWareHouseRepository productWareHouseRepository, ProductService productService, UserService userService) {
+    public BatchServiceImpl(BatchRepository batchRepository, UserService userService) {
         this.batchRepository = batchRepository;
-        this.supplierRepository = supplierRepository;
-        this.productRepository = productRepository;
-        this.warehouseRepository = warehouseRepository;
-        this.batchProductRepository = batchProductRepository;
-        this.warehouseReceiptRepository = warehouseReceiptRepository;
-        this.batchProductService = batchProductService;
-        this.productWareHouseRepository = productWareHouseRepository;
-        this.productService = productService;
+
         this.userService = userService;
     }
 
@@ -53,20 +35,11 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
-    public Batch createBatch(BatchDto batchDto) {
+    public Batch createBatch() {
         Batch batch = new Batch();
         batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
-        batch.setImportDate(LocalDateTime.now());
-
-        Supplier supplier = supplierRepository.findById(batchDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-
-        Warehouse warehouse = warehouseRepository.findById(batchDto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+        batch.setImportDate(new Date());
         batch.setBatchStatus("OK");
-        batch.setSupplier(supplier);
-        batch.setWarehouse(warehouse);
-
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
@@ -82,18 +55,6 @@ public class BatchServiceImpl implements BatchService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
 
-        if (batch.getSupplier().getId() != batchDto.getSupplierId()) {
-            Supplier supplier = supplierRepository.findById(batchDto.getSupplierId())
-                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
-            batch.setSupplier(supplier);
-        }
-
-        if (batch.getWarehouse().getId() != batchDto.getWarehouseId()) {
-            Warehouse warehouse = warehouseRepository.findById(batchDto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-            batch.setWarehouse(warehouse);
-        }
-
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
@@ -108,13 +69,6 @@ public class BatchServiceImpl implements BatchService {
         return batch.orElse(null);
     }
 
-    @Override
-    public Batch getBatchBySupplierName(String supplierName) {
-        Supplier supplier = supplierRepository.findByName(supplierName)
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        return batchRepository.findFirstBySupplier(supplier)
-                .orElseThrow(() -> new RuntimeException("No batch found for this supplier"));
-    }
 
     @Override
     public void deleteBatch(Long batchId) {

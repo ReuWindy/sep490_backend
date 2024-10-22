@@ -36,15 +36,15 @@ public class BatchController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createBatch(@RequestBody BatchDto batchDto) {
-        Batch createdBatch = batchService.createBatch(batchDto);
-        if (createdBatch != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdBatch);
-        }
-        ApiExceptionResponse response = new ApiExceptionResponse("Batch Creation Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
+//    @PostMapping("/create")
+//    public ResponseEntity<?> createBatch(@RequestBody BatchDto batchDto) {
+//        Batch createdBatch = batchService.createBatch(batchDto);
+//        if (createdBatch != null) {
+//            return ResponseEntity.status(HttpStatus.CREATED).body(createdBatch);
+//        }
+//        ApiExceptionResponse response = new ApiExceptionResponse("Batch Creation Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//    }
 
     @PutMapping("/update/{batchId}")
     public ResponseEntity<?> updateBatch(@PathVariable Long batchId, @RequestBody BatchDto batchDto) {
@@ -59,16 +59,6 @@ public class BatchController {
     @GetMapping("/batchCode/{code}")
     public ResponseEntity<?> getBatchByBatchCode(@PathVariable String code) {
         Batch batch = batchService.getBatchByBatchCode(code);
-        if (batch != null) {
-            return ResponseEntity.ok(batch);
-        }
-        ApiExceptionResponse response = new ApiExceptionResponse("Batch Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
-    @GetMapping("/supplier/{supplierName}")
-    public ResponseEntity<?> getBatchBySupplierName(@PathVariable String supplierName) {
-        Batch batch = batchService.getBatchBySupplierName(supplierName);
         if (batch != null) {
             return ResponseEntity.ok(batch);
         }

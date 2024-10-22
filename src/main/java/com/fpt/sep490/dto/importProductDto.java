@@ -2,15 +2,15 @@ package com.fpt.sep490.dto;
 
 import lombok.Data;
 
-import java.util.Date;
-import java.util.Set;
-
 @Data
-public class ProductDto {
+public class importProductDto {
     private String name;
     private String description;
-    private double price;
+    private double importPrice;
     private String image;
+    private int quantity;
+    private double weight;
+    private String unit;
     private String categoryId;
     private Long supplierId;
     private Long unitOfMeasureId;
