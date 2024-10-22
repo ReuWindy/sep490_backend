@@ -24,9 +24,6 @@ public class Customer extends User {
     @JsonManagedReference
     private Set<Contract> contracts = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "discount_id")
-    private Discount discount;
 
     @ManyToOne
     @JoinColumn(name = "price_id")

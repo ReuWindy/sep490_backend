@@ -97,6 +97,9 @@ public class CustomerServiceImpl implements CustomerService{
         CustomerDto dto = new CustomerDto();
         dto.setId(customer.getId());
         dto.setFullName(customer.getFullName());
+        dto.setDob(customer.getDob());
+        dto.setImage(customer.getImage());
+        dto.setGender(customer.isGender());
         dto.setPhoneNumber(customer.getPhone());
         dto.setEmail(customer.getEmail());
         dto.setAddress(customer.getAddress());
@@ -109,6 +112,9 @@ public class CustomerServiceImpl implements CustomerService{
         CustomerDto dto = new CustomerDto();
         dto.setId(user.getId());
         dto.setFullName(user.getFullName());
+        dto.setDob(user.getDob());
+        dto.setImage(user.getImage());
+        dto.setGender(user.isGender());
         dto.setEmail(user.getEmail());
         dto.setAddress(user.getAddress());
         dto.setContracts(new HashSet<>());
