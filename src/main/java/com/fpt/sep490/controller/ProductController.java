@@ -2,6 +2,7 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductDto;
+import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Product;
 import com.fpt.sep490.repository.ProductRepository;
@@ -61,6 +62,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @PostMapping("/import")
+    public ResponseEntity<?> importProduct(@RequestBody List<importProductDto> importProductDtoList) {
+        productService.importProductToBatch(importProductDtoList);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<List<Product>> getProductsByWarehouse(@PathVariable Long warehouseId) {

@@ -34,11 +34,11 @@ public class ProductServiceImpl implements ProductService {
     private final UserService userService;
 
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, BatchServiceImpl batchServiceImpl, UserService userService) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, BatchServiceImpl batchServiceImpl, UserService userService) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
-        this.productWareHouseRepository = productWareHouseRepository1;
+        this.productWareHouseRepository = productWareHouseRepository;
         this.warehouseRepository = warehouseRepository;
         this.categoryRepository = categoryRepository;
         this.batchRepository = batchRepository;
@@ -165,6 +165,9 @@ public class ProductServiceImpl implements ProductService {
         User user = userService.findByUsername(username);
         batch.setBatchCreator(user);
 
+        // Save the batch first to generate an ID
+        batch = batchRepository.save(batch);
+
         Set<BatchProduct> batchProducts = new HashSet<>();
 
         for(importProductDto dto : ImportProductDtoList) {
@@ -185,21 +188,42 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
 
             Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
-                            .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
 
             product.setSupplier(supplier);
             product.setUnitOfMeasure(unitOfMeasure);
             product.setCategory(category);
-            productRepository.save(product);
+            product = productRepository.save(product);
 
             BatchProduct batchProduct = new BatchProduct();
             batchProduct.setProduct(product);
             batchProduct.setQuantity(dto.getQuantity());
-            batchProduct.setPrice(product.getPrice());
+            batchProduct.setPrice(product.getImportPrice()); // Changed to getImportPrice
             batchProduct.setWeight(dto.getWeight());
             batchProduct.setUnit(dto.getUnit());
+            batchProduct.setDescription("batch for product" + product.getName());
+
+            // Set saved Batch (managed entity) to BatchProduct
+            batchProduct.setBatch(batch);
+            batchProduct = batchProductRepository.save(batchProduct);
             batchProducts.add(batchProduct);
-            batchProductRepository.save(batchProduct);
+
+            ProductWarehouse productWarehouse = new ProductWarehouse();
+            productWarehouse.setQuantity(dto.getQuantity());
+            productWarehouse.setPrice(product.getImportPrice()); //changed to getImportPrice
+            productWarehouse.setWeight(dto.getWeight());
+            productWarehouse.setUnit(dto.getUnit());
+            productWarehouse.setBatchCode(batch.getBatchCode()); //you get the batch code from the Batch object
+            productWarehouse.setDescription("batch of product " + product.getName());
+
+            productWarehouse.setProduct(product); // Set the product
+
+            Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId()) // Example
+                    .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
+
+            productWarehouse.setWarehouse(warehouse); //set the warehouse
+
+            productWarehouse = productWareHouseRepository.save(productWarehouse);
         }
         batch.setBatchProducts(batchProducts);
     }

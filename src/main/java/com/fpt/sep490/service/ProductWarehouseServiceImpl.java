@@ -10,6 +10,8 @@ import com.fpt.sep490.repository.ProductWareHouseRepository;
 import com.fpt.sep490.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     private final ProductRepository productRepository;
@@ -24,14 +26,10 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         this.productWareHouseRepository = productWareHouseRepository;
     }
 
+
     @Override
-    public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouseDto) {
-        ProductWarehouse productWarehouse = new ProductWarehouse();
-        productWarehouse.setProduct(productRepository.findById(productWarehouseDto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found")));
-        productWarehouse.setWarehouse(warehouseRepository.findById(productWarehouseDto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Warehouse not found")));
-        return productWarehouse;
+    public List<ProductWarehouse> getAll() {
+        return productWareHouseRepository.findAll();
     }
 
     @Override
