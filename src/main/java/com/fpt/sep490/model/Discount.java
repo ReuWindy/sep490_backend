@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,5 +30,6 @@ public class Discount {
 
     @ManyToOne
     @JoinColumn(name = "supplier_product_id")
+    @JsonManagedReference
     private SupplierProduct supplierProduct;
 }
