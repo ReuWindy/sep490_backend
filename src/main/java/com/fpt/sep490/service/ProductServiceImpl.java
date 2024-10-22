@@ -1,15 +1,22 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.AdminProductDto;
+import com.fpt.sep490.dto.BatchDto;
 import com.fpt.sep490.dto.ProductDto;
+import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
+import com.fpt.sep490.security.service.UserService;
+import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import com.fpt.sep490.security.service.UserService;
 
 import java.util.*;
 
@@ -21,14 +28,23 @@ public class ProductServiceImpl implements ProductService {
     private final ProductWareHouseRepository productWareHouseRepository;
     private final WarehouseRepository warehouseRepository;
     private final CategoryRepository categoryRepository;
+    private final BatchRepository batchRepository;
+    private final BatchProductRepository batchProductRepository;
+    private final BatchServiceImpl batchServiceImpl;
+    private final UserService userService;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository) {
+
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, BatchServiceImpl batchServiceImpl, UserService userService) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
         this.productWareHouseRepository = productWareHouseRepository1;
         this.warehouseRepository = warehouseRepository;
         this.categoryRepository = categoryRepository;
+        this.batchRepository = batchRepository;
+        this.batchProductRepository = batchProductRepository;
+        this.batchServiceImpl = batchServiceImpl;
+        this.userService = userService;
     }
 
     @Override
@@ -136,6 +152,58 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
+    @Override
+    public void importProductToBatch(List<importProductDto> ImportProductDtoList) {
+        Batch batch = new Batch();
+        batch.setBatchStatus("OK");
+        Date importDate = new Date();
+        batch.setImportDate(importDate);
+        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userService.findByUsername(username);
+        batch.setBatchCreator(user);
+
+        Set<BatchProduct> batchProducts = new HashSet<>();
+
+        for(importProductDto dto : ImportProductDtoList) {
+            Product product = new Product();
+            product.setName(dto.getName());
+            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+            product.setDescription(dto.getDescription());
+            product.setImportPrice(dto.getImportPrice());
+            product.setImage(dto.getImage());
+            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+            product.setCreateAt(importDate);
+            product.setIsDeleted(false);
+
+            Supplier supplier = supplierRepository.findById(dto.getSupplierId())
+                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+            UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
+                    .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+
+            Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
+                            .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+            product.setSupplier(supplier);
+            product.setUnitOfMeasure(unitOfMeasure);
+            product.setCategory(category);
+            productRepository.save(product);
+
+            BatchProduct batchProduct = new BatchProduct();
+            batchProduct.setProduct(product);
+            batchProduct.setQuantity(dto.getQuantity());
+            batchProduct.setPrice(product.getPrice());
+            batchProduct.setWeight(dto.getWeight());
+            batchProduct.setUnit(dto.getUnit());
+            batchProducts.add(batchProduct);
+            batchProductRepository.save(batchProduct);
+        }
+        batch.setBatchProducts(batchProducts);
+    }
+
     private AdminProductDto convertToAdminProductDto(Product product) {
         AdminProductDto dto = new AdminProductDto();
         dto.setId((int) product.getId());
@@ -158,7 +226,6 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductDto toProductDto(Product product) {
         ProductDto productDto = new ProductDto();
-        productDto.setId(product.getId());
         productDto.setName(product.getName());
         productDto.setDescription(product.getDescription());
         productDto.setPrice(product.getPrice());
@@ -175,12 +242,6 @@ public class ProductServiceImpl implements ProductService {
         if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
             productDto.setWarehouseId(product.getProductWarehouses().iterator().next().getWarehouse().getId());
             productDto.setProductUnit(product.getProductWarehouses().iterator().next().getUnit());
-        }
-        if (product.getBatchProducts() != null && !product.getBatchProducts().isEmpty()) {
-            productDto.setBatchId(product.getBatchProducts().iterator().next().getBatch().getId());
-            if(productDto.getProductUnit() == null){
-                productDto.setProductUnit(product.getBatchProducts().iterator().next().getUnit());
-            }
         }
         return productDto;
     }

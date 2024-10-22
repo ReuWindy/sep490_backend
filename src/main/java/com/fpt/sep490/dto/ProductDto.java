@@ -7,7 +7,6 @@ import java.util.Set;
 
 @Data
 public class ProductDto {
-    private long id;
     private String name;
     private String description;
     private double price;
@@ -16,6 +15,5 @@ public class ProductDto {
     private Long supplierId;
     private Long unitOfMeasureId;
     private Long warehouseId;
-    private Long batchId;
     private String productUnit;
 }

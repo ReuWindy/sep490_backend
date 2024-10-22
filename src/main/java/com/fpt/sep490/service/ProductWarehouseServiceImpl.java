@@ -47,11 +47,11 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         productWarehouse.setDescription(batchProduct.getDescription());
         productWarehouse.setProduct(batchProduct.getProduct());
 
-        long warehouseId = batchProduct.getBatch().getWarehouse().getId();
-        Warehouse defaultWarehouse = warehouseRepository.findById(warehouseId).orElseThrow(() -> new RuntimeException("Warehouse không tìm thấy với id: " + warehouseId ));
-        productWarehouse.setWarehouse(defaultWarehouse);
-        productWarehouse.setBatchCode(batchProduct.getBatch().getBatchCode());
-        productWareHouseRepository.save(productWarehouse);
+//        long warehouseId = batchProduct.getBatch().getWarehouse().getId();
+//        Warehouse defaultWarehouse = warehouseRepository.findById(warehouseId).orElseThrow(() -> new RuntimeException("Warehouse không tìm thấy với id: " + warehouseId ));
+//        productWarehouse.setWarehouse(defaultWarehouse);
+//        productWarehouse.setBatchCode(batchProduct.getBatch().getBatchCode());
+//        productWareHouseRepository.save(productWarehouse);
         return productWarehouse;
     }
 }
