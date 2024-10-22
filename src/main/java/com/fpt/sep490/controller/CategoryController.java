@@ -2,7 +2,6 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
-import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.CategoryService;
 import com.fpt.sep490.service.UserActivityService;
@@ -76,13 +75,12 @@ public class CategoryController {
     }
 
     @PostMapping("/updateCategory")
-    public ResponseEntity<?> updateCategory(@RequestBody Category category) {
+    public ResponseEntity<?> updateCategory(HttpServletRequest request, @RequestBody Category category) {
         Category updatedCategory = categoryService.updateCategory(category);
-        if (updatedCategory != null) {
-            return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
-        }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        String token = jwtTokenManager.resolveToken(request);
+        String username = jwtTokenManager.getUsernameFromToken(token);
+        userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: "+ updatedCategory.getName() + " by " + username);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
     }
 
     @GetMapping("/")

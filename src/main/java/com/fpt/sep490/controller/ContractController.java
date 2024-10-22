@@ -2,7 +2,6 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Contract;
-import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.service.ContractService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.AdminProductDto;
-import com.fpt.sep490.dto.BatchDto;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.model.*;
@@ -16,7 +15,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import com.fpt.sep490.security.service.UserService;
 
 import java.util.*;
 
@@ -30,11 +28,12 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final BatchRepository batchRepository;
     private final BatchProductRepository batchProductRepository;
-    private final BatchServiceImpl batchServiceImpl;
+
+    private final WarehouseReceiptService warehouseReceiptService;
     private final UserService userService;
 
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository1, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, BatchServiceImpl batchServiceImpl, UserService userService) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -43,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
         this.categoryRepository = categoryRepository;
         this.batchRepository = batchRepository;
         this.batchProductRepository = batchProductRepository;
-        this.batchServiceImpl = batchServiceImpl;
+        this.warehouseReceiptService = warehouseReceiptService;
         this.userService = userService;
     }
 
@@ -60,7 +59,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(ProductDto productDto) {
-        // Tạo đối tượng Product từ ProductDto
         Product product = new Product();
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -87,7 +85,6 @@ public class ProductServiceImpl implements ProductService {
             Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
                     .orElseThrow(() -> new RuntimeException("Warehouse not found"));
 
-            // Tạo ProductWarehouse và gán thông tin
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
@@ -165,7 +162,6 @@ public class ProductServiceImpl implements ProductService {
         User user = userService.findByUsername(username);
         batch.setBatchCreator(user);
 
-        // Save the batch first to generate an ID
         batch = batchRepository.save(batch);
 
         Set<BatchProduct> batchProducts = new HashSet<>();
@@ -198,34 +194,34 @@ public class ProductServiceImpl implements ProductService {
             BatchProduct batchProduct = new BatchProduct();
             batchProduct.setProduct(product);
             batchProduct.setQuantity(dto.getQuantity());
-            batchProduct.setPrice(product.getImportPrice()); // Changed to getImportPrice
+            batchProduct.setPrice(product.getImportPrice());
             batchProduct.setWeight(dto.getWeight());
             batchProduct.setUnit(dto.getUnit());
             batchProduct.setDescription("batch for product" + product.getName());
 
-            // Set saved Batch (managed entity) to BatchProduct
             batchProduct.setBatch(batch);
             batchProduct = batchProductRepository.save(batchProduct);
             batchProducts.add(batchProduct);
 
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setQuantity(dto.getQuantity());
-            productWarehouse.setPrice(product.getImportPrice()); //changed to getImportPrice
+            productWarehouse.setPrice(product.getImportPrice());
             productWarehouse.setWeight(dto.getWeight());
             productWarehouse.setUnit(dto.getUnit());
-            productWarehouse.setBatchCode(batch.getBatchCode()); //you get the batch code from the Batch object
+            productWarehouse.setBatchCode(batch.getBatchCode());
             productWarehouse.setDescription("batch of product " + product.getName());
 
-            productWarehouse.setProduct(product); // Set the product
+            productWarehouse.setProduct(product);
 
             Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId()) // Example
                     .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
 
-            productWarehouse.setWarehouse(warehouse); //set the warehouse
+            productWarehouse.setWarehouse(warehouse);
 
             productWarehouse = productWareHouseRepository.save(productWarehouse);
         }
         batch.setBatchProducts(batchProducts);
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
     }
 
     private AdminProductDto convertToAdminProductDto(Product product) {

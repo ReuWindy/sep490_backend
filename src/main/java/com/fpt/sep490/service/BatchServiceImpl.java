@@ -4,7 +4,6 @@ import com.fpt.sep490.dto.BatchDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
-import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -35,22 +34,6 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
-    public Batch createBatch() {
-        Batch batch = new Batch();
-        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
-        batch.setImportDate(new Date());
-        batch.setBatchStatus("OK");
-
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        User user = userService.findByUsername(username);
-        batch.setBatchCreator(user);
-        batchRepository.save(batch);
-        return batch;
-    }
-
-
-    @Override
     public Batch updateBatch(Long batchId, BatchDto batchDto) {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
@@ -69,10 +52,11 @@ public class BatchServiceImpl implements BatchService {
         return batch.orElse(null);
     }
 
-
     @Override
-    public void deleteBatch(Long batchId) {
-        Batch batch = getBatchById(Math.toIntExact(batchId));
-        batchRepository.delete(batch);
+    public Batch updateBatchStatus(Long batchId, String status) {
+        Batch batch = batchRepository.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        batch.setBatchStatus(status);
+        return batch;
     }
 }

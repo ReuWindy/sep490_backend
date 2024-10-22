@@ -8,8 +8,7 @@ import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
+import java.util.Date;
 
 @Service
 public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
@@ -25,7 +24,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     @Override
     public WarehouseReceipt createWarehouseReceipt(WarehouseReceiptDto receiptDto, String batchCode) {
         WarehouseReceipt receipt = new WarehouseReceipt();
-        receipt.setReceiptDate(receiptDto.getReceiptDate());
+        receipt.setReceiptDate(new Date());
         receipt.setReceiptType(ReceiptType.valueOf(receiptDto.getReceiptType()));
         Batch batch = batchRepository.findByBatchCode(batchCode);
         receipt.setBatch(batch);
@@ -34,16 +33,26 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
-    public WarehouseReceipt createWarehouseReceiptByBatchCode(String batchCode, ReceiptType receiptType) {
+    public WarehouseReceipt updateReceiptDocument(long receiptId, String document) {
+        WarehouseReceipt warehouseReceipt = warehouseReceiptRepository.findById(receiptId)
+                .orElseThrow(() -> new RuntimeException("Receipt not found!!"));
+        warehouseReceipt.setDocument(document);
+        return warehouseReceipt;
+    }
+
+    @Override
+    public WarehouseReceipt createImportWarehouseReceipt(String batchCode) {
         Batch batch = batchRepository.findByBatchCode(batchCode);
         if (batch == null) {
-            throw new RuntimeException("Không tìm thấy Batch với mã: " + batchCode);
+            throw new RuntimeException("Batch Not Found!!");
         }
+
         WarehouseReceipt receipt = new WarehouseReceipt();
-        receipt.setReceiptDate(LocalDateTime.now());
-        receipt.setReceiptType(receiptType);
-        receipt.setDocument("Document nào đó");
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.IMPORT);
+        receipt.setDocument("N/A");
         receipt.setBatch(batch);
+
         warehouseReceiptRepository.save(receipt);
         return receipt;
     }
