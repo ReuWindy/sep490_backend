@@ -15,5 +15,5 @@ public interface CustomerService {
     Customer createCustomer(Customer customer);
     User updateCustomer(User user);
     Customer deleteCustomer(int id);
-    Page<Customer> getSupplierByFilter(String fullName, String email, String phone, int pageNumber, int pageSize );
+    Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize );
 }

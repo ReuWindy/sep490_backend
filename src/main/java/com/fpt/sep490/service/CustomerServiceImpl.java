@@ -85,16 +85,11 @@ public class CustomerServiceImpl implements CustomerService{
     public Customer deleteCustomer(int id) {
         return null;
     }
-
     @Override
-    public Page<Customer> getSupplierByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
-        try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
-            return customerRepository.findAll(specification, pageable);
-        } catch (Exception e) {
-            return null;
-        }
+    public Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Specification<User> specification = CustomerSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
+        return userRepository.findAll(specification, pageable);
     }
 
     // Hàm chuyển đổi Customer sang CustomerDto

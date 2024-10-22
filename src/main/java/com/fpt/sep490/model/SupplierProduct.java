@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,5 +29,6 @@ public class SupplierProduct {
     private Product product;
 
     @OneToMany(mappedBy = "supplierProduct", cascade = CascadeType.ALL)
+    @JsonBackReference
     private Set<Discount> discounts;
 }
