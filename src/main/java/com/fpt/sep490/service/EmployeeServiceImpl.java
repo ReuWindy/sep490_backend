@@ -60,18 +60,25 @@ public class EmployeeServiceImpl implements EmployeeService{
     public Employee updateEmployee(EmployeeDTO employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
         if(existingEmployee != null){
-            existingEmployee.setFullName(employee.getFullName());
-            existingEmployee.setEmail(employee.getEmail());
-            existingEmployee.setPhone(employee.getPhone());
-            existingEmployee.setAddress(employee.getAddress());
-            existingEmployee.setBankName(employee.getBankName());
-            existingEmployee.setBankNumber(employee.getBankNumber());
-            existingEmployee.setDob(employee.getDob());
-            existingEmployee.setGender(employee.isGender());
-            existingEmployee.setImage(employee.getImage());
-            existingEmployee.setUpdateAt(new Date());
-            employeeRepository.save(existingEmployee);
-            return existingEmployee;
+            EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
+            if(newEmployeeRole != null) {
+                existingEmployee.setFullName(employee.getFullName());
+                existingEmployee.setEmail(employee.getEmail());
+                existingEmployee.setPhone(employee.getPhone());
+                existingEmployee.setAddress(employee.getAddress());
+                existingEmployee.setBankName(employee.getBankName());
+                existingEmployee.setBankNumber(employee.getBankNumber());
+                existingEmployee.setDob(employee.getDob());
+                existingEmployee.setGender(employee.isGender());
+                existingEmployee.setImage(employee.getImage());
+                existingEmployee.setUpdateAt(new Date());
+                Role role = existingEmployee.getRole();
+                if(role != null){
+                    role.setEmployeeRole(newEmployeeRole);
+                }
+                employeeRepository.save(existingEmployee);
+                return existingEmployee;
+            }
         }
         return null;
     }
