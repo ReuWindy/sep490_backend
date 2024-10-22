@@ -30,6 +30,5 @@ public class Discount {
 
     @ManyToOne
     @JoinColumn(name = "supplier_product_id")
-    @JsonManagedReference
     private SupplierProduct supplierProduct;
 }

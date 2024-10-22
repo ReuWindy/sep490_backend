@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -14,6 +15,9 @@ import java.util.Set;
 public class CustomerDto {
     private long id;
     private String fullName;
+    private String image;
+    private Date dob;
+    private boolean gender;
     private String email;
     private String phoneNumber;
     private String address;
