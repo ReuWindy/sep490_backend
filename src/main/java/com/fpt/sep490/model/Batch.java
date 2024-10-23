@@ -3,15 +3,8 @@ package com.fpt.sep490.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -33,18 +26,10 @@ public class Batch {
     private String batchCode;
 
     @Column(name = "import_date")
-    private LocalDateTime importDate;
+    private Date importDate;
 
     @Column(name = "batch_status")
     private String batchStatus;
-
-    @ManyToOne
-    @JoinColumn(name = "supplier_id")
-    private Supplier supplier;
-
-    @ManyToOne
-    @JoinColumn(name = "warehouse_id")
-    private Warehouse warehouse;
 
     @ManyToOne
     @JoinColumn(name = "warehouse_receipt_id")

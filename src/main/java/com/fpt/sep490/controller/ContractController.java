@@ -3,7 +3,12 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.Supplier;
+import com.fpt.sep490.model.User;
 import com.fpt.sep490.service.ContractService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,5 +73,19 @@ public class ContractController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @GetMapping("/admin")
+    public ResponseEntity<PagedModel<EntityModel<Contract>>> getAdminContractPage(
+            @RequestParam(required = false) String contractNumber,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            PagedResourcesAssembler<Contract> pagedResourcesAssembler
+    ){
+        Page<Contract> contractPage = contractService.getContractByFilter(contractNumber, name, pageNumber, pageSize);
+        PagedModel<EntityModel<Contract>> pagedModel = pagedResourcesAssembler.toModel(contractPage);
+
+        return ResponseEntity.ok(pagedModel);
     }
 }

@@ -26,10 +26,10 @@ public class Employee extends User {
     @Column(name = "employee_join_date")
     private Date joinDate;
 
-    @Column(name = "category_bank_name")
+    @Column(name = "bank_name")
     private String bankName;
 
-    @Column(name = "employee_bank_number")
+    @Column(name = "bank_number")
     private String bankNumber;
 
 

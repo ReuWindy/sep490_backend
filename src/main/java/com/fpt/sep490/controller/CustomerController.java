@@ -37,15 +37,15 @@ public class CustomerController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<PagedModel<EntityModel<Customer>>> getAllCustomerByFilter(
+    public ResponseEntity<PagedModel<EntityModel<User>>> getAllCustomerByFilter(
             @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String phone,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
-            PagedResourcesAssembler<Customer> pagedResourcesAssembler){
-        Page<Customer> customerPage = customerService.getSupplierByFilter(fullName, email, phone, pageNumber, pageSize);
-        PagedModel<EntityModel<Customer>> pagedModel = pagedResourcesAssembler.toModel(customerPage);
+            PagedResourcesAssembler<User> pagedResourcesAssembler){
+        Page<User> customerPage = customerService.getCustomerByFilter(fullName, email, phone, pageNumber, pageSize);
+        PagedModel<EntityModel<User>> pagedModel = pagedResourcesAssembler.toModel(customerPage);
 
         return ResponseEntity.ok(pagedModel);
     }

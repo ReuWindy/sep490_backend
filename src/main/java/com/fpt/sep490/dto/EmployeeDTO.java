@@ -17,4 +17,5 @@ public class EmployeeDTO {
     private Date dob;
     private boolean gender;
     private String image;
+    private Long employeeRoleId;
 }

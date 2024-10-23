@@ -4,8 +4,7 @@ import com.fpt.sep490.Enum.ReceiptType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -19,7 +18,7 @@ public class WarehouseReceipt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private LocalDateTime receiptDate;
+    private Date receiptDate;
     @Enumerated(EnumType.STRING)
     private ReceiptType receiptType;
     private String document;
