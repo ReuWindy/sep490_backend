@@ -33,8 +33,8 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     }
 
     @Override
-    public List<ProductWarehouse> getAll() {
-        return productWareHouseRepository.findAll();
+    public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse) {
+        return null;
     }
 
     @Override
