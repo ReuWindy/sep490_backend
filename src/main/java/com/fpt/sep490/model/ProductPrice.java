@@ -1,6 +1,7 @@
 package com.fpt.sep490.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,5 +28,6 @@ public class ProductPrice {
 
     @ManyToOne
     @JoinColumn(name = "price_id")
+    @JsonBackReference
     private Price price;
 }
