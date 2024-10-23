@@ -9,10 +9,9 @@ import java.util.List;
 public interface BatchService {
     List<Batch> getAllBatches();
     Batch getBatchById(int id);
-    Batch createBatch();
     Batch updateBatch(Long batchId, BatchDto batchDto);
     Batch getBatchByBatchCode(String code);
-    void deleteBatch(Long batchId);
+    Batch updateBatchStatus(Long batchId, String status);
 }
 
 

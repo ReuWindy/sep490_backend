@@ -6,7 +6,10 @@ import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Product;
 import com.fpt.sep490.repository.ProductRepository;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ProductService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -27,10 +30,14 @@ import java.util.Optional;
 public class ProductController {
     private final ProductService productService;
     private final ProductRepository productRepository;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
 
-    public ProductController(ProductService productService, ProductRepository productRepository) {
+    public ProductController(ProductService productService, ProductRepository productRepository, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
         this.productService = productService;
         this.productRepository = productRepository;
+        this.jwtTokenManager = jwtTokenManager;
+        this.userActivityService = userActivityService;
     }
 
     @GetMapping("/")
@@ -63,9 +70,12 @@ public class ProductController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<?> importProduct(@RequestBody List<importProductDto> importProductDtoList) {
+    public ResponseEntity<?> importProduct(HttpServletRequest request, @RequestBody List<importProductDto> importProductDtoList) {
         productService.importProductToBatch(importProductDtoList);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        String token = jwtTokenManager.resolveToken(request);
+        String username = jwtTokenManager.getUsernameFromToken(token);
+        userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to warehouse by :"+ username);
+        return ResponseEntity.status(HttpStatus.CREATED).body(importProductDtoList);
     }
 
     @GetMapping("/warehouse/{warehouseId}")
