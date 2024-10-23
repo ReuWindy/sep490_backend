@@ -28,6 +28,9 @@ public class ProductWarehouse {
     @Column(name = "product_weight")
     private double weight;
 
+    @Column(name = "weight_per_unit")
+    private double weightPerUnit;
+
     @Column(name = "product_unit")
     private String unit;
 

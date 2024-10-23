@@ -195,7 +195,8 @@ public class ProductServiceImpl implements ProductService {
             batchProduct.setProduct(product);
             batchProduct.setQuantity(dto.getQuantity());
             batchProduct.setPrice(product.getImportPrice());
-            batchProduct.setWeight(dto.getWeight());
+            batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+            batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
             batchProduct.setUnit(dto.getUnit());
             batchProduct.setDescription("batch for product" + product.getName());
 
@@ -206,7 +207,8 @@ public class ProductServiceImpl implements ProductService {
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setQuantity(dto.getQuantity());
             productWarehouse.setPrice(product.getImportPrice());
-            productWarehouse.setWeight(dto.getWeight());
+            productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
+            productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
             productWarehouse.setUnit(dto.getUnit());
             productWarehouse.setBatchCode(batch.getBatchCode());
             productWarehouse.setDescription("batch of product " + product.getName());
