@@ -10,6 +10,8 @@ import com.fpt.sep490.repository.ProductWareHouseRepository;
 import com.fpt.sep490.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     private final ProductRepository productRepository;
@@ -22,6 +24,11 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         this.warehouseRepository = warehouseRepository;
         this.batchProductRepository = batchProductRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+    }
+
+    @Override
+    public List<ProductWarehouse> getAll() {
+        return productWareHouseRepository.findAll();
     }
 
     @Override

@@ -18,7 +18,7 @@ public class SupplierProduct {
     private long id;
     private long previousSupplierId;
     private double price;
-
+    private String description;
     @ManyToOne
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
