@@ -2,6 +2,7 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductDto;
+import com.fpt.sep490.dto.UnitWeightPairs;
 import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -120,10 +122,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String name, String categoryName, String supplierName, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasNameOrCategoryNameOrSupplierName(name, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         return products.map(this::toProductDto);
     }
@@ -247,7 +249,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDto toProductDto(Product product) {
+        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+                .map(pw -> new UnitWeightPairs(pw.getUnit(), pw.getWeightPerUnit())).collect(Collectors.toSet());
         ProductDto productDto = new ProductDto();
+        productDto.setProductCode(product.getProductCode());
         productDto.setName(product.getName());
         productDto.setDescription(product.getDescription());
         productDto.setPrice(product.getPrice());
@@ -261,10 +266,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
-        if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
-            productDto.setWarehouseId(product.getProductWarehouses().iterator().next().getWarehouse().getId());
-            productDto.setProductUnit(product.getProductWarehouses().iterator().next().getUnit());
-        }
+        productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;
     }
 

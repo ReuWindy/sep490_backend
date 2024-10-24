@@ -54,7 +54,6 @@ public class OrderServiceImpl implements OrderService{
         orderDTO.setTotalAmount(order.getTotalAmount());
         orderDTO.setDeposit(order.getDeposit());
         orderDTO.setRemainingAmount(order.getRemainingAmount());
-        orderDTO.setContractId(order.getContract().getId());
         orderDTO.setStatus(order.getStatus());
         return orderDTO;
     }
@@ -62,7 +61,7 @@ public class OrderServiceImpl implements OrderService{
     private OrderDetailDto convertToOrderDetailDTO(OrderDetail orderDetail) {
         OrderDetailDto detailDTO = new OrderDetailDto();
         detailDTO.setId(orderDetail.getId());
-        detailDTO.setName(orderDetail.getSupplierProduct().getProduct().getName());
+        detailDTO.setName(orderDetail.getProduct().getName());
         detailDTO.setQuantity(orderDetail.getQuantity());
         detailDTO.setUnitPrice(orderDetail.getUnitPrice());
         detailDTO.setTotalPrice(orderDetail.getTotalPrice());
