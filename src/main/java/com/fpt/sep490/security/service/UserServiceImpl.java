@@ -20,10 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.ErrorResponse;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -40,9 +37,11 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
     private final EmployeeRepository employeeRepository;
+    private final CustomerRepository customerRepository;
+    private final PriceRepository priceRepository;
 
 
-    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository,EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository) {
+    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository,EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository,CustomerRepository customerRepository, PriceRepository priceRepository) {
         this.jwtTokenManager = jwtTokenManager;
         this.sendMail = sendMail;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -54,7 +53,8 @@ public class UserServiceImpl implements UserService {
         this.roleRepository = roleRepository;
         this.employeeRoleRepository = employeeRoleRepository;
         this.employeeRepository = employeeRepository;
-
+        this.customerRepository = customerRepository;
+        this.priceRepository = priceRepository;
     }
 
     @Override
@@ -189,6 +189,14 @@ public class UserServiceImpl implements UserService {
             user.setImage(createUserRequest.getImage());
             user.setCreateAt(new Date());
             user.setUserType(userType);
+
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
+            Customer customer = new Customer();
+            customer.setName(createUserRequest.getName());
+            customer.setSupporter(false);
+            customer.setContracts(new HashSet<>());
+            customer.setPrice(standardPrice);
+            customerRepository.save(customer);
             userRepository.save(user);
         }
         final String username = registrationRequest.getUsername();
