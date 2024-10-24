@@ -8,7 +8,8 @@ public class RandomEmployeeCodeGenerator {
     public static String generateEmployeeCode(){
         Random random = new Random();
         int randomNumber = random.nextInt(10000);
+        long timestamp = System.currentTimeMillis();
 
-        return String.format("%s%04d",EMPLOYEE_PREFIX,randomNumber);
+        return String.format("%s-%04d-%d",EMPLOYEE_PREFIX,randomNumber,timestamp);
     }
 }

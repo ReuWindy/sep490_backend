@@ -26,6 +26,8 @@ public class Product {
     private String description;
     private double price;
     private String image;
+
+    @Column(unique = true)
     private String productCode;
 
     @ManyToOne

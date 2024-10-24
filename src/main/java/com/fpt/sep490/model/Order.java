@@ -19,6 +19,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(name = "order_code", unique = true)
+    private String orderCode;
+
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
@@ -30,9 +33,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
 
-    @ManyToOne
-    @JoinColumn(name = "contract_id")
-    private Contract contract;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private Set<OrderDetail> orderDetails;

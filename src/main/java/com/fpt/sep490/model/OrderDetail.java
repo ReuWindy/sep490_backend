@@ -20,8 +20,8 @@ public class OrderDetail {
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_product_id")
-    private SupplierProduct supplierProduct;  // Liên kết đến sản phẩm của nhà cung cấp
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     private int quantity;
     private double unitPrice;  // Giá mỗi sản phẩm tại thời điểm đặt hàng
