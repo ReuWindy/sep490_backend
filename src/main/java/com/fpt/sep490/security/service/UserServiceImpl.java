@@ -223,13 +223,4 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUserByPhone(phoneNumber);
     }
 
-    public static User convertToUser(RegistrationRequest userDto) {
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setAddress(user.getAddress());
-        return user;
-    }
 }

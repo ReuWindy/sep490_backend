@@ -32,7 +32,7 @@ public class SecurityConfiguration {
 
     List<String> publicEndpoints = Arrays.asList("/register", "/login/loginRequest",
                                                  "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                                                 "/user/**", "/employees/**", "/actuator/**"
+                                                 "/user/**", "/employees/**", "/actuator/**", "/logout/**"
                                                  );
 
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",

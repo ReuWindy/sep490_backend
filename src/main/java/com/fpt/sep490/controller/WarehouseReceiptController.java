@@ -1,17 +1,26 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.dto.WarehouseReceiptDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
+import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.UserActivityService;
 import com.fpt.sep490.service.WarehouseReceiptService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/WarehouseReceipt")
@@ -26,6 +35,27 @@ public class WarehouseReceiptController {
         this.warehouseReceiptService = warehouseReceiptService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAll() {
+        List<WarehouseReceipt> warehouseReceipts = warehouseReceiptService.getAllWarehouseReceipts();
+        if (!warehouseReceipts.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(warehouseReceipts);
+        }
+        return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<PagedModel<EntityModel<WarehouseReceipt>>> getWarehouseReceiptByFilter(
+            @RequestParam(required = false) Date importDate,
+            @RequestParam(required = false) ReceiptType receiptType,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            PagedResourcesAssembler<WarehouseReceipt> pagedResourcesAssembler) {
+        Page<WarehouseReceipt> warehouseReceipts = warehouseReceiptService.getWarehouseReceipts(importDate, receiptType, pageNumber, pageSize);
+        PagedModel<EntityModel<WarehouseReceipt>> pagedModel = pagedResourcesAssembler.toModel(warehouseReceipts);
+        return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 
     @PostMapping("/createReceipt/{batchCode}")

@@ -6,9 +6,14 @@ import com.fpt.sep490.model.Batch;
 import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.WarehouseReceiptRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
@@ -41,6 +46,11 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
+    public List<WarehouseReceipt> getAllWarehouseReceipts() {
+        return warehouseReceiptRepository.findAll();
+    }
+
+    @Override
     public WarehouseReceipt createImportWarehouseReceipt(String batchCode) {
         Batch batch = batchRepository.findByBatchCode(batchCode);
         if (batch == null) {
@@ -55,5 +65,17 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
 
         warehouseReceiptRepository.save(receipt);
         return receipt;
+    }
+
+    @Override
+    public Page<WarehouseReceipt> getWarehouseReceipts(Date importDate, ReceiptType receiptType, int pageNumber, int pageSize) {
+        try {
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<WarehouseReceipt> specification = WarehouseReceiptSpecification.hasImportDateOrType(importDate, receiptType);
+            return warehouseReceiptRepository.findAll(specification, pageable);
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 }
