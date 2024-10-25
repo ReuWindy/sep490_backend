@@ -4,6 +4,7 @@ import com.fpt.sep490.dto.ContractDto;
 import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.model.Order;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface OrderService {
     List<OrderDetailDto> getOrderHistoryDetailByOrderId(long orderId);
 
     ContractDto getContractDetailByContractId(long contractId);
+    Page<OrderDto> getOrderHistoryByCustomerId(long customerId,String orderCode, String orderStatus, int pageNumber, int pageSize);
 }

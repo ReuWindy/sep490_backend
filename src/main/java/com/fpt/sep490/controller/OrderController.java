@@ -8,6 +8,7 @@ import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
 import com.fpt.sep490.service.OrderService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
@@ -38,8 +39,21 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<PagedModel<EntityModel<OrderDto>>> getOrderHistoryByCustomerId(
+            @PathVariable long customerId,
+            @RequestParam(required = false) String orderCode,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            PagedResourcesAssembler<OrderDto> pagedResourcesAssembler
+    ){
+        Page<OrderDto> orderpage = orderService.getOrderHistoryByCustomerId(customerId,orderCode,status,pageNumber,pageSize);
+        PagedModel<EntityModel<OrderDto>> pagedModel = pagedResourcesAssembler.toModel(orderpage);
+        return ResponseEntity.ok(pagedModel);
+    }
     @GetMapping("/details/{orderId}")
-    public ResponseEntity<?> getOrderHistoryDetailByOrderId(@PathVariable long orderId){
+    public ResponseEntity<?> getOrderDetailByOrderId(@PathVariable long orderId){
         List<OrderDetailDto> orderDetails = orderService.getOrderHistoryDetailByOrderId(orderId);
         if(orderDetails != null){
             return ResponseEntity.status(HttpStatus.OK).body(orderDetails);

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class OrderDetailDto {
     private long id;
     private String name;
+    private String description;
     private int quantity;
     private double unitPrice;
     private double totalPrice;

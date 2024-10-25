@@ -6,9 +6,14 @@ import com.fpt.sep490.dto.OrderDto;
 import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.Order;
 import com.fpt.sep490.model.OrderDetail;
+import com.fpt.sep490.model.Product;
 import com.fpt.sep490.repository.ContractRepository;
 import com.fpt.sep490.repository.OrderDetailRepository;
 import com.fpt.sep490.repository.OrderRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,9 +52,25 @@ public class OrderServiceImpl implements OrderService{
         return null;
     }
 
+    @Override
+    public Page<OrderDto> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
+        OrderSpecification orderSpecification = new OrderSpecification();
+        Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
+        if(orderCode != null && !orderCode.isEmpty()){
+            spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
+        }
+        if(status != null && !status.isEmpty()){
+            spec = spec.and(OrderSpecification.hasStatus(status));
+        }
+        Page<Order> orders = orderRepository.findAll(spec,pageable);
+        return orders.map(this::convertToDTO);
+    }
+
     private OrderDto convertToDTO(Order order) {
         OrderDto orderDTO = new OrderDto();
         orderDTO.setId(order.getId());
+        orderDTO.setOrderCode(order.getOrderCode());
         orderDTO.setOrderDate(order.getOrderDate());
         orderDTO.setTotalAmount(order.getTotalAmount());
         orderDTO.setDeposit(order.getDeposit());
@@ -62,6 +83,7 @@ public class OrderServiceImpl implements OrderService{
         OrderDetailDto detailDTO = new OrderDetailDto();
         detailDTO.setId(orderDetail.getId());
         detailDTO.setName(orderDetail.getProduct().getName());
+        detailDTO.setDescription(orderDetail.getProduct().getDescription());
         detailDTO.setQuantity(orderDetail.getQuantity());
         detailDTO.setUnitPrice(orderDetail.getUnitPrice());
         detailDTO.setTotalPrice(orderDetail.getTotalPrice());
