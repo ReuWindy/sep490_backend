@@ -1,9 +1,13 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.CustomerPriceDto;
 import com.fpt.sep490.dto.PriceRequestDto;
+import com.fpt.sep490.dto.ProductPriceDto;
+import com.fpt.sep490.dto.ProductPriceRequestDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.CustomerRepository;
 import com.fpt.sep490.repository.PriceRepository;
+import com.fpt.sep490.repository.ProductPriceRepository;
 import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -20,11 +25,13 @@ public class PriceServiceImpl implements PriceService{
     private final PriceRepository priceRepository;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
+    private final ProductPriceRepository productPriceRepository;
 
-    public PriceServiceImpl(PriceRepository priceRepository, ProductRepository productRepository,CustomerRepository customerRepository){
+    public PriceServiceImpl(PriceRepository priceRepository, ProductRepository productRepository,CustomerRepository customerRepository,ProductPriceRepository productPriceRepository){
         this.priceRepository = priceRepository;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
+        this.productPriceRepository = productPriceRepository;
     }
     @Override
     public List<Price> findAllPrices() {
@@ -44,19 +51,34 @@ public class PriceServiceImpl implements PriceService{
                 .name(request.getName())
                 .productPrices(new HashSet<>())
                 .build();
-        for (Long productId : request.getProductIds()){
-            Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
-            ProductPrice productPrice = ProductPrice.builder()
-                    .unit_price(request.getUnitPrice())
-                    .product(product)
-                    .price(price)
-                    .build();
-            price.getProductPrices().add(productPrice);
+        return priceRepository.save(price);
+    }
+
+    @Override
+    public List<Customer> updateCustomerPrice(CustomerPriceDto customerPriceDto) {
+        Price price = priceRepository.findById(customerPriceDto.getPriceId()).orElseThrow(()-> new RuntimeException("Price Not Found !"));
+        List<Customer> updatedPriceCustomers = new ArrayList<>();
+        for(Long customerId : customerPriceDto.getCustomerIds()){
+            Customer customer = customerRepository.findById(customerId).orElseThrow(()->new RuntimeException("Customer Not Found"));
+            customer.setPrice(price);
+            updatedPriceCustomers.add(customerRepository.save(customer));
         }
-        Price createdPrice = priceRepository.save(price);
-        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow(()->new RuntimeException("Customer Not Found"));
-        customer.setPrice(createdPrice);
-        customerRepository.save(customer);
-        return  createdPrice;
+        return updatedPriceCustomers;
+    }
+
+    @Override
+    public List<ProductPrice> updateProductPrice(ProductPriceRequestDto productPriceDto) {
+          double updatedProductPrice = productPriceDto.getUnitPrice();
+          List<ProductPrice> updatedProductPriceDto = new ArrayList<>();
+          for(ProductPriceDto request : productPriceDto.getProductPrice()){
+              Product updatedProduct = productRepository.findById(request.getProductId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
+              Price updatedPrice = priceRepository.findById(request.getPriceId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
+              ProductPrice productPrice = new ProductPrice();
+              productPrice.setUnit_price(updatedProductPrice);
+              productPrice.setProduct(updatedProduct);
+              productPrice.setPrice(updatedPrice);
+              updatedProductPriceDto.add(productPriceRepository.save(productPrice));
+          }
+          return updatedProductPriceDto;
     }
 }

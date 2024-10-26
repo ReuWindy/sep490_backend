@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PriceRequestDto {
-    private List<Long> customerIds;
-    private String name;
+public class ProductPriceRequestDto {
+    private double unitPrice;
+    Set<ProductPriceDto> productPrice;
 }

@@ -1,9 +1,13 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.CustomerPriceDto;
 import com.fpt.sep490.dto.PriceRequestDto;
+import com.fpt.sep490.dto.ProductPriceDto;
+import com.fpt.sep490.dto.ProductPriceRequestDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Contract;
+import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.Price;
+import com.fpt.sep490.model.ProductPrice;
 import com.fpt.sep490.service.PriceService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -54,7 +58,27 @@ public class PriceController {
             if (createdPrice != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(createdPrice);
             }
-            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse("Add Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        @PostMapping("/admin/UpdateCustomerPrice")
+        public ResponseEntity<?> UpdateCustomerPrice(@RequestBody CustomerPriceDto customerPriceDto){
+            List<Customer> updatedPriceCustomers = priceService.updateCustomerPrice(customerPriceDto);
+            if(updatedPriceCustomers != null){
+                return ResponseEntity.status(HttpStatus.OK).body(updatedPriceCustomers);
+            }
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        @PostMapping("/admin/UpdateProductPrice")
+        public ResponseEntity<?> UpdateProductPrice(@RequestBody ProductPriceRequestDto productPriceDto){
+            List<ProductPrice> updatedProductPrice = priceService.updateProductPrice(productPriceDto);
+            if(updatedProductPrice!= null){
+                return ResponseEntity.status(HttpStatus.OK).body(updatedProductPrice);
+            }
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 }   

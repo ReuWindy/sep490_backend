@@ -4,12 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PriceRequestDto {
-    private List<Long> customerIds;
-    private String name;
+public class ProductPriceDto {
+    private Long productId;
+    private Long priceId;
 }
