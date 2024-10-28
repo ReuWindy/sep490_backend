@@ -1,10 +1,7 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.Enum.StatusEnum;
-import com.fpt.sep490.dto.ContractDto;
-import com.fpt.sep490.dto.OrderDetailDto;
-import com.fpt.sep490.dto.OrderDto;
-import com.fpt.sep490.dto.ProductDto;
+import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
 import com.fpt.sep490.service.OrderService;
@@ -81,5 +78,25 @@ public class OrderController {
             PagedResourcesAssembler<Order> pagedResourcesAssembler
             ){
              return null;
+    }
+
+    @PostMapping("/admin/CreateOrder")
+    public ResponseEntity<?> createAdminOrder(AdminOrderDto adminOrderDto){
+        Order createdAdminOrder = orderService.createAdminOrder(adminOrderDto);
+        if(createdAdminOrder != null){
+            return ResponseEntity.status(HttpStatus.OK).body(createdAdminOrder);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    @PostMapping("/customer/CreateOrder")
+    public ResponseEntity<?> createCustomerOrder(CustomerOrderDto customerOrderDto){
+        Order createdCustomerOrder = orderService.createCustomerOrder(customerOrderDto);
+        if(createdCustomerOrder != null){
+            return ResponseEntity.status(HttpStatus.OK).body(createdCustomerOrder);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+
     }
 }

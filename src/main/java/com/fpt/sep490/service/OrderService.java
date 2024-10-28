@@ -1,8 +1,6 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.dto.ContractDto;
-import com.fpt.sep490.dto.OrderDetailDto;
-import com.fpt.sep490.dto.OrderDto;
+import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +15,7 @@ public interface OrderService {
 
     ContractDto getContractDetailByContractId(long contractId);
     Page<OrderDto> getOrderHistoryByCustomerId(long customerId,String orderCode, String orderStatus, int pageNumber, int pageSize);
+    Order createAdminOrder(AdminOrderDto adminOrderDto);
+
+    Order createCustomerOrder(CustomerOrderDto customerOrderDto);
 }

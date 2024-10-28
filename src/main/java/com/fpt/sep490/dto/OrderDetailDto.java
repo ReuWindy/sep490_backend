@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDetailDto {
-    private long id;
+    private Long id;
     private String name;
     private String description;
     private int quantity;
     private double unitPrice;
+    private Double discount = 0.0;
     private double totalPrice;
 }

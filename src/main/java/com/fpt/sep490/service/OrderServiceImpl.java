@@ -1,22 +1,17 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.dto.ContractDto;
-import com.fpt.sep490.dto.OrderDetailDto;
-import com.fpt.sep490.dto.OrderDto;
-import com.fpt.sep490.model.Contract;
-import com.fpt.sep490.model.Order;
-import com.fpt.sep490.model.OrderDetail;
-import com.fpt.sep490.model.Product;
-import com.fpt.sep490.repository.ContractRepository;
-import com.fpt.sep490.repository.OrderDetailRepository;
-import com.fpt.sep490.repository.OrderRepository;
+import com.fpt.sep490.Enum.StatusEnum;
+import com.fpt.sep490.dto.*;
+import com.fpt.sep490.model.*;
+import com.fpt.sep490.repository.*;
+import com.fpt.sep490.utils.RandomOrderCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,11 +20,19 @@ public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final ContractRepository contractRepository;
+    private final CustomerRepository customerRepository;
+    private final ProductRepository productRepository;
+    private final ProductPriceRepository productPriceRepository;
+    private final OrderActivityRepository orderActivityRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository){
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository,CustomerRepository customerRepository,ProductRepository productRepository,ProductPriceRepository productPriceRepository,OrderActivityRepository orderActivityRepository){
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
+        this.customerRepository = customerRepository;
+        this.productRepository = productRepository;
+        this.productPriceRepository = productPriceRepository;
+        this.orderActivityRepository = orderActivityRepository;
     }
     @Override
     public List<OrderDto> getOrderHistoryByCustomerId(long customerId) {
@@ -67,6 +70,84 @@ public class OrderServiceImpl implements OrderService{
         return orders.map(this::convertToDTO);
     }
 
+    @Override
+    public Order createAdminOrder(AdminOrderDto adminOrderDto) {
+        Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Customer Not Found !"));
+        Order order = Order.builder()
+                .orderCode(RandomOrderCodeGenerator.generateOrderCode())
+                .customer(customer)
+                .orderDate(new Date())
+                .deposit(adminOrderDto.getDeposit())
+                .remainingAmount(adminOrderDto.getRemainingAmount())
+                .status(StatusEnum.PENDING)
+                .build();
+        double totalAmount = 0.0;
+        Set<OrderDetail> orderDetails = new HashSet<>();
+        for(var detailDto : adminOrderDto.getOrderDetails()){
+            Product product = productRepository.findById(detailDto.getId()).orElseThrow(()->new RuntimeException("Product not found"));
+            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
+            double discountUnitPrice = detailDto.getUnitPrice() * (1-discountPercentage);
+            double totalPrice = discountUnitPrice * detailDto.getQuantity();
+
+            OrderDetail orderDetail = OrderDetail.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(detailDto.getQuantity())
+                    .unitPrice(detailDto.getUnitPrice())
+                    .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
+                    .totalPrice(totalPrice)
+                    .build();
+            orderDetails.add(orderDetail);
+            totalAmount += totalPrice;
+        }
+        order.setTotalAmount(totalAmount);
+        order.setOrderDetails(orderDetails);
+        orderRepository.save(order);
+        orderDetailRepository.saveAll(orderDetails);
+        logOrderActivity(order,"CREATED","Created Order",customer.getName());
+        return order;
+    }
+
+    @Override
+    public Order createCustomerOrder(CustomerOrderDto customerOrderDto) {
+        Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Customer Not Found !"));
+        Order order = Order.builder()
+                .orderCode(RandomOrderCodeGenerator.generateOrderCode())
+                .customer(customer)
+                .orderDate(new Date())
+                .deposit(customerOrderDto.getDeposit())
+                .remainingAmount(customerOrderDto.getRemainingAmount())
+                .status(StatusEnum.PENDING)
+                .build();
+        double totalAmount = 0.0;
+        Set<OrderDetail> orderDetails = new HashSet<>();
+        for(var detailDto : customerOrderDto.getOrderDetails()){
+            Product product = productRepository.findById(detailDto.getId()).orElseThrow(()->new RuntimeException("Product not found"));
+
+            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
+            double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
+            double discountUnitPrice = customUnitPrice * (1-discountPercentage);
+            double totalPrice = discountUnitPrice * detailDto.getQuantity();
+
+            OrderDetail orderDetail = OrderDetail.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(detailDto.getQuantity())
+                    .unitPrice(detailDto.getUnitPrice())
+                    .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
+                    .totalPrice(totalPrice)
+                    .build();
+            orderDetails.add(orderDetail);
+            totalAmount += totalPrice;
+        }
+        order.setTotalAmount(totalAmount);
+        order.setOrderDetails(orderDetails);
+        orderRepository.save(order);
+        orderDetailRepository.saveAll(orderDetails);
+        logOrderActivity(order,"CREATED","Created Order",customer.getName());
+        return order;
+    }
+
     private OrderDto convertToDTO(Order order) {
         OrderDto orderDTO = new OrderDto();
         orderDTO.setId(order.getId());
@@ -99,5 +180,25 @@ public class OrderServiceImpl implements OrderService{
         contractDto.setImageFilePath(contract.getImageFilePath());
         contractDto.setConfirmationDate(contract.getConfirmationDate());
         return contractDto;
+    }
+
+    private double getCustomUnitPrice(Customer customer, Product product, double defaultPrice){
+            if(customer.getPrice() != null){
+                Optional<ProductPrice> productPriceOpt = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId());
+                if(productPriceOpt.isPresent()){
+                    return productPriceOpt.get().getUnit_price();
+                }
+            }
+        return defaultPrice;
+    }
+    private void logOrderActivity(Order order, String activityType, String description, String userPerform) {
+        OrderActivity activity = OrderActivity.builder()
+                .order(order)
+                .activityType(activityType)
+                .description(description)
+                .timestamp(new Date())
+                .userPerform(userPerform)
+                .build();
+        orderActivityRepository.save(activity);
     }
 }

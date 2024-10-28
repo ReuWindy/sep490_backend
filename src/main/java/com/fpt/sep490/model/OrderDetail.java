@@ -24,6 +24,7 @@ public class OrderDetail {
     private Product product;
 
     private int quantity;
+    private double discount;
     private double unitPrice;  // Giá mỗi sản phẩm tại thời điểm đặt hàng
     private double totalPrice;
 }
