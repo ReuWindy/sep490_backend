@@ -9,12 +9,10 @@ public class importProductDto {
     private double importPrice;
     private String image;
     private int quantity;
-    //private double totalWeight;
     private double weightPerUnit;
     private String unit;
     private String categoryId;
     private Long supplierId;
     private Long unitOfMeasureId;
     private Long warehouseId;
-    //private String productUnit;
 }

@@ -163,69 +163,89 @@ public class ProductServiceImpl implements ProductService {
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
         batch.setBatchCreator(user);
-
         batch = batchRepository.save(batch);
 
         Set<BatchProduct> batchProducts = new HashSet<>();
 
         for(importProductDto dto : ImportProductDtoList) {
-            Product product = new Product();
-            product.setName(dto.getName());
-            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
-            product.setDescription(dto.getDescription());
-            product.setImportPrice(dto.getImportPrice());
-            product.setImage(dto.getImage());
-            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
-            product.setCreateAt(importDate);
-            product.setIsDeleted(false);
+            if (!productRepository.existsByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(), Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice())) {
+                Product product = new Product();
+                product.setName(dto.getName());
+                product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+                product.setDescription(dto.getDescription());
+                product.setImportPrice(dto.getImportPrice());
+                product.setImage(dto.getImage());
+                product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+                product.setCreateAt(importDate);
+                product.setIsDeleted(false);
 
-            Supplier supplier = supplierRepository.findById(dto.getSupplierId())
-                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                Supplier supplier = supplierRepository.findById(dto.getSupplierId())
+                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
+                        .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+                Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
+                        .orElseThrow(() -> new RuntimeException("Category not found"));
 
-            UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
-                    .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+                product.setSupplier(supplier);
+                product.setUnitOfMeasure(unitOfMeasure);
+                product.setCategory(category);
+                product = productRepository.save(product);
 
-            Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                createProductIntoBatchAndWarehouse(batch, batchProducts, dto, product);
+            } else {
+                Optional<Product> p = productRepository.findByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(), Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice());
+                if(p.isPresent()) {
+                    Product product = p.get();
+                    createProductIntoBatchAndWarehouse(batch, batchProducts, dto, product);
+                }
+            }
+        }
 
-            product.setSupplier(supplier);
-            product.setUnitOfMeasure(unitOfMeasure);
-            product.setCategory(category);
-            product = productRepository.save(product);
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batchRepository.save(batch);
+    }
 
-            BatchProduct batchProduct = new BatchProduct();
-            batchProduct.setProduct(product);
-            batchProduct.setQuantity(dto.getQuantity());
-            batchProduct.setPrice(product.getImportPrice());
-            batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
-            batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
-            batchProduct.setUnit(dto.getUnit());
-            batchProduct.setDescription("batch for product" + product.getName());
+    private void createProductIntoBatchAndWarehouse(Batch batch, Set<BatchProduct> batchProducts, importProductDto dto, Product product) {
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(product);
+        batchProduct.setQuantity(dto.getQuantity());
+        batchProduct.setPrice(product.getImportPrice());
+        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+        batchProduct.setUnit(dto.getUnit());
+        batchProduct.setDescription("batch for product" + product.getName());
+        batchProduct.setBatch(batch);
+        batchProduct = batchProductRepository.save(batchProduct);
+        batchProducts.add(batchProduct);
 
-            batchProduct.setBatch(batch);
-            batchProduct = batchProductRepository.save(batchProduct);
-            batchProducts.add(batchProduct);
+        ProductWarehouse productWarehouse;
+        Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
+                product,
+                dto.getUnit(),
+                dto.getWeightPerUnit(),
+                dto.getWarehouseId()
+        );
 
-            ProductWarehouse productWarehouse = new ProductWarehouse();
+        if (existingProductWarehouse.isPresent()) {
+            // If product warehouse exists, update it
+            productWarehouse = existingProductWarehouse.get();
+            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
+            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
+        } else {
+            // If not, create new
+            productWarehouse = new ProductWarehouse();
             productWarehouse.setQuantity(dto.getQuantity());
-            productWarehouse.setPrice(product.getImportPrice());
+            productWarehouse.setImportPrice(product.getImportPrice());
             productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
             productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
             productWarehouse.setUnit(dto.getUnit());
-            productWarehouse.setBatchCode(batch.getBatchCode());
-            productWarehouse.setDescription("batch of product " + product.getName());
-
             productWarehouse.setProduct(product);
-
-            Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId()) // Example
+            Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
                     .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
-
             productWarehouse.setWarehouse(warehouse);
-
-            productWarehouse = productWareHouseRepository.save(productWarehouse);
         }
-        batch.setBatchProducts(batchProducts);
-        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+
+        productWarehouse = productWareHouseRepository.save(productWarehouse);
     }
 
     private AdminProductDto convertToAdminProductDto(Product product) {

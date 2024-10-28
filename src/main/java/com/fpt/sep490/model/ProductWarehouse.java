@@ -22,8 +22,11 @@ public class ProductWarehouse {
     @Column(name = "product_quantity")
     private int quantity;
 
-    @Column(name = "product_price")
-    private double price;
+    @Column(name = "product_import_price")
+    private double importPrice;
+
+    @Column(name = "product_sell_price")
+    private double sellPrice;
 
     @Column(name = "product_weight")
     private double weight;
@@ -33,12 +36,6 @@ public class ProductWarehouse {
 
     @Column(name = "product_unit")
     private String unit;
-
-    @Column(name = "batch_code")
-    private String batchCode;
-
-    @Column(name = "batch_product_description")
-    private String description;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
