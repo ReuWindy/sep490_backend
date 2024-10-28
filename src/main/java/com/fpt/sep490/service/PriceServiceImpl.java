@@ -55,24 +55,21 @@ public class PriceServiceImpl implements PriceService{
     }
 
     @Override
-    public List<Customer> updateCustomerPrice(CustomerPriceDto customerPriceDto) {
+    public Customer updateCustomerPrice(CustomerPriceDto customerPriceDto) {
         Price price = priceRepository.findById(customerPriceDto.getPriceId()).orElseThrow(()-> new RuntimeException("Price Not Found !"));
-        List<Customer> updatedPriceCustomers = new ArrayList<>();
-        for(Long customerId : customerPriceDto.getCustomerIds()){
-            Customer customer = customerRepository.findById(customerId).orElseThrow(()->new RuntimeException("Customer Not Found"));
-            customer.setPrice(price);
-            updatedPriceCustomers.add(customerRepository.save(customer));
-        }
-        return updatedPriceCustomers;
+        Customer customer = customerRepository.findById(customerPriceDto.getCustomerIds()).orElseThrow(()->new RuntimeException("Customer Not Found"));
+        customer.setPrice(price);
+        customerRepository.save(customer);
+        return customer;
     }
 
     @Override
     public List<ProductPrice> updateProductPrice(ProductPriceRequestDto productPriceDto) {
-          double updatedProductPrice = productPriceDto.getUnitPrice();
           List<ProductPrice> updatedProductPriceDto = new ArrayList<>();
           for(ProductPriceDto request : productPriceDto.getProductPrice()){
               Product updatedProduct = productRepository.findById(request.getProductId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
               Price updatedPrice = priceRepository.findById(request.getPriceId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
+              double updatedProductPrice = request.getUnitPrice();
               ProductPrice productPrice = new ProductPrice();
               productPrice.setUnit_price(updatedProductPrice);
               productPrice.setProduct(updatedProduct);

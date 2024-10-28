@@ -10,6 +10,5 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductPriceRequestDto {
-    private double unitPrice;
     Set<ProductPriceDto> productPrice;
 }

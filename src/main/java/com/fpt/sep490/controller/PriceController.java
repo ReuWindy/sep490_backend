@@ -64,7 +64,7 @@ public class PriceController {
 
         @PostMapping("/admin/UpdateCustomerPrice")
         public ResponseEntity<?> UpdateCustomerPrice(@RequestBody CustomerPriceDto customerPriceDto){
-            List<Customer> updatedPriceCustomers = priceService.updateCustomerPrice(customerPriceDto);
+            Customer updatedPriceCustomers = priceService.updateCustomerPrice(customerPriceDto);
             if(updatedPriceCustomers != null){
                 return ResponseEntity.status(HttpStatus.OK).body(updatedPriceCustomers);
             }

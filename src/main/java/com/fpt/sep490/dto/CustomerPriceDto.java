@@ -11,6 +11,6 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerPriceDto {
-     private Set<Long> customerIds;
+     private Long customerIds;
      private Long priceId;
 }
