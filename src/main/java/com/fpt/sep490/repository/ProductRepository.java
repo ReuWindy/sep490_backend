@@ -32,5 +32,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("supplierId") Long supplierId,
             @Param("importPrice") Double importPrice);
 
-
+    @Query("SELECT p FROM Product p WHERE p.name = :name AND p.category.id = :categoryId AND p.supplier.id = :supplierId")
+    Optional<Product> findByNameAndCategoryIdAndSupplierId(
+            @Param("name") String name,
+            @Param("categoryId") Long categoryId,
+            @Param("supplierId") Long supplierId
+            );
 }

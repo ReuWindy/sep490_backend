@@ -2,6 +2,7 @@ package com.fpt.sep490.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fpt.sep490.Enum.ReceiptType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,4 +42,8 @@ public class Batch {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User batchCreator;
+
+    @Column(name = "batch_type")
+    @Enumerated(EnumType.STRING)
+    private ReceiptType receiptType;
 }

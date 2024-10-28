@@ -1,9 +1,7 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.dto.AdminProductDto;
-import com.fpt.sep490.dto.ProductDto;
-import com.fpt.sep490.dto.UnitWeightPairs;
-import com.fpt.sep490.dto.importProductDto;
+import com.fpt.sep490.Enum.ReceiptType;
+import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
@@ -152,11 +150,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void importProductToBatch(List<importProductDto> ImportProductDtoList) {
+    public String importProductToBatch(List<importProductDto> ImportProductDtoList) {
         Batch batch = new Batch();
         batch.setBatchStatus("OK");
         Date importDate = new Date();
         batch.setImportDate(importDate);
+        batch.setReceiptType(ReceiptType.IMPORT);
         batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -203,6 +202,70 @@ public class ProductServiceImpl implements ProductService {
 
         batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
         batchRepository.save(batch);
+        return "importProduct successful. Batch: " + batch.getBatchCode();
+    }
+
+    @Override
+    public String exportProduct(List<ExportProductDto> exportProductDtoList) {
+        Batch batch = new Batch();
+        batch.setBatchStatus("OK");
+        Date importDate = new Date();
+        batch.setImportDate(importDate);
+        batch.setReceiptType(ReceiptType.EXPORT);
+        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userService.findByUsername(username);
+        batch.setBatchCreator(user);
+        batch = batchRepository.save(batch);
+
+
+        for(ExportProductDto dto : exportProductDtoList) {
+            Optional<ProductWarehouse> p = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
+                    dto.getProductName(),
+                    dto.getUnit(),
+                    dto.getWeightPerUnit(),
+                    (long) dto.getWarehouseId()
+            );
+            if(p.isPresent()) {
+                ProductWarehouse productWarehouse = p.get();
+                BatchProduct batchProduct = getBatchProduct(dto, productWarehouse, batch);
+                batchProduct = batchProductRepository.save(batchProduct);
+                int newQuantity = productWarehouse.getQuantity() - dto.getQuantity();
+                if(newQuantity <= 0) {
+                    batchProductRepository.delete(batchProduct);
+                    batchRepository.delete(batch);
+                    throw new RuntimeException("Error: Negative quantity");
+                }
+                productWarehouse.setQuantity(newQuantity);
+                productWareHouseRepository.save(productWarehouse);
+            }
+            else {
+                batchRepository.delete(batch);
+              throw new RuntimeException("Error Product not found");
+            }
+        }
+
+        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
+        batchRepository.save(batch);
+
+        return "exportProduct successful. Batch: " + batch.getBatchCode();
+    }
+
+    private static BatchProduct getBatchProduct(ExportProductDto dto, ProductWarehouse productWarehouse, Batch batch) {
+        Product product = productWarehouse.getProduct();
+
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(product);
+        batchProduct.setQuantity(dto.getQuantity());
+        batchProduct.setPrice(product.getImportPrice());
+        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+        batchProduct.setUnit(dto.getUnit());
+        batchProduct.setDescription("batch for product" + product.getName());
+        batchProduct.setBatch(batch);
+        return batchProduct;
     }
 
     private void createProductIntoBatchAndWarehouse(Batch batch, Set<BatchProduct> batchProducts, importProductDto dto, Product product) {
@@ -227,12 +290,10 @@ public class ProductServiceImpl implements ProductService {
         );
 
         if (existingProductWarehouse.isPresent()) {
-            // If product warehouse exists, update it
             productWarehouse = existingProductWarehouse.get();
             productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
             productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
         } else {
-            // If not, create new
             productWarehouse = new ProductWarehouse();
             productWarehouse.setQuantity(dto.getQuantity());
             productWarehouse.setImportPrice(product.getImportPrice());

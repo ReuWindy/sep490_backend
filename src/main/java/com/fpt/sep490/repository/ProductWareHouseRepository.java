@@ -20,4 +20,5 @@ public interface ProductWareHouseRepository extends JpaRepository<ProductWarehou
 
     Page<ProductWarehouse> findAll(Specification<ProductWarehouse> specification,Pageable pageable);
     Optional<ProductWarehouse> findByProductAndUnitAndWeightPerUnitAndWarehouseId(Product product, String unit, double weightPerUnit, Long warehouseId);
+    Optional<ProductWarehouse> findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(String productName, String unit, double weightPerUnit, Long warehouseId);
 }
