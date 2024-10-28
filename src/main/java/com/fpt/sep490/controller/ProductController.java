@@ -1,6 +1,7 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.AdminProductDto;
+import com.fpt.sep490.dto.ExportProductDto;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.dto.importProductDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
@@ -71,11 +72,30 @@ public class ProductController {
 
     @PostMapping("/import")
     public ResponseEntity<?> importProduct(HttpServletRequest request, @RequestBody List<importProductDto> importProductDtoList) {
-        productService.importProductToBatch(importProductDtoList);
-        String token = jwtTokenManager.resolveToken(request);
-        String username = jwtTokenManager.getUsernameFromToken(token);
-        userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to warehouse by :"+ username);
-        return ResponseEntity.status(HttpStatus.CREATED).body(importProductDtoList);
+        try {
+            String message = productService.importProductToBatch(importProductDtoList);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to warehouse by :"+ username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/export")
+    public ResponseEntity<?> exportProduct(HttpServletRequest request, @RequestBody List<ExportProductDto> exportProductDtoList) {
+        try {
+            String message = productService.exportProduct(exportProductDtoList);
+                String token = jwtTokenManager.resolveToken(request);
+                String username = jwtTokenManager.getUsernameFromToken(token);
+                userActivityService.logAndNotifyAdmin(username, "EXPORT_PRODUCT", "Export Product by :" + username);
+                return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        }catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     @GetMapping("/warehouse/{warehouseId}")

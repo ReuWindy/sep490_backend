@@ -3,14 +3,20 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.ProductWarehouse;
-import com.fpt.sep490.model.Warehouse;
 import com.fpt.sep490.repository.BatchProductRepository;
 import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
 import com.fpt.sep490.repository.WarehouseRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
@@ -44,10 +50,9 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         ProductWarehouse productWarehouse = new ProductWarehouse();
 
         productWarehouse.setQuantity(batchProduct.getQuantity());
-        productWarehouse.setPrice(batchProduct.getPrice());
+        productWarehouse.setImportPrice(batchProduct.getPrice());
         productWarehouse.setWeight(batchProduct.getWeight());
         productWarehouse.setUnit(batchProduct.getUnit());
-        productWarehouse.setDescription(batchProduct.getDescription());
         productWarehouse.setProduct(batchProduct.getProduct());
 
 //        long warehouseId = batchProduct.getBatch().getWarehouse().getId();
@@ -57,4 +62,22 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
 //        productWareHouseRepository.save(productWarehouse);
         return productWarehouse;
     }
+
+    @Override
+    public Page<ProductWarehouse> getPageProductWarehouseByFilter(double minPrice, double maxPrice, String unit, double weightPerUnit, int categoryId, int supplierId, int warehouseId, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
+        return null;
+    }
+
+//    @Override
+//    public Page<ProductWarehouse> getPageProductWarehouseByFilter(double minPrice, double maxPrice, String unit,
+//                                                                  double weightPerUnit, int categoryId, int supplierId,
+//                                                                  int warehouseId, String sortDirection, String priceOrder,
+//                                                                  int pageNumber, int pageSize) {
+//        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+//        Specification<ProductWarehouse> spec = ProductWareHouseSpecification.hasUnitOrHasWeightPerUnitOrCategoryOrSupplierOrWarehouse(unit, weightPerUnit, categoryId, supplierId, warehouseId, sortDirection, priceOrder);
+//        return productWareHouseRepository.findAll(spec, pageable);
+//    }
+
+
+
 }

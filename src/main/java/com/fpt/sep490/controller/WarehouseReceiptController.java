@@ -78,6 +78,16 @@ public class WarehouseReceiptController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @PostMapping("/exportWarehouseReceipt/{batchCode}")
+    public ResponseEntity<?> exportReceiptByBatchCode(@PathVariable String batchCode) {
+        WarehouseReceipt receipt = warehouseReceiptService.createExportWarehouseReceipt(batchCode);
+        if (receipt != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(receipt);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed!!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateReceipt(HttpServletRequest request, @PathVariable long id, @RequestBody String document) {
         WarehouseReceipt warehouseReceipt = warehouseReceiptService.updateReceiptDocument(id, document);

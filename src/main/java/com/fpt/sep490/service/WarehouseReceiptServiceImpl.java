@@ -68,6 +68,23 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
+    public WarehouseReceipt createExportWarehouseReceipt(String batchCode) {
+        Batch batch = batchRepository.findByBatchCode(batchCode);
+        if (batch == null) {
+            throw new RuntimeException("Batch Not Found!!");
+        }
+
+        WarehouseReceipt receipt = new WarehouseReceipt();
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.EXPORT);
+        receipt.setDocument("N/A");
+        receipt.setBatch(batch);
+
+        warehouseReceiptRepository.save(receipt);
+        return receipt;
+    }
+
+    @Override
     public Page<WarehouseReceipt> getWarehouseReceipts(Date importDate, ReceiptType receiptType, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
