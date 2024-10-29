@@ -25,13 +25,10 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ và số.")
     private String name;
 
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Chỉ có thể bao gồm các ký tự chữ và số.")
     private String description;
 
-    @DecimalMin(value = "0", message = "Giá sản phẩm phải là số dương.")
     private double price;
 
     private String image;
@@ -51,10 +48,8 @@ public class Product {
     @JoinColumn(name = "unit_of_measure_id")
     private UnitOfMeasure unitOfMeasure;
 
-    @PastOrPresent(message = "Ngày tạo không thể là tương lai.")
     private Date createAt;
 
-    @PastOrPresent(message = "Ngày cập nhật không thể là tương lai.")
     private Date updateAt;
 
     private Boolean isDeleted;
@@ -65,6 +60,5 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<BatchProduct> batchProducts;
 
-    @DecimalMin(value = "0", message = "Giá sản phẩm phải là số dương.")
     private double importPrice;
 }
