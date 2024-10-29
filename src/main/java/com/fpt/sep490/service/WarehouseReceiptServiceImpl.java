@@ -64,6 +64,25 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setBatch(batch);
 
         warehouseReceiptRepository.save(receipt);
+        batch.setWarehouseReceipt(receipt);
+        batchRepository.save(batch);
+        return receipt;
+    }
+
+    @Override
+    public WarehouseReceipt createImportWarehouseReceiptByBatchId(long batchId) {
+        Batch batch = batchRepository.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch Not Found!!"));
+
+        WarehouseReceipt receipt = new WarehouseReceipt();
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.IMPORT);
+        receipt.setDocument("N/A");
+        receipt.setBatch(batch);
+
+        warehouseReceiptRepository.save(receipt);
+        batch.setWarehouseReceipt(receipt);
+        batchRepository.save(batch);
         return receipt;
     }
 

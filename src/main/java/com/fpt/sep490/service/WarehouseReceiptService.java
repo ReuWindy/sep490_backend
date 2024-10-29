@@ -12,6 +12,7 @@ public interface WarehouseReceiptService {
     List<WarehouseReceipt> getAllWarehouseReceipts();
     WarehouseReceipt createWarehouseReceipt(WarehouseReceiptDto receiptDto, String batchCode);
     WarehouseReceipt createImportWarehouseReceipt(String batchCode);
+    WarehouseReceipt createImportWarehouseReceiptByBatchId(long batchId);
     WarehouseReceipt createExportWarehouseReceipt(String batchCode);
     WarehouseReceipt updateReceiptDocument(long receiptId, String document);
     Page<WarehouseReceipt> getWarehouseReceipts(Date importDate, ReceiptType receiptType, int pageNumber, int pageSize);

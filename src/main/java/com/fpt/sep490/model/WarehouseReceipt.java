@@ -1,5 +1,8 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fpt.sep490.Enum.ReceiptType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,6 +16,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "warehouse_receipts")
+
 public class WarehouseReceipt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +27,8 @@ public class WarehouseReceipt {
     private ReceiptType receiptType;
     private String document;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "batch_id")
+    @JsonManagedReference
     private Batch batch;
 }

@@ -11,6 +11,7 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +19,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -72,22 +74,23 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @PostMapping("/import")
-    public ResponseEntity<?> importProduct(HttpServletRequest request, @RequestBody List<importProductDto> importProductDtoList) {
+    public ResponseEntity<?> importProduct(HttpServletRequest request,@RequestBody List<importProductDto> importProductDtoList) {
         try {
             String message = productService.importProductToBatch(importProductDtoList);
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to warehouse by :"+ username);
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     @PostMapping("/export")
-    public ResponseEntity<?> exportProduct(HttpServletRequest request, @RequestBody List<ExportProductDto> exportProductDtoList) {
+    public ResponseEntity<?> exportProduct(HttpServletRequest request,@Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
         try {
             String message = productService.exportProduct(exportProductDtoList);
                 String token = jwtTokenManager.resolveToken(request);
