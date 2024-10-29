@@ -26,6 +26,6 @@ public class Customer extends User {
 
     @ManyToOne
     @JoinColumn(name = "price_id")
-    @JsonManagedReference
+    @JsonBackReference
     private Price price;
 }

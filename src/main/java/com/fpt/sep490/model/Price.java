@@ -23,7 +23,7 @@ public class Price {
     private String name;
 
     @OneToMany(mappedBy = "price", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonBackReference
+    @JsonManagedReference
     private Set<Customer> customers = new HashSet<>();
 
     @OneToMany(mappedBy = "price", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

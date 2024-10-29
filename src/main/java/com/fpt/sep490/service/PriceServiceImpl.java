@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PriceServiceImpl implements PriceService{
@@ -69,12 +70,19 @@ public class PriceServiceImpl implements PriceService{
           for(ProductPriceDto request : productPriceDto.getProductPrice()){
               Product updatedProduct = productRepository.findById(request.getProductId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
               Price updatedPrice = priceRepository.findById(request.getPriceId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
-              double updatedProductPrice = request.getUnitPrice();
-              ProductPrice productPrice = new ProductPrice();
-              productPrice.setUnit_price(updatedProductPrice);
-              productPrice.setProduct(updatedProduct);
-              productPrice.setPrice(updatedPrice);
-              updatedProductPriceDto.add(productPriceRepository.save(productPrice));
+              double updateUnitPrice = request.getUnitPrice();
+              Optional<ProductPrice> existingProductPrice = productPriceRepository.findByPriceIdAndProductId(request.getPriceId(), request.getProductId());
+              if(existingProductPrice.isPresent()){
+                  ProductPrice productPrice = existingProductPrice.get();
+                  productPrice.setUnit_price(updateUnitPrice);
+                  updatedProductPriceDto.add(productPriceRepository.save(productPrice));
+              }else{
+                  ProductPrice productPrice = new ProductPrice();
+                  productPrice.setUnit_price(updateUnitPrice);
+                  productPrice.setProduct(updatedProduct);
+                  productPrice.setPrice(updatedPrice);
+                  updatedProductPriceDto.add(productPriceRepository.save(productPrice));
+              }
           }
           return updatedProductPriceDto;
     }
