@@ -43,11 +43,13 @@ public class ProductController {
 
     @GetMapping("/")
     public ResponseEntity<?> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        if (!products.isEmpty()) {
+        try{
+            List<Product> products = productService.getAllProducts();
             return ResponseEntity.status(HttpStatus.OK).body(products);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
     @GetMapping("/{id}")
