@@ -18,4 +18,6 @@ public interface OrderService {
     Order createAdminOrder(AdminOrderDto adminOrderDto);
 
     Order createCustomerOrder(CustomerOrderDto customerOrderDto);
+
+    Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize);
 }

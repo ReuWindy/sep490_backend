@@ -27,4 +27,17 @@ public class OrderSpecification {
             return criteriaBuilder.equal(root.get("status"), status);
         };
     }
+
+    public static Specification<Order> hasNameOrHasStatus(String name, String status){
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if(name != null && !name.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("customer").get("name"), name));
+            }
+            if(status != null && !status.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("status"), "%" + status + "%"));
+            }
+            return criteriaBuilder.and(predicates.toArray(predicates.toArray(new Predicate[0])));
+        };
+    }
 }

@@ -148,6 +148,15 @@ public class OrderServiceImpl implements OrderService{
         return order;
     }
 
+    @Override
+    public Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
+        OrderSpecification spec = new OrderSpecification();
+        Specification<Order> specification = spec.hasNameOrHasStatus(name,status);
+        Page<Order> orders = orderRepository.findAll(specification,pageable);
+        return orders;
+    }
+
     private OrderDto convertToDTO(Order order) {
         OrderDto orderDTO = new OrderDto();
         orderDTO.setId(order.getId());
