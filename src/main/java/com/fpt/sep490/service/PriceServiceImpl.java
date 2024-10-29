@@ -9,6 +9,7 @@ import com.fpt.sep490.repository.CustomerRepository;
 import com.fpt.sep490.repository.PriceRepository;
 import com.fpt.sep490.repository.ProductPriceRepository;
 import com.fpt.sep490.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -85,5 +86,16 @@ public class PriceServiceImpl implements PriceService{
               }
           }
           return updatedProductPriceDto;
+    }
+
+    @Override
+    public void deletePrice(long priceId) {
+        Price price = priceRepository.findById(priceId).orElseThrow(()-> new EntityNotFoundException("Employee not found"));
+
+        productPriceRepository.deleteByPriceId(priceId);
+
+        customerRepository.updatePriceIdForCustomers(priceId, 1L);
+
+        priceRepository.deleteById(priceId);
     }
 }

@@ -9,6 +9,7 @@ import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.Price;
 import com.fpt.sep490.model.ProductPrice;
 import com.fpt.sep490.service.PriceService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -80,5 +81,17 @@ public class PriceController {
             }
             final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        @DeleteMapping("/admin/DeletePrice/{priceId}")
+        public ResponseEntity<?> DeletePrice(@PathVariable long priceId){
+            try {
+                priceService.deletePrice(priceId);
+                return ResponseEntity.status(HttpStatus.OK).body("Delete Successful !");
+            }catch (EntityNotFoundException exception){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee Not Found");
+            }catch ( Exception e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Delete Failed");
+            }
         }
 }   

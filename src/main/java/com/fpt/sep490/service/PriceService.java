@@ -21,4 +21,6 @@ public interface PriceService {
     Customer updateCustomerPrice(CustomerPriceDto customerPriceDto);
 
     List<ProductPrice> updateProductPrice(ProductPriceRequestDto productPriceDto);
+
+    void deletePrice(long priceId);
 }
