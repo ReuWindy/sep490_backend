@@ -9,8 +9,10 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.UserActivityService;
 import com.fpt.sep490.service.WarehouseReceiptService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -29,12 +31,14 @@ public class WarehouseReceiptController {
     private final WarehouseReceiptService warehouseReceiptService;
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
+    private final ModelMapper modelMapper;
 
 
-    public WarehouseReceiptController(WarehouseReceiptService warehouseReceiptService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
+    public WarehouseReceiptController(WarehouseReceiptService warehouseReceiptService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, ModelMapper modelMapper) {
         this.warehouseReceiptService = warehouseReceiptService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/getAll")
@@ -47,15 +51,24 @@ public class WarehouseReceiptController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<PagedModel<EntityModel<WarehouseReceipt>>> getWarehouseReceiptByFilter(
-            @RequestParam(required = false) Date importDate,
+    public ResponseEntity<PagedModel<EntityModel<WarehouseReceiptDto>>> getWarehouseReceiptByFilter(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate,
             @RequestParam(required = false) ReceiptType receiptType,
+            @RequestParam(required = false) String username,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
-            PagedResourcesAssembler<WarehouseReceipt> pagedResourcesAssembler) {
-        Page<WarehouseReceipt> warehouseReceipts = warehouseReceiptService.getWarehouseReceipts(importDate, receiptType, pageNumber, pageSize);
-        PagedModel<EntityModel<WarehouseReceipt>> pagedModel = pagedResourcesAssembler.toModel(warehouseReceipts);
-        return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+            PagedResourcesAssembler<WarehouseReceiptDto> pagedResourcesAssembler) {
+
+        Page<WarehouseReceiptDto> warehouseReceipts = warehouseReceiptService
+                .getWarehouseReceipts(startDate, endDate, receiptType,username, pageNumber, pageSize)
+                .map(warehouseReceipt -> modelMapper.map(warehouseReceipt, WarehouseReceiptDto.class));
+
+        // Convert to HATEOAS
+        PagedModel<EntityModel<WarehouseReceiptDto>> entityModels = pagedResourcesAssembler
+                .toModel(warehouseReceipts);
+
+        return ResponseEntity.ok().body(entityModels);
     }
 
     @PostMapping("/createReceipt/{batchCode}")

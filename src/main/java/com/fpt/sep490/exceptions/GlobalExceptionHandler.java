@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -39,6 +41,22 @@ public class GlobalExceptionHandler {
 
         ApiExceptionResponse error = new ApiExceptionResponse(
                 cause.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiExceptionResponse> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(f -> f.getField() + ": " + f.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        ApiExceptionResponse error = new ApiExceptionResponse(
+                errorMessage,
                 HttpStatus.BAD_REQUEST,
                 LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);

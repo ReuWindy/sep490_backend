@@ -74,7 +74,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    //@ExceptionHandler(value = MethodArgumentNotValidException.class)
     @PostMapping("/import")
     public ResponseEntity<?> importProduct(HttpServletRequest request,@RequestBody List<importProductDto> importProductDtoList) {
         try {
