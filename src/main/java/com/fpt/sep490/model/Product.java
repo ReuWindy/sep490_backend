@@ -51,11 +51,9 @@ public class Product {
     @JoinColumn(name = "unit_of_measure_id")
     private UnitOfMeasure unitOfMeasure;
 
-    @Temporal(TemporalType.DATE)
     @PastOrPresent(message = "Ngày tạo không thể là tương lai.")
     private Date createAt;
 
-    @Temporal(TemporalType.DATE)
     @PastOrPresent(message = "Ngày cập nhật không thể là tương lai.")
     private Date updateAt;
 

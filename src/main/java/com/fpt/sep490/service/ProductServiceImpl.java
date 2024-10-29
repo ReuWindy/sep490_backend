@@ -329,10 +329,13 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         dto.setImportDate(product.getCreateAt());
-        dto.setPrice((long) product.getPrice());
+        dto.setPrice((long) product.getImportPrice());
         if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
             dto.setProductQuantity(String.valueOf(
                     product.getProductWarehouses().iterator().next().getQuantity()));
+        }
+        if(product.getSupplier() != null && product.getSupplier().isActive()) {
+            dto.setSupplierName(product.getSupplier().getName());
         }
         return dto;
     }

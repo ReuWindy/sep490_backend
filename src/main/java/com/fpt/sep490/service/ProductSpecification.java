@@ -61,10 +61,10 @@ public class ProductSpecification {
         List<Order> orders = new ArrayList<>();
 
         if(priceOrder != null && !priceOrder.equalsIgnoreCase("asc")) {
-            orders.add(criteriaBuilder.asc(root.get("price")));
+            orders.add(criteriaBuilder.asc(root.get("importPrice")));
         }
         if(priceOrder != null && !priceOrder.equalsIgnoreCase("desc")) {
-            orders.add(criteriaBuilder.desc(root.get("price")));
+            orders.add(criteriaBuilder.desc(root.get("importPrice")));
         }
 
         if(sortDirection != null && !sortDirection.equalsIgnoreCase("asc")) {
