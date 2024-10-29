@@ -84,7 +84,7 @@ public class OrderServiceImpl implements OrderService{
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : adminOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getId()).orElseThrow(()->new RuntimeException("Product not found"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
             double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
             double discountUnitPrice = detailDto.getUnitPrice() * (1-discountPercentage);
             double totalPrice = discountUnitPrice * detailDto.getQuantity();
@@ -93,7 +93,7 @@ public class OrderServiceImpl implements OrderService{
                     .order(order)
                     .product(product)
                     .quantity(detailDto.getQuantity())
-                    .unitPrice(detailDto.getUnitPrice())
+                    .unitPrice(discountUnitPrice)
                     .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
                     .totalPrice(totalPrice)
                     .build();
@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService{
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : customerOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getId()).orElseThrow(()->new RuntimeException("Product not found"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
 
             double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
             double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
@@ -133,7 +133,7 @@ public class OrderServiceImpl implements OrderService{
                     .order(order)
                     .product(product)
                     .quantity(detailDto.getQuantity())
-                    .unitPrice(detailDto.getUnitPrice())
+                    .unitPrice(discountUnitPrice)
                     .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
                     .totalPrice(totalPrice)
                     .build();
@@ -162,7 +162,7 @@ public class OrderServiceImpl implements OrderService{
 
     private OrderDetailDto convertToOrderDetailDTO(OrderDetail orderDetail) {
         OrderDetailDto detailDTO = new OrderDetailDto();
-        detailDTO.setId(orderDetail.getId());
+        detailDTO.setProductId(orderDetail.getId());
         detailDTO.setName(orderDetail.getProduct().getName());
         detailDTO.setDescription(orderDetail.getProduct().getDescription());
         detailDTO.setQuantity(orderDetail.getQuantity());

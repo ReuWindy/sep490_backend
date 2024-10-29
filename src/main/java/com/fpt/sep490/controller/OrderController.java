@@ -81,7 +81,7 @@ public class OrderController {
     }
 
     @PostMapping("/admin/CreateOrder")
-    public ResponseEntity<?> createAdminOrder(AdminOrderDto adminOrderDto){
+    public ResponseEntity<?> createAdminOrder(@RequestBody AdminOrderDto adminOrderDto){
         Order createdAdminOrder = orderService.createAdminOrder(adminOrderDto);
         if(createdAdminOrder != null){
             return ResponseEntity.status(HttpStatus.OK).body(createdAdminOrder);
@@ -90,7 +90,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     @PostMapping("/customer/CreateOrder")
-    public ResponseEntity<?> createCustomerOrder(CustomerOrderDto customerOrderDto){
+    public ResponseEntity<?> createCustomerOrder(@RequestBody CustomerOrderDto customerOrderDto){
         Order createdCustomerOrder = orderService.createCustomerOrder(customerOrderDto);
         if(createdCustomerOrder != null){
             return ResponseEntity.status(HttpStatus.OK).body(createdCustomerOrder);

@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fpt.sep490.Enum.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,5 +36,6 @@ public class Order {
 
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Set<OrderDetail> orderDetails;
 }
