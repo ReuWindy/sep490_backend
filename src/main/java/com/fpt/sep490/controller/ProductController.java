@@ -11,6 +11,7 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,16 +19,17 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
+@Validated
 public class ProductController {
     private final ProductService productService;
     private final ProductRepository productRepository;
@@ -73,7 +75,7 @@ public class ProductController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<?> importProduct(HttpServletRequest request, @RequestBody List<importProductDto> importProductDtoList) {
+    public ResponseEntity<?> importProduct(HttpServletRequest request,@Valid @RequestBody List<importProductDto> importProductDtoList) {
         try {
             String message = productService.importProductToBatch(importProductDtoList);
             String token = jwtTokenManager.resolveToken(request);
@@ -87,7 +89,7 @@ public class ProductController {
     }
 
     @PostMapping("/export")
-    public ResponseEntity<?> exportProduct(HttpServletRequest request, @RequestBody List<ExportProductDto> exportProductDtoList) {
+    public ResponseEntity<?> exportProduct(HttpServletRequest request,@Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
         try {
             String message = productService.exportProduct(exportProductDtoList);
                 String token = jwtTokenManager.resolveToken(request);

@@ -13,4 +13,5 @@ public class AdminProductDto {
     private Date importDate;
     private long price;
     private String productQuantity;
+    private String supplierName;
 }

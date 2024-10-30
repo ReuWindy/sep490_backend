@@ -7,6 +7,7 @@ import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
@@ -64,6 +66,25 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setBatch(batch);
 
         warehouseReceiptRepository.save(receipt);
+        batch.setWarehouseReceipt(receipt);
+        batchRepository.save(batch);
+        return receipt;
+    }
+
+    @Override
+    public WarehouseReceipt createImportWarehouseReceiptByBatchId(long batchId) {
+        Batch batch = batchRepository.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch Not Found!!"));
+
+        WarehouseReceipt receipt = new WarehouseReceipt();
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.IMPORT);
+        receipt.setDocument("N/A");
+        receipt.setBatch(batch);
+
+        warehouseReceiptRepository.save(receipt);
+        batch.setWarehouseReceipt(receipt);
+        batchRepository.save(batch);
         return receipt;
     }
 
@@ -85,11 +106,20 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
-    public Page<WarehouseReceipt> getWarehouseReceipts(Date importDate, ReceiptType receiptType, int pageNumber, int pageSize) {
+    public Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<WarehouseReceipt> specification = WarehouseReceiptSpecification.hasImportDateOrType(importDate, receiptType);
-            return warehouseReceiptRepository.findAll(specification, pageable);
+            Specification<WarehouseReceipt> specification = WarehouseReceiptSpecification.hasType(receiptType)
+                    .and(WarehouseReceiptSpecification.hasUsername(username))
+                    .and(WarehouseReceiptSpecification.isReceiptDateBetween(startDate, endDate));
+
+            Page<WarehouseReceipt> warehouseReceiptPage = warehouseReceiptRepository.findAll(specification, pageable);
+
+            List<WarehouseReceiptDto> dtos = warehouseReceiptPage.getContent().stream()
+                    .map(WarehouseReceiptDto::toDto)
+                    .collect(Collectors.toList());
+
+            return new PageImpl<>(dtos, pageable, warehouseReceiptPage.getTotalElements());
         }
         catch (Exception e) {
             return null;
