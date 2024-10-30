@@ -20,7 +20,7 @@ public class UnitOfMeasureController {
         this.unitOfMeasureService = unitOfMeasureService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/All")
     ResponseEntity<?> getAllUnitOfMeasures() {
         List<UnitOfMeasureDto> list = unitOfMeasureService.getAllUnitOfMeasure();
         if (!list.isEmpty()) {

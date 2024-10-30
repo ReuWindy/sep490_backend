@@ -37,7 +37,7 @@ public class OrderController {
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<PagedModel<EntityModel<OrderDto>>> getOrderHistoryByCustomerId(
+    public ResponseEntity<PagedModel<EntityModel<OrderDto>>> getCustomerOrderPage(
             @PathVariable long customerId,
             @RequestParam(required = false) String orderCode,
             @RequestParam(required = false) String status,
@@ -100,5 +100,15 @@ public class OrderController {
         final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 
+    }
+
+    @PostMapping("/admin/UpdateOrder/{orderId}")
+    public ResponseEntity<?> updateOrderByAdmin(@PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto){
+        Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto);
+        if(updatedOrder != null){
+            return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Updated Failed", HttpStatus.BAD_REQUEST,LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

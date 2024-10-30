@@ -23,7 +23,7 @@ public class WarehouseController {
         this.warehouseService = warehouseService;
     }
 
-    @GetMapping("/")
+    @GetMapping("All")
     public ResponseEntity<?> getAllWarehouses(){
         List<Warehouse> warehouses = warehouseService.getAllWarehouse();
         if(!warehouses.isEmpty()){
