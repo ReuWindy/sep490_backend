@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,9 @@ public class OrderServiceImpl implements OrderService{
     private final ProductRepository productRepository;
     private final ProductPriceRepository productPriceRepository;
     private final OrderActivityRepository orderActivityRepository;
+    private final DiscountRepository discountRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository,CustomerRepository customerRepository,ProductRepository productRepository,ProductPriceRepository productPriceRepository,OrderActivityRepository orderActivityRepository){
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository,CustomerRepository customerRepository,ProductRepository productRepository,ProductPriceRepository productPriceRepository,OrderActivityRepository orderActivityRepository,DiscountRepository discountRepository){
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
@@ -33,6 +35,7 @@ public class OrderServiceImpl implements OrderService{
         this.productRepository = productRepository;
         this.productPriceRepository = productPriceRepository;
         this.orderActivityRepository = orderActivityRepository;
+        this.discountRepository = discountRepository;
     }
     @Override
     public List<OrderDto> getOrderHistoryByCustomerId(long customerId) {
@@ -85,8 +88,8 @@ public class OrderServiceImpl implements OrderService{
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : adminOrderDto.getOrderDetails()){
             Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
-            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
-            double discountUnitPrice = detailDto.getUnitPrice() * (1-discountPercentage);
+            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
+            double discountUnitPrice = detailDto.getUnitPrice() - discountPercentage;
             double totalPrice = discountUnitPrice * detailDto.getQuantity();
 
             OrderDetail orderDetail = OrderDetail.builder()
@@ -115,18 +118,24 @@ public class OrderServiceImpl implements OrderService{
                 .orderCode(RandomOrderCodeGenerator.generateOrderCode())
                 .customer(customer)
                 .orderDate(new Date())
-                .deposit(customerOrderDto.getDeposit())
-                .remainingAmount(customerOrderDto.getRemainingAmount())
+                .deposit(0.0)
+                .remainingAmount(0.0)
                 .status(StatusEnum.PENDING)
                 .build();
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : customerOrderDto.getOrderDetails()){
             Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
-
-            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)/100;
+            DiscountDto discountDto = discountRepository.getByProductId(detailDto.getProductId());
+            LocalDateTime today = LocalDateTime.now();
+            double discountUnit = 0.0;
+            if(discountDto != null){
+                if(!today.isBefore(discountDto.getStartDate()) && !today.isAfter(discountDto.getEndDate())){
+                    discountUnit = discountDto.getAmountPerUnit();
+                }
+            }
             double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
-            double discountUnitPrice = customUnitPrice * (1-discountPercentage);
+            double discountUnitPrice = customUnitPrice - discountUnit;
             double totalPrice = discountUnitPrice * detailDto.getQuantity();
 
             OrderDetail orderDetail = OrderDetail.builder()
@@ -134,7 +143,7 @@ public class OrderServiceImpl implements OrderService{
                     .product(product)
                     .quantity(detailDto.getQuantity())
                     .unitPrice(discountUnitPrice)
-                    .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
+                    .discount(discountUnit)
                     .totalPrice(totalPrice)
                     .build();
             orderDetails.add(orderDetail);
@@ -155,6 +164,30 @@ public class OrderServiceImpl implements OrderService{
         Specification<Order> specification = spec.hasNameOrHasStatus(name,status);
         Page<Order> orders = orderRepository.findAll(specification,pageable);
         return orders;
+    }
+
+    @Override
+    public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order Not Found"));
+        double remainAmount = updatedOrder.getTotalAmount() - adminOrderDto.getDeposit();
+        updatedOrder.setDeposit(adminOrderDto.getDeposit());
+        updatedOrder.setRemainingAmount(remainAmount);
+        updatedOrder.setStatus(StatusEnum.IN_PROCESS);
+        double updatedTotalAmount = 0.0;
+        for(OrderDetailDto detailDto : adminOrderDto.getOrderDetails()){
+            for(OrderDetail updatedDetail : updatedOrder.getOrderDetails()){
+                if(detailDto.getProductId() == updatedDetail.getId()){
+                    updatedDetail.setQuantity(detailDto.getQuantity());
+                    double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
+                    updatedDetail.setTotalPrice(updatedPrice);
+                    updatedTotalAmount += updatedPrice;
+                    break;
+                }
+            }
+        }
+        updatedOrder.setTotalAmount(updatedTotalAmount);
+        orderRepository.save(updatedOrder);
+        return updatedOrder;
     }
 
     private OrderDto convertToDTO(Order order) {

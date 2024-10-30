@@ -7,6 +7,8 @@ import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
     private final SupplierRepository supplierRepository;
     private final UnitOfMeasureRepository unitOfMeasureRepository;
@@ -179,11 +182,11 @@ public class ProductServiceImpl implements ProductService {
                 product.setIsDeleted(false);
 
                 Supplier supplier = supplierRepository.findById(dto.getSupplierId())
-                        .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                        .orElseThrow(() -> new RuntimeException("Error: Supplier not found"));
                 UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
-                        .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+                        .orElseThrow(() -> new RuntimeException("Error: Unit of Measure not found"));
                 Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
-                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                        .orElseThrow(() -> new RuntimeException("Error: Category not found"));
 
                 product.setSupplier(supplier);
                 product.setUnitOfMeasure(unitOfMeasure);
@@ -199,10 +202,10 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
         }
-
-        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        WarehouseReceipt wr = warehouseReceiptService.createImportWarehouseReceiptByBatchId(batch.getId());
+        batch.setWarehouseReceipt(wr);
         batchRepository.save(batch);
-        return "importProduct successful. Batch: " + batch.getBatchCode();
+        return "import Product successful. Batch: " + batch.getBatchCode();
     }
 
     @Override
@@ -222,6 +225,9 @@ public class ProductServiceImpl implements ProductService {
 
 
         for(ExportProductDto dto : exportProductDtoList) {
+            if(dto.getQuantity() <= 0) {
+                throw new RuntimeException("Error: Cannot export product because quantity is less or equal zero at product " + dto.getProductName());
+            }
             Optional<ProductWarehouse> p = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
                     dto.getProductName(),
                     dto.getUnit(),
@@ -236,21 +242,21 @@ public class ProductServiceImpl implements ProductService {
                 if(newQuantity <= 0) {
                     batchProductRepository.delete(batchProduct);
                     batchRepository.delete(batch);
-                    throw new RuntimeException("Error: Negative quantity");
+                    throw new RuntimeException("Error: Negative quantity at product " + dto.getProductName());
                 }
                 productWarehouse.setQuantity(newQuantity);
                 productWareHouseRepository.save(productWarehouse);
             }
             else {
                 batchRepository.delete(batch);
-              throw new RuntimeException("Error Product not found");
+              throw new RuntimeException("Error: Product " + dto.getProductName() + " not found");
             }
         }
 
         batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
         batchRepository.save(batch);
 
-        return "exportProduct successful. Batch: " + batch.getBatchCode();
+        return "export Product successful. Batch: " + batch.getBatchCode();
     }
 
     private static BatchProduct getBatchProduct(ExportProductDto dto, ProductWarehouse productWarehouse, Batch batch) {
@@ -280,6 +286,8 @@ public class ProductServiceImpl implements ProductService {
         batchProduct.setBatch(batch);
         batchProduct = batchProductRepository.save(batchProduct);
         batchProducts.add(batchProduct);
+        batch.setBatchProducts(batchProducts);
+        batchRepository.save(batch);
 
         ProductWarehouse productWarehouse;
         Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
@@ -321,10 +329,13 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         dto.setImportDate(product.getCreateAt());
-        dto.setPrice((long) product.getPrice());
+        dto.setPrice((long) product.getImportPrice());
         if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
             dto.setProductQuantity(String.valueOf(
                     product.getProductWarehouses().iterator().next().getQuantity()));
+        }
+        if(product.getSupplier() != null && product.getSupplier().isActive()) {
+            dto.setSupplierName(product.getSupplier().getName());
         }
         return dto;
     }

@@ -20,4 +20,6 @@ public interface OrderService {
     Order createCustomerOrder(CustomerOrderDto customerOrderDto);
 
     Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize);
+
+    Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto);
 }

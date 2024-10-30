@@ -3,6 +3,9 @@ package com.fpt.sep490.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.util.Date;
@@ -23,8 +26,11 @@ public class Product {
     private long id;
 
     private String name;
+
     private String description;
+
     private double price;
+
     private String image;
 
     @Column(unique = true)
@@ -41,8 +47,11 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "unit_of_measure_id")
     private UnitOfMeasure unitOfMeasure;
+
     private Date createAt;
+
     private Date updateAt;
+
     private Boolean isDeleted;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

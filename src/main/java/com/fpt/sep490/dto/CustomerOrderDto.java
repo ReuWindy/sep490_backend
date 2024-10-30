@@ -11,8 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class CustomerOrderDto {
     private long customerId;
-    private double totalAmount;
-    private double deposit;
-    private double remainingAmount;
     private List<OrderDetailDto> orderDetails;
 }
