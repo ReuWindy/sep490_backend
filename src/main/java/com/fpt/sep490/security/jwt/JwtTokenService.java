@@ -43,7 +43,7 @@ public class JwtTokenService {
         response.addCookie(cookie);
         log.info("{} has successfully logged in!", user.getUsername());
 
-        return new LoginResponse(token, user.getUserType(), user.getUsername());
+        return new LoginResponse(token, user.getUserType(), user.getUsername(),user.getId());
     }
 
     public LoginResponse getLoginPhoneResponse(LoginPhoneRequest loginPhoneRequest, HttpServletResponse response) {
@@ -67,7 +67,7 @@ public class JwtTokenService {
                 response.addCookie(cookie);
                 log.info("{} has successfully logged in!", user.getUsername());
 
-                return new LoginResponse(token, user.getUserType(), user.getUsername());
+                return new LoginResponse(token, user.getUserType(), user.getUsername(),user.getId());
             }
         } catch (FirebaseAuthException e) {
             throw new RuntimeException(e);

@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                                                  "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                                  "/user/**", "/employees/**", "/actuator/**", "/logout/**"
                                                  );
-
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**");
@@ -53,6 +53,7 @@ public class SecurityConfiguration {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                             .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
+                            .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER","ADMIN")
                             .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
                     .formLogin(Customizer.withDefaults())
                     .httpBasic(Customizer.withDefaults())
