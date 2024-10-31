@@ -72,10 +72,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
-    public WarehouseReceipt createImportWarehouseReceiptByBatchId(long batchId) {
-        Batch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new RuntimeException("Batch Not Found!!"));
-
+    public WarehouseReceipt createImportWarehouseReceiptByBatch(Batch batch) {
         WarehouseReceipt receipt = new WarehouseReceipt();
         receipt.setReceiptDate(new Date());
         receipt.setReceiptType(ReceiptType.IMPORT);

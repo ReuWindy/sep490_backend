@@ -39,6 +39,12 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     }
 
     @Override
+    public ProductWarehouse getById(long id) {
+        return productWareHouseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("không tìm thấy với id "+ id));
+    }
+
+    @Override
     public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse) {
         return null;
     }

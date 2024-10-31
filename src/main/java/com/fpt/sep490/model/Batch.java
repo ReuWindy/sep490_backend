@@ -1,9 +1,6 @@
 package com.fpt.sep490.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import com.fpt.sep490.Enum.ReceiptType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "batchs")
-
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Batch {
 
     @Id
@@ -34,8 +31,8 @@ public class Batch {
     @Column(name = "batch_status")
     private String batchStatus;
 
-    @OneToOne(mappedBy = "batch")
-    @JsonBackReference
+    @OneToOne
+    @JsonManagedReference
     @JoinColumn(name = "warehouse_receipt_id")
     private WarehouseReceipt warehouseReceipt;
 
