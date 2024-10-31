@@ -1,5 +1,6 @@
 package com.fpt.sep490.security.mapper;
 
+import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.security.dto.AuthenticatedUserDto;
 import com.fpt.sep490.security.dto.RegistrationRequest;
@@ -19,4 +20,5 @@ public interface UserMapper {
 
     User convertToUser(AuthenticatedUserDto authenticatedUserDto);
 
+    Customer convertToCustomer(RegistrationRequest registrationRequest);
 }

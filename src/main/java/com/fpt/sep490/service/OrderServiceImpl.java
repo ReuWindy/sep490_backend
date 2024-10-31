@@ -1,6 +1,7 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.StatusEnum;
+import com.fpt.sep490.controller.BatchController;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
@@ -169,23 +170,30 @@ public class OrderServiceImpl implements OrderService{
     @Override
     public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order Not Found"));
-        double remainAmount = updatedOrder.getTotalAmount() - adminOrderDto.getDeposit();
-        updatedOrder.setDeposit(adminOrderDto.getDeposit());
-        updatedOrder.setRemainingAmount(remainAmount);
-        updatedOrder.setStatus(StatusEnum.IN_PROCESS);
-        double updatedTotalAmount = 0.0;
-        for(OrderDetailDto detailDto : adminOrderDto.getOrderDetails()){
-            for(OrderDetail updatedDetail : updatedOrder.getOrderDetails()){
-                if(detailDto.getProductId() == updatedDetail.getId()){
-                    updatedDetail.setQuantity(detailDto.getQuantity());
-                    double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
-                    updatedDetail.setTotalPrice(updatedPrice);
-                    updatedTotalAmount += updatedPrice;
-                    break;
+        StatusEnum status = adminOrderDto.getStatus();
+        if(status.equals(StatusEnum.COMPLETED)){
+            updatedOrder.setStatus(status);
+        }else if(status.equals(StatusEnum.IN_PROCESS)) {
+            updatedOrder.setDeposit(adminOrderDto.getDeposit());
+            updatedOrder.setStatus(status);
+            double updatedTotalAmount = 0.0;
+            for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
+                for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
+                    if (detailDto.getProductId().equals(updatedDetail.getId())) {
+                        updatedDetail.setQuantity(detailDto.getQuantity());
+                        double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
+                        updatedDetail.setTotalPrice(updatedPrice);
+                        updatedTotalAmount += updatedPrice;
+                        break;
+                    }
                 }
             }
+            updatedOrder.setTotalAmount(updatedTotalAmount);
+            double remainAmount = updatedTotalAmount - adminOrderDto.getDeposit();
+            updatedOrder.setRemainingAmount(remainAmount);
+        }else {
+            updatedOrder.setStatus(status);
         }
-        updatedOrder.setTotalAmount(updatedTotalAmount);
         orderRepository.save(updatedOrder);
         return updatedOrder;
     }

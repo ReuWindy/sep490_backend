@@ -183,21 +183,28 @@ public class UserServiceImpl implements UserService {
             roleRepository.save(role);
             employeeRepository.save(employee);
         }else{
-            final User user = userMapper.convertToUser(registrationRequest);
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            final Customer user = userMapper.convertToCustomer(registrationRequest);
+            user.setUsername(createUserRequest.getUsername());
+            user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
+            user.setPhone(registrationRequest.getPhone());
+            user.setEmail(registrationRequest.getEmail());
+            user.setAddress(registrationRequest.getAddress());
+            user.setActive(registrationRequest.isActive());
+            user.setDob(registrationRequest.getDob());
+            user.setGender(registrationRequest.isGender());
             user.setFullName(createUserRequest.getName());
             user.setImage(createUserRequest.getImage());
             user.setCreateAt(new Date());
             user.setUserType(userType);
+            user.setActive(true);
 
             Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
-            Customer customer = new Customer();
-            customer.setName(createUserRequest.getName());
-            customer.setSupporter(false);
-            customer.setContracts(new HashSet<>());
-            customer.setPrice(standardPrice);
-            customerRepository.save(customer);
-            userRepository.save(user);
+            user.setName(createUserRequest.getName());
+            user.setSupporter(false);
+            user.setContracts(new HashSet<>());
+            user.setPrice(standardPrice);
+            customerRepository.save(user);
+         //   userRepository.save(user);
         }
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);

@@ -151,4 +151,24 @@ public class ProductController {
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
+
+    @PostMapping("/admin/createProduct")
+    public ResponseEntity<?> createCustomerProduct(ProductDto productDto){
+        Product createdProduct = productService.createCustomerProduct(productDto);
+        if(createdProduct != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @PutMapping("/admin/updateProduct/{productId}")
+    public ResponseEntity<?> updateCustomerProduct(@PathVariable long productId, ProductDto productDto){
+        Product updatedProduct = productService.updateProduct(productId,productDto);
+        if(updatedProduct != null){
+            return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 }

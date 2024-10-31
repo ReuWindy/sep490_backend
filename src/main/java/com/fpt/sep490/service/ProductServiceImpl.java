@@ -132,6 +132,30 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Product createCustomerProduct(ProductDto productDto) {
+        Product createdProduct = new Product();
+        createdProduct.setCreateAt(new Date());
+        createdProduct.setDescription(productDto.getDescription());
+        createdProduct.setImage(productDto.getImage());
+        createdProduct.setImportPrice(productDto.getPrice());
+        createdProduct.setIsDeleted(false);
+        createdProduct.setName(productDto.getName());
+        createdProduct.setPrice(productDto.getPrice());
+        createdProduct.setProductCode(RandomProductCodeGenerator.generateProductCode());
+        Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
+                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
+                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+        productRepository.save(createdProduct);
+        return createdProduct;
+    }
+
+
+    @Override
     public Product updateProduct(long id, ProductDto productDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -148,6 +172,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
+        product.setUpdateAt(new Date());
 
         return productRepository.save(product);
     }
@@ -344,6 +369,7 @@ public class ProductServiceImpl implements ProductService {
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
                 .map(pw -> new UnitWeightPairs(pw.getUnit(), pw.getWeightPerUnit())).collect(Collectors.toSet());
         ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
         productDto.setName(product.getName());
         productDto.setDescription(product.getDescription());

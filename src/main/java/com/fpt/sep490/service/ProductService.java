@@ -21,4 +21,6 @@ public interface ProductService {
     void updateProductStatus(String productCode);
     Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize);
     Page<ProductDto> getProductByFilterForCustomer(String productCode,String categoryName, String supplierName, int pageNumber, int pageSize);
+
+    Product createCustomerProduct(ProductDto productDto);
 }
