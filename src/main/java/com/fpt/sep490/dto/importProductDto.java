@@ -35,7 +35,7 @@ public class importProductDto {
     private String unit;
 
     @NotBlank(message = "Id loại sản phẩm không được để trống")
-    @Pattern(regexp = "^[a-zA-Z ]+$", message = "Id loại sản phẩm chỉ có thể bao gồm các ký tự chữ.")
+    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Id loại sản phẩm chỉ có thể bao gồm các ký tự chữ.")
     private String categoryId;
 
     @NotNull(message = "Id nhà cung cấp không được null")

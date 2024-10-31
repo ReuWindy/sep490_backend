@@ -22,6 +22,9 @@ public class ProductWarehouse {
     @Column(name = "product_quantity")
     private int quantity;
 
+    @Column(name = "product_batch_code")
+    private String batchCode;
+
     @Column(name = "product_import_price")
     private double importPrice;
 

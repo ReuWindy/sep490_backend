@@ -14,7 +14,6 @@ import java.util.Optional;
 
 public interface ProductWareHouseRepository extends JpaRepository<ProductWarehouse, Long> {
     List<ProductWarehouse> findByProductId(long productId);
-
     @Query("SELECT pw.product FROM ProductWarehouse pw WHERE pw.warehouse.id = :warehouseId")
     List<Product> findProductsByWarehouseId(@Param("warehouseId") Long warehouseId);
 

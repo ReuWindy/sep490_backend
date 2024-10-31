@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ProductWarehouseService {
     List<ProductWarehouse> getAll();
+    ProductWarehouse getById(long id);
 
     ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse);
     ProductWarehouse createProductWarehouseFromBatchProduct(Long batchProductId);

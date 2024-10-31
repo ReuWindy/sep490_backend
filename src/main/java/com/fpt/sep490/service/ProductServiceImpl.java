@@ -227,7 +227,7 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
         }
-        WarehouseReceipt wr = warehouseReceiptService.createImportWarehouseReceiptByBatchId(batch.getId());
+        WarehouseReceipt wr = warehouseReceiptService.createImportWarehouseReceiptByBatch(batch);
         batch.setWarehouseReceipt(wr);
         batchRepository.save(batch);
         return "import Product successful. Batch: " + batch.getBatchCode();
@@ -315,20 +315,21 @@ public class ProductServiceImpl implements ProductService {
         batchRepository.save(batch);
 
         ProductWarehouse productWarehouse;
-        Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
-                product,
-                dto.getUnit(),
-                dto.getWeightPerUnit(),
-                dto.getWarehouseId()
-        );
-
-        if (existingProductWarehouse.isPresent()) {
-            productWarehouse = existingProductWarehouse.get();
-            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
-            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
-        } else {
+//        Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
+//                product,
+//                dto.getUnit(),
+//                dto.getWeightPerUnit(),
+//                dto.getWarehouseId()
+//        );
+//
+//        if (existingProductWarehouse.isPresent()) {
+//            productWarehouse = existingProductWarehouse.get();
+//            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
+//            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
+//        } else {
             productWarehouse = new ProductWarehouse();
             productWarehouse.setQuantity(dto.getQuantity());
+            productWarehouse.setBatchCode(batch.getBatchCode());
             productWarehouse.setImportPrice(product.getImportPrice());
             productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
             productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
@@ -337,7 +338,7 @@ public class ProductServiceImpl implements ProductService {
             Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
                     .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
             productWarehouse.setWarehouse(warehouse);
-        }
+//        }
 
         productWarehouse = productWareHouseRepository.save(productWarehouse);
     }

@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -16,7 +17,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "warehouse_receipts")
-
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class WarehouseReceipt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,8 +28,8 @@ public class WarehouseReceipt {
     private ReceiptType receiptType;
     private String document;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "batch_id")
-    @JsonManagedReference
+    @JsonBackReference
     private Batch batch;
 }
