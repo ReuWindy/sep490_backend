@@ -27,6 +27,8 @@ public class OrderDetail {
 
     private int quantity;
     private double discount;
-    private double unitPrice;  // Giá mỗi sản phẩm tại thời điểm đặt hàng
+    private String productUnit; // quy cách đóng gói
+    private double weightPerUnit; // cân nặng mỗi sản phẩm được đóng gói
+    private double unitPrice;  // Giá mỗi sản phẩm tại thời điểm đặt hàng ( tính theo kg )
     private double totalPrice;
 }

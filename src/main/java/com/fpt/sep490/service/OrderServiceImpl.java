@@ -91,12 +91,14 @@ public class OrderServiceImpl implements OrderService{
             Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
             double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
             double discountUnitPrice = detailDto.getUnitPrice() - discountPercentage;
-            double totalPrice = discountUnitPrice * detailDto.getQuantity();
+            double totalPrice = discountUnitPrice * detailDto.getQuantity() * detailDto.getWeightPerUnit();
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)
                     .product(product)
                     .quantity(detailDto.getQuantity())
+                    .productUnit(detailDto.getProductUnit())
+                    .weightPerUnit(detailDto.getWeightPerUnit())
                     .unitPrice(discountUnitPrice)
                     .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
                     .totalPrice(totalPrice)
@@ -137,12 +139,14 @@ public class OrderServiceImpl implements OrderService{
             }
             double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
             double discountUnitPrice = customUnitPrice - discountUnit;
-            double totalPrice = discountUnitPrice * detailDto.getQuantity();
+            double totalPrice = discountUnitPrice * detailDto.getQuantity()* detailDto.getWeightPerUnit();
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)
                     .product(product)
                     .quantity(detailDto.getQuantity())
+                    .productUnit(detailDto.getProductUnit())
+                    .weightPerUnit(detailDto.getWeightPerUnit())
                     .unitPrice(discountUnitPrice)
                     .discount(discountUnit)
                     .totalPrice(totalPrice)
@@ -217,6 +221,8 @@ public class OrderServiceImpl implements OrderService{
         detailDTO.setDescription(orderDetail.getProduct().getDescription());
         detailDTO.setQuantity(orderDetail.getQuantity());
         detailDTO.setUnitPrice(orderDetail.getUnitPrice());
+        detailDTO.setProductUnit(orderDetail.getProductUnit());
+        detailDTO.setWeightPerUnit(orderDetail.getWeightPerUnit());
         detailDTO.setTotalPrice(orderDetail.getTotalPrice());
         return detailDTO;
     }

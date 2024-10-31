@@ -13,6 +13,8 @@ public class OrderDetailDto {
     private String description;
     private int quantity;
     private double unitPrice;
+    private double weightPerUnit;
+    private String productUnit;
     private Double discount = 0.0;
     private double totalPrice;
 }
