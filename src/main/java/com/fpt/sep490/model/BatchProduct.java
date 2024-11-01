@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -38,6 +39,7 @@ public class BatchProduct {
 
     @ManyToOne
     @JoinColumn(name = "batch_id")
+    @JsonBackReference
     private Batch batch;
 
     @ManyToOne

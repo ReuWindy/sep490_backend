@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService{
             }
             double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
             double discountUnitPrice = customUnitPrice - discountUnit;
-            double totalPrice = discountUnitPrice * detailDto.getQuantity()* detailDto.getWeightPerUnit();
+            double totalPrice = discountUnitPrice * ( detailDto.getQuantity() * detailDto.getWeightPerUnit() );
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)
