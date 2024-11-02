@@ -35,7 +35,10 @@ public class Order {
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
 
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<OrderDetail> orderDetails;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private ReceiptVoucher receiptVoucher;
 }

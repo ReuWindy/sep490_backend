@@ -19,8 +19,8 @@ public class Transaction {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+    @JoinColumn(name = "receipt_id")
+    private ReceiptVoucher receiptVoucher;
 
     private double amount;
     private Date transactionDate;
