@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -20,7 +22,7 @@ public class Employee extends User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "epmloyee_code", unique = true)
+    @Column(name = "employee_code", unique = true)
     private String employeeCode;
 
     @Column(name = "employee_join_date")

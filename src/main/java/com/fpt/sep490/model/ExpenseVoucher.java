@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -20,10 +18,10 @@ public class ExpenseVoucher {
     private Long id;
 
     @Column(name = "expense_code")
-    private String receiptCode;
+    private String expenseCode;
 
     @Column(name = "expense_payer")
-    private User expensePayer;
+    private String expensePayer;
 
     @Column(name = "expense_date")
     private Date expenseDate;

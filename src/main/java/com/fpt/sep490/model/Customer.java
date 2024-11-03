@@ -28,4 +28,8 @@ public class Customer extends User {
     @JoinColumn(name = "price_id")
     @JsonBackReference
     private Price price;
+
+    @OneToMany(mappedBy = "receiptPayer")
+    private Set<ReceiptVoucher> receiptVouchers = new HashSet<>();
+
 }

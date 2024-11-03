@@ -2,9 +2,11 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Transaction;
 import com.fpt.sep490.repository.TransactionRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;

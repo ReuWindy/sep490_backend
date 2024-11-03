@@ -22,8 +22,9 @@ public class ReceiptVoucher {
     @Column(name = "receipt_code")
     private String receiptCode;
 
-    @Column(name = "receipt_payer")
-    private User receiptPayer;
+    @ManyToOne
+    @JoinColumn(name = "customer_id", referencedColumnName = "id")
+    private Customer receiptPayer;
 
     @Column(name = "receipt_date")
     private Date receiptDate;
