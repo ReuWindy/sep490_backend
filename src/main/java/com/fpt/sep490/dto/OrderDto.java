@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,4 +22,6 @@ public class OrderDto {
     private double deposit;  // Số tiền đặt cọc
     private double remainingAmount;  // Số tiền còn lại cần thanh toán
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
+    private Customer customer;
+    private Set<OrderDetailDto> orderDetails;
 }

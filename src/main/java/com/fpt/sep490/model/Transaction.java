@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fpt.sep490.Enum.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +21,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "receipt_id")
+    @JsonBackReference
     private ReceiptVoucher receiptVoucher;
 
     private double amount;

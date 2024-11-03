@@ -211,6 +211,21 @@ public class OrderServiceImpl implements OrderService{
         orderDTO.setDeposit(order.getDeposit());
         orderDTO.setRemainingAmount(order.getRemainingAmount());
         orderDTO.setStatus(order.getStatus());
+        orderDTO.setCustomer(order.getCustomer());
+        Set<OrderDetailDto> orderDetailDtos = order.getOrderDetails().stream()
+                .map(orderDetail -> new OrderDetailDto(
+                        orderDetail.getProduct().getId(),
+                        orderDetail.getProduct().getName(),
+                        orderDetail.getProduct().getDescription(),
+                        orderDetail.getQuantity(),
+                        orderDetail.getUnitPrice(),
+                        orderDetail.getWeightPerUnit(),
+                        orderDetail.getProductUnit(),
+                        orderDetail.getDiscount(),
+                        orderDetail.getTotalPrice()
+                ))
+                .collect(Collectors.toSet());
+        orderDTO.setOrderDetails(orderDetailDtos);
         return orderDTO;
     }
 

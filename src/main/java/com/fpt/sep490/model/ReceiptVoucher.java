@@ -1,5 +1,7 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,9 +41,11 @@ public class ReceiptVoucher {
     private double remainAmount;
 
     @OneToMany(mappedBy = "receiptVoucher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<Transaction> transactions = new HashSet<>();
 
     @OneToOne
     @JoinColumn(name = "order_id", referencedColumnName = "id")
+    @JsonBackReference
     private Order order;
 }

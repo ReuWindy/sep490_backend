@@ -40,5 +40,6 @@ public class Order {
     private Set<OrderDetail> orderDetails;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private ReceiptVoucher receiptVoucher;
 }
