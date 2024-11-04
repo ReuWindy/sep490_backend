@@ -30,6 +30,7 @@ public class Customer extends User {
     private Price price;
 
     @OneToMany(mappedBy = "receiptPayer")
+    @JsonBackReference
     private Set<ReceiptVoucher> receiptVouchers = new HashSet<>();
 
 }

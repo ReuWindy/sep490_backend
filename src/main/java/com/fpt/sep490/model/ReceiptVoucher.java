@@ -26,6 +26,7 @@ public class ReceiptVoucher {
 
     @ManyToOne
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
+    @JsonManagedReference
     private Customer receiptPayer;
 
     @Column(name = "receipt_date")

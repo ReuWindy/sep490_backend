@@ -153,7 +153,7 @@ public class ProductController {
     }
 
     @PostMapping("/admin/createProduct")
-    public ResponseEntity<?> createCustomerProduct(ProductDto productDto){
+    public ResponseEntity<?> createCustomerProduct(@RequestBody ProductDto productDto){
         Product createdProduct = productService.createCustomerProduct(productDto);
         if(createdProduct != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
@@ -162,8 +162,8 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PutMapping("/admin/updateProduct/{productId}")
-    public ResponseEntity<?> updateCustomerProduct(@PathVariable long productId, ProductDto productDto){
+    @PostMapping("/admin/updateProduct/{productId}")
+    public ResponseEntity<?> updateCustomerProduct(@PathVariable long productId,@RequestBody ProductDto productDto){
         Product updatedProduct = productService.updateProduct(productId,productDto);
         if(updatedProduct != null){
             return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
