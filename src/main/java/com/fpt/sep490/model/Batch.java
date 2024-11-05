@@ -37,7 +37,7 @@ public class Batch {
     private WarehouseReceipt warehouseReceipt;
 
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonBackReference
     private Set<BatchProduct> batchProducts;
 
     @ManyToOne
