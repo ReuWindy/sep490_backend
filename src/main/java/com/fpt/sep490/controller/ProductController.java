@@ -195,9 +195,9 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/admin/updateProduct/{productId}")
-    public ResponseEntity<?> updateCustomerProduct(@PathVariable long productId,@RequestBody ProductDto productDto){
-        Product updatedProduct = productService.updateProduct(productId,productDto);
+    @PostMapping("/admin/updateProduct")
+    public ResponseEntity<?> updateCustomerProduct(@RequestBody ProductDto productDto){
+        Product updatedProduct = productService.updateProduct(productDto);
         if(updatedProduct != null){
             return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
         }

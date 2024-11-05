@@ -3,12 +3,14 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.repository.ContractRepository;
+import com.fpt.sep490.utils.ContractNumberGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,13 +41,10 @@ public class ContractServiceImpl implements ContractService{
     @Override
     public Contract createContract(Contract contract) {
         Contract newContract = new Contract();
-        newContract.setContractNumber(contract.getContractNumber());
-        newContract.setContractTime(contract.getContractTime());
-        newContract.setAmount(contract.getAmount());
-        newContract.setPdfFilePath(contract.getPdfFilePath());
-        newContract.setImageFilePath(contract.getImageFilePath());
-        newContract.setConfirmed(contract.isConfirmed());
-        newContract.setConfirmationDate(contract.getConfirmationDate());
+        newContract.setContractNumber(ContractNumberGenerator.generateContractCode());
+        newContract.setContractDuration(contract.getContractDuration());
+        newContract.setContractTime(new Date());
+        newContract.setConfirmed(false);
         contractRepository.save(newContract);
         return newContract;
     }

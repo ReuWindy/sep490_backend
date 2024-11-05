@@ -12,7 +12,7 @@ public interface ProductService {
     List<Product> getAllProducts();
     Product getProductById(int id);
     Product createProduct(ProductDto productDto);
-    Product updateProduct(long id, ProductDto productDto);
+    Product updateProduct(ProductDto productDto);
     String exportProduct(List<ExportProductDto> ExportProductDtoList);
     List<Product> getProductsByWarehouse(Long warehouseId);
     void updateProductStatus(String productCode);

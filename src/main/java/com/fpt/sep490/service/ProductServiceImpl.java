@@ -107,7 +107,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateProductStatus(String productCode) {
         Optional<Product> product = productRepository.findByProductCode(productCode);
-        if(product.isPresent()) {
+        if (product.isPresent()) {
             product.get().setUpdateAt(new Date());
             product.get().setIsDeleted(!product.get().getIsDeleted());
         }
@@ -115,7 +115,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecs = new ProductSpecification();
         Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, batchCode, importDate, priceOrder, sortDirection);
         Page<Product> products = productRepository.findAll(specification, pageable);
@@ -124,7 +124,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
         Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
@@ -155,8 +155,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product updateProduct(long id, ProductDto productDto) {
-        Product product = productRepository.findById(id)
+    public Product updateProduct(ProductDto productDto) {
+        Product product = productRepository.findById(productDto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         product.setName(productDto.getName());
@@ -164,11 +164,20 @@ public class ProductServiceImpl implements ProductService {
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
 
+        Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
+                .orElseThrow(() -> new RuntimeException("Category not found"));
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
         UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
                 .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+        Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
+                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+        for (ProductWarehouse pw : product.getProductWarehouses()) {
+            pw.setWarehouse(warehouse);
+            productWareHouseRepository.save(pw);
+        }
 
+        product.setCategory(category);
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
         product.setUpdateAt(new Date());
@@ -192,7 +201,7 @@ public class ProductServiceImpl implements ProductService {
         batch = batchRepository.save(batch);
 
         Set<BatchProduct> batchProducts = new HashSet<>();
-        for(importProductDto dto : ImportProductDtoList) {
+        for (importProductDto dto : ImportProductDtoList) {
             Product product = findOrCreateProduct(dto);
             BatchProduct batchProduct = new BatchProduct();
             batchProduct.setProduct(product);
@@ -220,12 +229,12 @@ public class ProductServiceImpl implements ProductService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng với id:" + batchId));
 
-        for(BatchProduct batchProduct : batch.getBatchProducts()){
-            for(BatchProductSelection selection : batchProductSelections){
-                if(batchProduct.getProduct().getId() == selection.getProductId()
-                   && batchProduct.getUnit().equalsIgnoreCase(selection.getUnit())
-                   && batchProduct.getWeightPerUnit() == selection.getWeighPerUnit()
-                   && batchProduct.getProduct().getSupplier().getId() == selection.getSupplierId()){
+        for (BatchProduct batchProduct : batch.getBatchProducts()) {
+            for (BatchProductSelection selection : batchProductSelections) {
+                if (batchProduct.getProduct().getId() == selection.getProductId()
+                        && batchProduct.getUnit().equalsIgnoreCase(selection.getUnit())
+                        && batchProduct.getWeightPerUnit() == selection.getWeighPerUnit()
+                        && batchProduct.getProduct().getSupplier().getId() == selection.getSupplierId()) {
                     batchProduct.setAdded(true);
                     batchProductRepository.save(batchProduct);
 
@@ -264,8 +273,8 @@ public class ProductServiceImpl implements ProductService {
         batch.setBatchCreator(user);
         batch = batchRepository.save(batch);
 
-        for(ExportProductDto dto : exportProductDtoList){
-            if(dto.getQuantity() <= 0){
+        for (ExportProductDto dto : exportProductDtoList) {
+            if (dto.getQuantity() <= 0) {
                 throw new RuntimeException("Lỗi: Số lượng không thể <= 0");
             }
             Optional<ProductWarehouse> p = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
@@ -274,12 +283,12 @@ public class ProductServiceImpl implements ProductService {
                     dto.getWeightPerUnit(),
                     (long) dto.getWarehouseId()
             );
-            if(p.isPresent()){
+            if (p.isPresent()) {
                 ProductWarehouse productWarehouse = p.get();
                 BatchProduct batchProduct = getBatchProduct(dto, productWarehouse, batch);
                 batchProduct.setBatch(batch);
                 batchProductRepository.save(batchProduct);
-            }else {
+            } else {
                 batchRepository.delete(batch);
                 throw new RuntimeException("Lỗi: Không tìm thấy batchProduct");
             }
@@ -331,8 +340,8 @@ public class ProductServiceImpl implements ProductService {
         batch.setBatchCreator(user);
         batch = batchRepository.save(batch);
 
-        for(ExportProductDto dto : exportProductDtoList) {
-            if(dto.getQuantity() <= 0) {
+        for (ExportProductDto dto : exportProductDtoList) {
+            if (dto.getQuantity() <= 0) {
                 throw new RuntimeException("Error: Cannot export product because quantity is less or equal zero at product " + dto.getProductName());
             }
             Optional<ProductWarehouse> p = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
@@ -341,22 +350,21 @@ public class ProductServiceImpl implements ProductService {
                     dto.getWeightPerUnit(),
                     (long) dto.getWarehouseId()
             );
-            if(p.isPresent()) {
+            if (p.isPresent()) {
                 ProductWarehouse productWarehouse = p.get();
                 BatchProduct batchProduct = getBatchProduct(dto, productWarehouse, batch);
                 batchProduct = batchProductRepository.save(batchProduct);
                 int newQuantity = productWarehouse.getQuantity() - dto.getQuantity();
-                if(newQuantity <= 0) {
+                if (newQuantity <= 0) {
                     batchProductRepository.delete(batchProduct);
                     batchRepository.delete(batch);
                     throw new RuntimeException("Error: Negative quantity at product " + dto.getProductName());
                 }
                 productWarehouse.setQuantity(newQuantity);
                 productWareHouseRepository.save(productWarehouse);
-            }
-            else {
+            } else {
                 batchRepository.delete(batch);
-              throw new RuntimeException("Error: Product " + dto.getProductName() + " not found");
+                throw new RuntimeException("Error: Product " + dto.getProductName() + " not found");
             }
         }
 
@@ -410,17 +418,17 @@ public class ProductServiceImpl implements ProductService {
 //            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
 //            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
 //        } else {
-            productWarehouse = new ProductWarehouse();
-            productWarehouse.setQuantity(dto.getQuantity());
-            productWarehouse.setBatchCode(batch.getBatchCode());
-            productWarehouse.setImportPrice(product.getImportPrice());
-            productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
-            productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
-            productWarehouse.setUnit(dto.getUnit());
-            productWarehouse.setProduct(product);
-            Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
-            productWarehouse.setWarehouse(warehouse);
+        productWarehouse = new ProductWarehouse();
+        productWarehouse.setQuantity(dto.getQuantity());
+        productWarehouse.setBatchCode(batch.getBatchCode());
+        productWarehouse.setImportPrice(product.getImportPrice());
+        productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
+        productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+        productWarehouse.setUnit(dto.getUnit());
+        productWarehouse.setProduct(product);
+        Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
+                .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
+        productWarehouse.setWarehouse(warehouse);
 //        }
 
         productWarehouse = productWareHouseRepository.save(productWarehouse);
@@ -428,8 +436,8 @@ public class ProductServiceImpl implements ProductService {
 
     private Product findOrCreateProduct(importProductDto dto) {
         Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(),
-                                                                Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice());
-        if(existingProduct.isPresent()) {
+                Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice());
+        if (existingProduct.isPresent()) {
             return existingProduct.get();
         } else {
             Product product = new Product();
@@ -474,7 +482,7 @@ public class ProductServiceImpl implements ProductService {
             dto.setProductQuantity(String.valueOf(
                     product.getProductWarehouses().iterator().next().getQuantity()));
         }
-        if(product.getSupplier() != null && product.getSupplier().isActive()) {
+        if (product.getSupplier() != null && product.getSupplier().isActive()) {
             dto.setSupplierName(product.getSupplier().getName());
         }
         return dto;

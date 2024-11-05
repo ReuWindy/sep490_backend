@@ -63,6 +63,7 @@ public class UserController {
             dto.setUsername(user.getUsername());
             dto.setUserType(user.getUserType().name());
             dto.setAddress(user.getAddress());
+            dto.setName(user.getFullName());
             return ResponseEntity.status(HttpStatus.OK).body(dto);
         } else {
             final ApiExceptionResponse response = new ApiExceptionResponse("User not found!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
