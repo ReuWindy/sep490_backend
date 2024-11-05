@@ -7,12 +7,12 @@ import lombok.Data;
 @Data
 @Valid
 public class ExportProductDto {
-    @NotBlank(message = "Tên sản phẩm không được để trống")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Tên sản phẩm chỉ có thể bao gồm các ký tự chữ và số.")
+    @NotBlank(message = "Tên không được để trống")
+    @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String productName;
 
-    @NotBlank(message = "Đơn vị không được để trống")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Đơn vị chỉ có thể bao gồm các ký tự chữ và số.")
+    @NotBlank(message = "Tên không được để trống")
+    @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String unit;
 
     @NotNull(message = "Trọng lượng mỗi đơn vị không được null")

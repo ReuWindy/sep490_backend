@@ -18,6 +18,8 @@ public class BatchProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    @Column(name = "is_added")
+    boolean isAdded = false;
 
     @Column(name = "product_quantity")
     private int quantity;
@@ -33,6 +35,9 @@ public class BatchProduct {
 
     @Column(name = "product_unit")
     private String unit;
+
+    @Column(name = "warehouse_id")
+    private long warehouseId;
 
     @Column(name = "batch_product_description")
     private String description;

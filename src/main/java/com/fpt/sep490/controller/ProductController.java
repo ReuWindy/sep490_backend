@@ -1,10 +1,8 @@
 package com.fpt.sep490.controller;
 
-import com.fpt.sep490.dto.AdminProductDto;
-import com.fpt.sep490.dto.ExportProductDto;
-import com.fpt.sep490.dto.ProductDto;
-import com.fpt.sep490.dto.importProductDto;
+import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
+import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.Product;
 import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
@@ -74,13 +72,46 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/import")
-    public ResponseEntity<?> importProduct(HttpServletRequest request,@Valid @RequestBody List<importProductDto> importProductDtoList) {
+    @PostMapping("/import/preview")
+    public ResponseEntity<?> importProduct(HttpServletRequest request, @Valid @RequestBody List<importProductDto> importProductDtoList) {
         try {
-            String message = productService.importProductToBatch(importProductDtoList);
+            List<BatchProduct> importList = productService.previewBatchProducts(importProductDtoList);
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to warehouse by :"+ username);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to batch by :" + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(importList);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/confirm-add-to-warehouse/{batchId}")
+    public ResponseEntity<?> confirmAndAddToWarehouse(HttpServletRequest request,
+                                                      @PathVariable Long batchId,
+                                                      @RequestBody List<BatchProductSelection> selectedProducts) {
+        try {
+            String message = productService.confirmAndAddSelectedProductToWarehouse(batchId, selectedProducts);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_WAREHOUSE", "Confirm and add selected products to warehouse by :" + username);
+
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/export/preview")
+    public ResponseEntity<?> prepareExportProduct(HttpServletRequest request, @Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
+        try {
+            String message = productService.prepareExportProduct(exportProductDtoList);
+
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Prepared export batch by: " + username);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -88,15 +119,17 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/export")
-    public ResponseEntity<?> exportProduct(HttpServletRequest request,@Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
+    @PostMapping("/export/confirm/{batchId}")
+    public ResponseEntity<?> confirmAndExportProducts(HttpServletRequest request, @PathVariable Long batchId) {
         try {
-            String message = productService.exportProduct(exportProductDtoList);
-                String token = jwtTokenManager.resolveToken(request);
-                String username = jwtTokenManager.getUsernameFromToken(token);
-                userActivityService.logAndNotifyAdmin(username, "EXPORT_PRODUCT", "Export Product by :" + username);
-                return ResponseEntity.status(HttpStatus.CREATED).body(message);
-        }catch (RuntimeException e) {
+            String message = productService.confirmAndExportProducts(batchId);
+
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CONFIRM_EXPORT_PRODUCT", "Confirmed export batch by: " + username);
+
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }

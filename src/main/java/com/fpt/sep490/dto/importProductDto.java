@@ -9,11 +9,12 @@ import lombok.Data;
 @Data
 public class importProductDto {
     @NotBlank(message = "Tên không được để trống")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ và số.")
+    @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
+
     private String name;
 
     @NotBlank(message = "Mô tả không được để trống")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Mô tả chỉ có thể bao gồm các ký tự chữ và số.")
+    @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Mô tả chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String description;
 
     @NotNull(message = "Giá nhập không được null")
@@ -31,7 +32,7 @@ public class importProductDto {
     private double weightPerUnit;
 
     @NotBlank(message = "Đơn vị không được để trống")
-    @Pattern(regexp = "^[a-zA-Z ]+$", message = "Đơn vị chỉ có thể bao gồm các ký tự chữ.")
+    @Pattern(regexp = "^[a-zA-Z\\p{L} ]+$", message = "Đơn vị chỉ có thể bao gồm các ký tự chữ.")
     private String unit;
 
     @NotBlank(message = "Id loại sản phẩm không được để trống")

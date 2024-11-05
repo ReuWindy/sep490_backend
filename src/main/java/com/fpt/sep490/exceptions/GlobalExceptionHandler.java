@@ -2,13 +2,11 @@ package com.fpt.sep490.exceptions;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -38,8 +36,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiExceptionResponse> handleJsonParseException(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getRootCause();
-        if (cause instanceof JsonParseException) {
-            JsonParseException jpe = (JsonParseException) cause;
+        if (cause instanceof JsonParseException jpe) {
             String message = jpe.getOriginalMessage();
             String unexpectedCharacter = message.substring(message.indexOf('\''), message.indexOf('\'', message.indexOf('\'') + 1) + 1);
             ApiExceptionResponse error = new ApiExceptionResponse(

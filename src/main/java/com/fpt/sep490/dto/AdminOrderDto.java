@@ -17,5 +17,4 @@ public class AdminOrderDto {
     private double deposit;
     private double remainingAmount;
     private List<OrderDetailDto> orderDetails;
-
 }
