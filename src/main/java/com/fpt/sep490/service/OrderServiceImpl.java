@@ -45,9 +45,9 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderDetailDto> getOrderHistoryDetailByOrderId(long orderId) {
-        List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(orderId);
-        return orderDetails.stream().map(this::convertToOrderDetailDTO).collect(Collectors.toList());
+    public OrderDto getOrderByOrderId(long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(()->new RuntimeException("Order Not Found"));
+        return convertToDTO(order);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public Page<OrderDto> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
+    public Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
         OrderSpecification orderSpecification = new OrderSpecification();
         Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService{
             spec = spec.and(OrderSpecification.hasStatus(status));
         }
         Page<Order> orders = orderRepository.findAll(spec,pageable);
-        return orders.map(this::convertToDTO);
+        return orders;
     }
 
     @Override

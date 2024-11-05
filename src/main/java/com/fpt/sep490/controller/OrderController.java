@@ -37,23 +37,23 @@ public class OrderController {
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<PagedModel<EntityModel<OrderDto>>> getCustomerOrderPage(
+    public ResponseEntity<PagedModel<EntityModel<Order>>> getCustomerOrderPage(
             @PathVariable long customerId,
             @RequestParam(required = false) String orderCode,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
-            PagedResourcesAssembler<OrderDto> pagedResourcesAssembler
+            PagedResourcesAssembler<Order> pagedResourcesAssembler
     ){
-        Page<OrderDto> orderpage = orderService.getOrderHistoryByCustomerId(customerId,orderCode,status,pageNumber,pageSize);
-        PagedModel<EntityModel<OrderDto>> pagedModel = pagedResourcesAssembler.toModel(orderpage);
+        Page<Order> orderpage = orderService.getOrderHistoryByCustomerId(customerId,orderCode,status,pageNumber,pageSize);
+        PagedModel<EntityModel<Order>> pagedModel = pagedResourcesAssembler.toModel(orderpage);
         return ResponseEntity.ok(pagedModel);
     }
     @GetMapping("/details/{orderId}")
-    public ResponseEntity<?> getOrderDetailByOrderId(@PathVariable long orderId){
-        List<OrderDetailDto> orderDetails = orderService.getOrderHistoryDetailByOrderId(orderId);
-        if(orderDetails != null){
-            return ResponseEntity.status(HttpStatus.OK).body(orderDetails);
+    public ResponseEntity<?> getOrderByOrderId(@PathVariable long orderId){
+        OrderDto order = orderService.getOrderByOrderId(orderId);
+        if(order != null){
+            return ResponseEntity.status(HttpStatus.OK).body(order);
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

@@ -11,10 +11,10 @@ public interface OrderService {
 
     List<OrderDto> getOrderHistoryByCustomerId(long customerId);
 
-    List<OrderDetailDto> getOrderHistoryDetailByOrderId(long orderId);
+    OrderDto getOrderByOrderId(long orderId);
 
     ContractDto getContractDetailByContractId(long contractId);
-    Page<OrderDto> getOrderHistoryByCustomerId(long customerId,String orderCode, String orderStatus, int pageNumber, int pageSize);
+    Page<Order> getOrderHistoryByCustomerId(long customerId,String orderCode, String orderStatus, int pageNumber, int pageSize);
     Order createAdminOrder(AdminOrderDto adminOrderDto);
 
     Order createCustomerOrder(CustomerOrderDto customerOrderDto);
