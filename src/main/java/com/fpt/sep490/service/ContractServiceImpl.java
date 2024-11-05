@@ -1,8 +1,12 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.ContractDto;
+import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Contract;
+import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.repository.ContractRepository;
+import com.fpt.sep490.repository.CustomerRepository;
 import com.fpt.sep490.utils.ContractNumberGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,10 +21,13 @@ import java.util.Optional;
 @Service
 public class ContractServiceImpl implements ContractService{
     private final ContractRepository contractRepository;
+    private final CustomerRepository customerRepository;
 
-    public ContractServiceImpl(ContractRepository contractRepository){
+    public ContractServiceImpl(ContractRepository contractRepository, CustomerRepository customerRepository){
         this.contractRepository = contractRepository;
+        this.customerRepository = customerRepository;
     }
+
     @Override
     public List<Contract> getAllContracts() {
         return contractRepository.findAll();
@@ -39,12 +46,15 @@ public class ContractServiceImpl implements ContractService{
     }
 
     @Override
-    public Contract createContract(Contract contract) {
+    public Contract createContract(ContractDto contractDto) {
         Contract newContract = new Contract();
+        Customer customer = customerRepository.findById(contractDto.getCustomerId())
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
         newContract.setContractNumber(ContractNumberGenerator.generateContractCode());
-        newContract.setContractDuration(contract.getContractDuration());
+        newContract.setContractDuration(contractDto.getDuration());
         newContract.setContractTime(new Date());
         newContract.setConfirmed(false);
+        newContract.setCustomer(customer);
         contractRepository.save(newContract);
         return newContract;
     }

@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.ContractDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.Supplier;
@@ -56,7 +57,7 @@ public class ContractController {
     }
 
     @PostMapping("/createContract")
-    public ResponseEntity<?> createContract(@RequestBody Contract contract) {
+    public ResponseEntity<?> createContract(@RequestBody ContractDto contract) {
         Contract createdContract = contractService.createContract(contract);
         if (createdContract != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
