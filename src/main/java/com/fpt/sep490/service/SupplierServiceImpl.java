@@ -75,10 +75,15 @@ public class SupplierServiceImpl implements SupplierService{
     }
 
     @Override
-    public Page<Supplier> getSupplierByFilter(String name, String email, String phoneNumber, int pageNumber, int pageSize) {
+    public List<Supplier> getAllActiveSupplier() {
+        return supplierRepository.findAll().stream().takeWhile(Supplier::isActive).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Supplier> getSupplierByFilter(String name, String email, String phoneNumber, Boolean status, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(name, phoneNumber, email);
+            Specification<Supplier> specification = SupplierSpecification.hasEmailOrNameOrPhoneNumber(name, phoneNumber, email, status);
             return supplierRepository.findAll(specification, pageable);
         } catch (Exception e) {
             return null;
@@ -89,6 +94,7 @@ public class SupplierServiceImpl implements SupplierService{
     public List<String> getAllSupplierNames() {
         return supplierRepository.findAll()
                 .stream()
+                .takeWhile(Supplier::isActive)
                 .map(Supplier::getName)
                 .collect(Collectors.toList());
     }
@@ -96,7 +102,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Transactional
     public void disableSupplierAndReassignProducts(Long supplierId, Long defaultSupplierId) {
            Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                   .orElseThrow(()-> new RuntimeException("Supplier not found"));
+                   .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
            Supplier defaultSupplier = supplierRepository.findById(defaultSupplierId)
                    .orElseGet(()-> {
                        Supplier newDefaultSupplier = new Supplier();
@@ -110,40 +116,56 @@ public class SupplierServiceImpl implements SupplierService{
            supplierToDisable.setActive(!supplierToDisable.isActive());
     }
 
-    @Transactional
-    public void reinstateSupplier(Long supplierId) {
-        Supplier supplierToReinstate = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Supplier to reinstate not found"));
-        supplierToReinstate.setActive(!supplierToReinstate.isActive());
-        List<SupplierProduct> supplierProducts = supplierProductRepository.findByPreviousSupplierId(supplierId);
-        supplierProducts.forEach(sp-> sp.setSupplier(supplierToReinstate));
-        supplierProductRepository.saveAll(supplierProducts);
-        supplierRepository.save(supplierToReinstate);
+    @Override
+    public Supplier disableSupplier(Long supplierId) {
+        Supplier supplierToDisable = supplierRepository.findById(supplierId)
+                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+        supplierToDisable.setActive(false);
+        return supplierToDisable;
     }
 
     @Override
-    public void exportToExcel(HttpServletResponse response) throws IOException {
-        response.setContentType("application/vnd.ms-excel");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=suppliers.xlsx";
-        response.setHeader(headerKey, headerValue);
-
-        List<Supplier> suppliers = supplierRepository.findAll();
-        List<Map<String, Object>> data = suppliers.stream().map(this::getObjectAsMap).collect(Collectors.toList());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        dataExporterService.exportToExcel(data, outputStream);
-        byte[] bytes = outputStream.toByteArray();
-        response.getOutputStream().write(bytes);
+    public Supplier enableSupplier(Long supplierId) {
+        Supplier supplierToEnable = supplierRepository.findById(supplierId)
+                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+        supplierToEnable.setActive(true);
+        return supplierToEnable;
     }
 
-    private Map<String, Object> getObjectAsMap(Supplier supplier) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("id", supplier.getId());
-        map.put("name", supplier.getName());
-        map.put("contactPerson", supplier.getContactPerson());
-        map.put("email", supplier.getEmail());
-        map.put("phoneNumber", supplier.getPhoneNumber());
-        map.put("address", supplier.getAddress());
-        return map;
-    }
+//    @Transactional
+//    public void reinstateSupplier(Long supplierId) {
+//        Supplier supplierToReinstate = supplierRepository.findById(supplierId)
+//                .orElseThrow(()-> new RuntimeException("Supplier to reinstate not found"));
+//        supplierToReinstate.setActive(!supplierToReinstate.isActive());
+//        List<SupplierProduct> supplierProducts = supplierProductRepository.findByPreviousSupplierId(supplierId);
+//        supplierProducts.forEach(sp-> sp.setSupplier(supplierToReinstate));
+//        supplierProductRepository.saveAll(supplierProducts);
+//        supplierRepository.save(supplierToReinstate);
+//    }
+
+//    @Override
+//    public void exportToExcel(HttpServletResponse response) throws IOException {
+//        response.setContentType("application/vnd.ms-excel");
+//        String headerKey = "Content-Disposition";
+//        String headerValue = "attachment; filename=suppliers.xlsx";
+//        response.setHeader(headerKey, headerValue);
+//
+//        List<Supplier> suppliers = supplierRepository.findAll();
+//        List<Map<String, Object>> data = suppliers.stream().map(this::getObjectAsMap).collect(Collectors.toList());
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        dataExporterService.exportToExcel(data, outputStream);
+//        byte[] bytes = outputStream.toByteArray();
+//        response.getOutputStream().write(bytes);
+//    }
+
+//    private Map<String, Object> getObjectAsMap(Supplier supplier) {
+//        Map<String, Object> map = new LinkedHashMap<>();
+//        map.put("id", supplier.getId());
+//        map.put("name", supplier.getName());
+//        map.put("contactPerson", supplier.getContactPerson());
+//        map.put("email", supplier.getEmail());
+//        map.put("phoneNumber", supplier.getPhoneNumber());
+//        map.put("address", supplier.getAddress());
+//        return map;
+//    }
 }

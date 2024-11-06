@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/batchproducts")
@@ -17,6 +18,17 @@ public class BatchProductController {
 
     public BatchProductController(BatchProductService batchProductService) {
         this.batchProductService = batchProductService;
+    }
+
+    @GetMapping("/getByBatchId/{id}")
+    public ResponseEntity<?> getByBatchId(@PathVariable long id) {
+        try{
+            List<BatchProduct> batchProductList = batchProductService.getBatchProductByBatchId(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(batchProductList);
+        }catch (Exception e){
+            final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     @PostMapping("/createBatchProducts/{batchCode}")
