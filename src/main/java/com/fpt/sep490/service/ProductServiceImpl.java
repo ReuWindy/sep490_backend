@@ -55,6 +55,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> getAllBatchProducts(String batchCode) {
+        Optional<List<Product>> p = Optional.ofNullable(productRepository.findByBatchCode(batchCode));
+        return p.orElse(null);
+    }
+
+    @Override
     public Product getProductById(int id) {
         Optional<Product> p = productRepository.findById((long) id);
         return p.orElse(null);
@@ -114,10 +120,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
+    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecs = new ProductSpecification();
-        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, batchCode, importDate, priceOrder, sortDirection);
+        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, warehouseId, batchCode, importDate, priceOrder, sortDirection);
         Page<Product> products = productRepository.findAll(specification, pageable);
         return products.map(this::convertToAdminProductDto);
     }

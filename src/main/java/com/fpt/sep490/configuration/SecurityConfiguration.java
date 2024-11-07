@@ -36,7 +36,7 @@ public class SecurityConfiguration {
                                                  );
     List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
-                                                "/WarehouseReceipt/**", "/employeerole/**",
+                                                "/WarehouseReceipt/**", "/employeerole/**", "/ReceiptVoucher/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**");
 
     @Bean

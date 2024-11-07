@@ -8,6 +8,9 @@ import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class BatchProductServiceImpl implements BatchProductService {
     private final BatchProductRepository batchProductRepository;
@@ -18,6 +21,18 @@ public class BatchProductServiceImpl implements BatchProductService {
         this.batchProductRepository = batchProductRepository;
         this.productRepository = productRepository;
         this.batchRepository = batchRepository;
+    }
+
+    @Override
+    public List<BatchProduct> getBatchProductByProductId(Long id) {
+        Optional<List<BatchProduct>> b = Optional.ofNullable(batchProductRepository.findByProductId(id));
+        return b.orElse(null);
+    }
+
+    @Override
+    public List<BatchProduct> getBatchProductByBatchCode(String batchCode) {
+        Optional<List<BatchProduct>> b = Optional.ofNullable(batchProductRepository.findByBatchCode(batchCode));
+        return b.orElse(null);
     }
 
     @Override
