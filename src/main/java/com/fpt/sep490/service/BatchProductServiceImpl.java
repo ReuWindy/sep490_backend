@@ -1,6 +1,8 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.BatchProductDto;
+import com.fpt.sep490.dto.DeleteBatchProductRequest;
+import com.fpt.sep490.dto.UpdateBatchProductRequest;
 import com.fpt.sep490.model.Batch;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.repository.BatchProductRepository;
@@ -8,6 +10,7 @@ import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,5 +44,31 @@ public class BatchProductServiceImpl implements BatchProductService {
     @Override
     public List<BatchProduct> getBatchProductByBatchId(Long batchId) {
         return batchProductRepository.findAllByBatchId(batchId);
+    }
+
+    @Override
+    public BatchProduct updateBatchProduct(UpdateBatchProductRequest request, Long batchProductId) {
+     BatchProduct batchProduct = batchProductRepository.findById(batchProductId)
+             .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy"));
+     batchProduct.setDescription(request.getDescription());
+     batchProduct.setWeightPerUnit(request.getWeightPerUnit());
+     batchProduct.setPrice(request.getPrice());
+     batchProduct.setQuantity(request.getQuantity());
+     batchProduct.setUnit(request.getUnit());
+     return batchProduct;
+    }
+
+    @Override
+    public List<BatchProduct> deleteBatchProducts(DeleteBatchProductRequest request) {
+        List<BatchProduct> batchProducts = new ArrayList<>();
+
+        for(Long id : request.getBatProductId()) {
+            BatchProduct batchProduct = batchProductRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy"));
+            batchProductRepository.delete(batchProduct);
+            batchProducts.add(batchProduct);
+        }
+
+        return batchProducts;
     }
 }

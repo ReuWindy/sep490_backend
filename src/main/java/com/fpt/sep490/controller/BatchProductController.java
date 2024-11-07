@@ -1,9 +1,15 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.BatchProductDto;
+import com.fpt.sep490.dto.DeleteBatchProductRequest;
+import com.fpt.sep490.dto.UpdateBatchProductRequest;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.BatchProduct;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.BatchProductService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +21,14 @@ import java.util.List;
 @RequestMapping("/batchproducts")
 public class BatchProductController {
     private final BatchProductService batchProductService;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
 
-    public BatchProductController(BatchProductService batchProductService) {
+
+    public BatchProductController(BatchProductService batchProductService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
         this.batchProductService = batchProductService;
+        this.jwtTokenManager = jwtTokenManager;
+        this.userActivityService = userActivityService;
     }
 
     @GetMapping("/getByBatchId/{id}")
@@ -39,5 +50,33 @@ public class BatchProductController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @PutMapping("/update/{batchProductId}")
+    public ResponseEntity<?> updateBatchProduct(HttpServletRequest request,@Valid @RequestBody UpdateBatchProductRequest requestUpdate, Long batchProductId) {
+        try{
+            BatchProduct batchProduct = batchProductService.updateBatchProduct(requestUpdate, batchProductId);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_BATCH_PRODUCT", "Tạo danh mục: "+ batchProduct.getProduct().getName() + " by " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(batchProduct);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @DeleteMapping("/deleteMany")
+    public ResponseEntity<?> deleteBatchProduct(HttpServletRequest request, @Valid @RequestBody DeleteBatchProductRequest requestDelete) {
+        try {
+            List<BatchProduct> batchProduct = batchProductService.deleteBatchProducts(requestDelete);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "DELETE_BATCH_PRODUCT", "Xóa sản phẩm trong lô bởi: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(batchProduct);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 }
