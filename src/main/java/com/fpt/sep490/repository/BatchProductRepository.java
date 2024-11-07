@@ -20,4 +20,6 @@ public interface BatchProductRepository extends JpaRepository<BatchProduct, Long
             "JOIN FETCH bp.product p " +
             "WHERE b.batchCode = :batchCode")
     List<BatchProduct> findByBatchCode(@Param("batchCode") String batchCode);
+
+    List<BatchProduct> findAllByBatchId(Long batchId);
 }

@@ -39,6 +39,15 @@ public class BatchProductController {
         }
         ApiExceptionResponse response = new ApiExceptionResponse("Batch Product Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    @GetMapping("/getByBatchId/{id}")
+    public ResponseEntity<?> getByBatchId(@PathVariable long id) {
+        try{
+            List<BatchProduct> batchProductList = batchProductService.getBatchProductByBatchId(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(batchProductList);
+        }catch (Exception e){
+            final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     @PostMapping("/createBatchProducts/{batchCode}")

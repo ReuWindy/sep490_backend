@@ -50,4 +50,9 @@ public class BatchProductServiceImpl implements BatchProductService {
         batchProduct.setBatch(batch);
         return batchProductRepository.save(batchProduct);
     }
+
+    @Override
+    public List<BatchProduct> getBatchProductByBatchId(Long batchId) {
+        return batchProductRepository.findAllByBatchId(batchId);
+    }
 }

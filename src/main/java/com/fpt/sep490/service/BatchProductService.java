@@ -12,4 +12,5 @@ public interface BatchProductService {
 
     List<BatchProduct> getBatchProductByBatchCode(String batchCode);
 
+    List<BatchProduct> getBatchProductByBatchId(Long batchId);
 }

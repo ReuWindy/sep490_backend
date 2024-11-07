@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 import java.util.List;
 public class SupplierSpecification  {
-    public static Specification<Supplier> hasEmailOrNameOrPhoneNumber(String name, String phoneNumber, String email) {
+    public static Specification<Supplier> hasEmailOrNameOrPhoneNumber(String name, String phoneNumber, String email, Boolean status) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -20,7 +20,9 @@ public class SupplierSpecification  {
             if (email != null && !email.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("email"), "%" + email + "%"));
             }
-
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("active"), status));
+            }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
