@@ -39,6 +39,8 @@ public class BatchProductController {
         }
         ApiExceptionResponse response = new ApiExceptionResponse("Batch Product Not Found", HttpStatus.NOT_FOUND, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    
     @GetMapping("/getByBatchId/{id}")
     public ResponseEntity<?> getByBatchId(@PathVariable long id) {
         try{
