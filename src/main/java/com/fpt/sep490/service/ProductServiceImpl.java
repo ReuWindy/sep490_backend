@@ -157,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product updateProduct(ProductDto productDto) {
         Product product = productRepository.findById(productDto.getId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm"));
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -165,13 +165,13 @@ public class ProductServiceImpl implements ProductService {
         product.setImage(productDto.getImage());
 
         Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp"));
         UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi"));
         Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho"));
         for (ProductWarehouse pw : product.getProductWarehouses()) {
             pw.setWarehouse(warehouse);
             productWareHouseRepository.save(pw);
@@ -180,6 +180,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
+        product.setIsDeleted(productDto.isDeleted());
         product.setUpdateAt(new Date());
 
         return productRepository.save(product);
@@ -192,13 +193,7 @@ public class ProductServiceImpl implements ProductService {
         Date importDate = new Date();
         batch.setImportDate(importDate);
         batch.setReceiptType(ReceiptType.IMPORT);
-        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
-
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        User user = userService.findByUsername(username);
-        batch.setBatchCreator(user);
-        batch = batchRepository.save(batch);
+        batch = createNewBatch(batch);
 
         Set<BatchProduct> batchProducts = new HashSet<>();
         for (importProductDto dto : ImportProductDtoList) {
@@ -210,18 +205,30 @@ public class ProductServiceImpl implements ProductService {
             batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
             batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
             batchProduct.setUnit(dto.getUnit());
-            batchProduct.setDescription("Lô hàng của sản phẩm: " + dto.getName());
+            batchProduct.setDescription("Nhập: Lô hàng của sản phẩm: " + dto.getName());
             batchProduct.setWarehouseId(dto.getWarehouseId());
+            batchProduct.setAdded(false);
             batchProduct.setBatch(batch);
             batchProduct = batchProductRepository.save(batchProduct);
             batchProducts.add(batchProduct);
         }
 
         batch.setBatchProducts(batchProducts);
-        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
         batchRepository.save(batch);
 
         return new ArrayList<>(batchProducts);
+    }
+
+    private Batch createNewBatch(Batch batch) {
+        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userService.findByUsername(username);
+        batch.setBatchCreator(user);
+        batch = batchRepository.save(batch);
+        return batch;
     }
 
     @Override
@@ -229,35 +236,43 @@ public class ProductServiceImpl implements ProductService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng với id:" + batchId));
 
+        Map<String, BatchProductSelection> selectionMap = batchProductSelections.stream()
+                .collect(Collectors.toMap(
+                        selection -> selection.getProductId() + "-" + selection.getUnit() + "-" + selection.getWeighPerUnit() + "-" + selection.getSupplierId(),
+                        selection -> selection
+                ));
+
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
-            for (BatchProductSelection selection : batchProductSelections) {
-                if (batchProduct.getProduct().getId() == selection.getProductId()
-                        && batchProduct.getUnit().equalsIgnoreCase(selection.getUnit())
-                        && batchProduct.getWeightPerUnit() == selection.getWeighPerUnit()
-                        && batchProduct.getProduct().getSupplier().getId() == selection.getSupplierId()) {
-                    batchProduct.setAdded(true);
-                    batchProductRepository.save(batchProduct);
+            String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
 
-                    ProductWarehouse productWarehouse = new ProductWarehouse();
-                    productWarehouse.setQuantity(batchProduct.getQuantity());
-                    productWarehouse.setBatchCode(batch.getBatchCode());
-                    productWarehouse.setImportPrice(batchProduct.getPrice());
-                    productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
-                    productWarehouse.setWeight(batchProduct.getWeight());
-                    productWarehouse.setUnit(batchProduct.getUnit());
-                    productWarehouse.setProduct(batchProduct.getProduct());
+            BatchProductSelection selection = selectionMap.get(key);
+            if (selection != null && !batchProduct.isAdded()) {
+                batchProduct.setAdded(true);
+                batchProduct.setDescription("Đã thêm vào kho");
+                ProductWarehouse productWarehouse = new ProductWarehouse();
+                productWarehouse.setQuantity(batchProduct.getQuantity());
+                productWarehouse.setBatchCode(batch.getBatchCode());
+                productWarehouse.setImportPrice(batchProduct.getPrice());
+                productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
+                productWarehouse.setWeight(batchProduct.getWeight());
+                productWarehouse.setUnit(batchProduct.getUnit());
+                productWarehouse.setProduct(batchProduct.getProduct());
 
-                    Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
-                            .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
-                    productWarehouse.setWarehouse(warehouse);
-                    productWareHouseRepository.save(productWarehouse);
-                    break;
-                }
+                Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
+                        .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
+                productWarehouse.setWarehouse(warehouse);
+                productWareHouseRepository.save(productWarehouse);
+            } else if (!batchProduct.isAdded()) {
+                batchProduct.setDescription("Đã huỷ");
             }
         }
-        batch.setBatchStatus("Đã thêm vào kho");
+        batchProductRepository.saveAll(batch.getBatchProducts());
+        batch.setBatchStatus("Đã xác nhận");
+        batchRepository.save(batch);
+
         return "Đã thêm những sản phẩm đã chọn vào kho.";
     }
+
 
     @Override
     public String prepareExportProduct(List<ExportProductDto> exportProductDtoList) {
@@ -265,13 +280,7 @@ public class ProductServiceImpl implements ProductService {
         batch.setBatchStatus("Chờ xác nhận");
         batch.setImportDate(new Date());
         batch.setReceiptType(ReceiptType.EXPORT);
-        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
-
-        UserDetails userdetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userdetails.getUsername();
-        User user = userService.findByUsername(username);
-        batch.setBatchCreator(user);
-        batch = batchRepository.save(batch);
+        batch = createNewBatch(batch);
 
         for (ExportProductDto dto : exportProductDtoList) {
             if (dto.getQuantity() <= 0) {
@@ -293,85 +302,50 @@ public class ProductServiceImpl implements ProductService {
                 throw new RuntimeException("Lỗi: Không tìm thấy batchProduct");
             }
         }
+        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
         return "Ok";
     }
 
     @Override
-    public String confirmAndExportProducts(Long batchId) {
+    public String confirmAndExportProducts(Long batchId, List<ExportProductDto> exportProductDtos) {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng"));
 
-        for (BatchProduct batchProduct : batch.getBatchProducts()) {
-            ProductWarehouse productWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
-                    batchProduct.getProduct(),
-                    batchProduct.getUnit(),
-                    batchProduct.getWeightPerUnit(),
-                    batchProduct.getWarehouseId()
-            ).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm " + batchProduct.getProduct().getName() + " trong kho"));
+        List<BatchProduct> modifiedBatchProducts = new ArrayList<>();
 
-            int newQuantity = productWarehouse.getQuantity() - batchProduct.getQuantity();
+        for (ExportProductDto selection : exportProductDtos) {
+            ProductWarehouse productWarehouse = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
+                    selection.getProductName(),
+                    selection.getUnit(),
+                    selection.getWeightPerUnit(),
+                    (long) selection.getWarehouseId()
+            ).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm " + selection.getProductName() + " trong kho"));
+
+            int newQuantity = productWarehouse.getQuantity() - selection.getQuantity();
             if (newQuantity < 0) {
-                throw new RuntimeException("Lỗi: Số lượng sản phẩm " + batchProduct.getProduct().getName() + " trong kho không đủ.");
+                throw new RuntimeException("Lỗi: Số lượng sản phẩm " + selection.getProductName() + " trong kho không đủ.");
             }
             productWarehouse.setQuantity(newQuantity);
             productWareHouseRepository.save(productWarehouse);
-        }
 
+            batch.getBatchProducts().stream()
+                    .filter(bp -> bp.getProduct().getName().equals(selection.getProductName())
+                            && bp.getUnit().equals(selection.getUnit())
+                            && bp.getWeightPerUnit() == selection.getWeightPerUnit()
+                            && !bp.isAdded())
+                    .forEach(bp -> {
+                        bp.setDescription("Đã xuất hàng khỏi kho");
+                        bp.setAdded(true);
+                        modifiedBatchProducts.add(bp);
+                    });
+        }
+        if (!modifiedBatchProducts.isEmpty()) {
+            batchProductRepository.saveAll(modifiedBatchProducts);
+        }
         batch.setBatchStatus("Đã xác nhận");
-        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
         batchRepository.save(batch);
 
         return "Xuất kho thành công.";
-    }
-
-
-    @Override
-    public String exportProduct(List<ExportProductDto> exportProductDtoList) {
-        Batch batch = new Batch();
-        batch.setBatchStatus("OK");
-        Date importDate = new Date();
-        batch.setImportDate(importDate);
-        batch.setReceiptType(ReceiptType.EXPORT);
-        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
-
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        User user = userService.findByUsername(username);
-        batch.setBatchCreator(user);
-        batch = batchRepository.save(batch);
-
-        for (ExportProductDto dto : exportProductDtoList) {
-            if (dto.getQuantity() <= 0) {
-                throw new RuntimeException("Error: Cannot export product because quantity is less or equal zero at product " + dto.getProductName());
-            }
-            Optional<ProductWarehouse> p = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
-                    dto.getProductName(),
-                    dto.getUnit(),
-                    dto.getWeightPerUnit(),
-                    (long) dto.getWarehouseId()
-            );
-            if (p.isPresent()) {
-                ProductWarehouse productWarehouse = p.get();
-                BatchProduct batchProduct = getBatchProduct(dto, productWarehouse, batch);
-                batchProduct = batchProductRepository.save(batchProduct);
-                int newQuantity = productWarehouse.getQuantity() - dto.getQuantity();
-                if (newQuantity <= 0) {
-                    batchProductRepository.delete(batchProduct);
-                    batchRepository.delete(batch);
-                    throw new RuntimeException("Error: Negative quantity at product " + dto.getProductName());
-                }
-                productWarehouse.setQuantity(newQuantity);
-                productWareHouseRepository.save(productWarehouse);
-            } else {
-                batchRepository.delete(batch);
-                throw new RuntimeException("Error: Product " + dto.getProductName() + " not found");
-            }
-        }
-
-        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
-        batchRepository.save(batch);
-
-        return "export Product successful. Batch: " + batch.getBatchCode();
     }
 
     private static BatchProduct getBatchProduct(ExportProductDto dto, ProductWarehouse productWarehouse, Batch batch) {
@@ -385,54 +359,54 @@ public class ProductServiceImpl implements ProductService {
         batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
         batchProduct.setUnit(dto.getUnit());
         batchProduct.setWarehouseId((long) dto.getWarehouseId());
-        batchProduct.setDescription("batch for product" + product.getName());
+        batchProduct.setDescription("Xuất: Lô hàng của sản phẩm: " + product.getName());
         batchProduct.setBatch(batch);
         return batchProduct;
     }
 
-    private void createProductIntoBatchAndWarehouse(Batch batch, Set<BatchProduct> batchProducts, importProductDto dto, Product product) {
-        BatchProduct batchProduct = new BatchProduct();
-        batchProduct.setProduct(product);
-        batchProduct.setQuantity(dto.getQuantity());
-        batchProduct.setPrice(product.getImportPrice());
-        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
-        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
-        batchProduct.setUnit(dto.getUnit());
-        batchProduct.setDescription("batch for product" + product.getName());
-        batchProduct.setBatch(batch);
-        batchProduct = batchProductRepository.save(batchProduct);
-        batchProducts.add(batchProduct);
-        batch.setBatchProducts(batchProducts);
-        batchRepository.save(batch);
-
-        ProductWarehouse productWarehouse;
-//        Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
-//                product,
-//                dto.getUnit(),
-//                dto.getWeightPerUnit(),
-//                dto.getWarehouseId()
-//        );
+//    private void createProductIntoBatchAndWarehouse(Batch batch, Set<BatchProduct> batchProducts, importProductDto dto, Product product) {
+//        BatchProduct batchProduct = new BatchProduct();
+//        batchProduct.setProduct(product);
+//        batchProduct.setQuantity(dto.getQuantity());
+//        batchProduct.setPrice(product.getImportPrice());
+//        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+//        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+//        batchProduct.setUnit(dto.getUnit());
+//        batchProduct.setDescription("Xuất: Lô hàng của sản phẩm: " + product.getName());
+//        batchProduct.setBatch(batch);
+//        batchProduct = batchProductRepository.save(batchProduct);
+//        batchProducts.add(batchProduct);
+//        batch.setBatchProducts(batchProducts);
+//        batchRepository.save(batch);
 //
-//        if (existingProductWarehouse.isPresent()) {
-//            productWarehouse = existingProductWarehouse.get();
-//            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
-//            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
-//        } else {
-        productWarehouse = new ProductWarehouse();
-        productWarehouse.setQuantity(dto.getQuantity());
-        productWarehouse.setBatchCode(batch.getBatchCode());
-        productWarehouse.setImportPrice(product.getImportPrice());
-        productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
-        productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
-        productWarehouse.setUnit(dto.getUnit());
-        productWarehouse.setProduct(product);
-        Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Warehouse not found for given id"));
-        productWarehouse.setWarehouse(warehouse);
-//        }
-
-        productWarehouse = productWareHouseRepository.save(productWarehouse);
-    }
+//        ProductWarehouse productWarehouse;
+////        Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
+////                product,
+////                dto.getUnit(),
+////                dto.getWeightPerUnit(),
+////                dto.getWarehouseId()
+////        );
+////
+////        if (existingProductWarehouse.isPresent()) {
+////            productWarehouse = existingProductWarehouse.get();
+////            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
+////            productWarehouse.setWeight(productWarehouse.getWeightPerUnit() * productWarehouse.getQuantity());
+////        } else {
+//        productWarehouse = new ProductWarehouse();
+//        productWarehouse.setQuantity(dto.getQuantity());
+//        productWarehouse.setBatchCode(batch.getBatchCode());
+//        productWarehouse.setImportPrice(product.getImportPrice());
+//        productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
+//        productWarehouse.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+//        productWarehouse.setUnit(dto.getUnit());
+//        productWarehouse.setProduct(product);
+//        Warehouse warehouse = warehouseRepository.findById(dto.getWarehouseId())
+//                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho với id: "+ dto.getWarehouseId()));
+//        productWarehouse.setWarehouse(warehouse);
+////        }
+//
+//        productWarehouse = productWareHouseRepository.save(productWarehouse);
+//    }
 
     private Product findOrCreateProduct(importProductDto dto) {
         Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(),

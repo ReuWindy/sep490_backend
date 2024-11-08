@@ -25,21 +25,21 @@ public class BatchProductServiceImpl implements BatchProductService {
         this.batchRepository = batchRepository;
     }
 
-    @Override
-    public BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchCode) {
-        BatchProduct batchProduct = new BatchProduct();
-        batchProduct.setProduct(productRepository.findById(batchProductDto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found")));
-        batchProduct.setUnit(batchProductDto.getUnit());
-        batchProduct.setDescription(batchProductDto.getDescription());
-        batchProduct.setQuantity(batchProductDto.getQuantity());
-        batchProduct.setWeight(batchProductDto.getWeight());
-        batchProduct.setPrice(batchProductDto.getPrice());
-
-        Batch batch = batchRepository.findByBatchCode(batchCode);
-        batchProduct.setBatch(batch);
-        return batchProductRepository.save(batchProduct);
-    }
+//    @Override
+//    public BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchCode) {
+//        BatchProduct batchProduct = new BatchProduct();
+//        batchProduct.setProduct(productRepository.findById(batchProductDto.getProductId())
+//                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy")));
+//        batchProduct.setUnit(batchProductDto.getUnit());
+//        batchProduct.setDescription(batchProductDto.getDescription());
+//        batchProduct.setQuantity(batchProductDto.getQuantity());
+//        batchProduct.setWeight(batchProductDto.getWeight());
+//        batchProduct.setPrice(batchProductDto.getPrice());
+//
+//        Batch batch = batchRepository.findByBatchCode(batchCode);
+//        batchProduct.setBatch(batch);
+//        return batchProductRepository.save(batchProduct);
+//    }
 
     @Override
     public List<BatchProduct> getBatchProductByBatchId(Long batchId) {
@@ -58,6 +58,23 @@ public class BatchProductServiceImpl implements BatchProductService {
      return batchProduct;
     }
 
+
+    @Override
+    public BatchProduct addMoreBatchProductToBatch(BatchProductDto batchProductDto){
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(productRepository.findById(batchProductDto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy")));
+        batchProduct.setUnit(batchProductDto.getUnit());
+        batchProduct.setDescription(batchProductDto.getDescription());
+        batchProduct.setQuantity(batchProductDto.getQuantity());
+        batchProduct.setWeight(batchProductDto.getWeight());
+        batchProduct.setPrice(batchProductDto.getPrice());
+
+        Batch batch = batchRepository.findById(batchProductDto.getBatchId()).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy"));
+        batchProduct.setBatch(batch);
+        return batchProductRepository.save(batchProduct);
+    }
+
     @Override
     public List<BatchProduct> deleteBatchProducts(DeleteBatchProductRequest request) {
         List<BatchProduct> batchProducts = new ArrayList<>();
@@ -68,7 +85,6 @@ public class BatchProductServiceImpl implements BatchProductService {
             batchProductRepository.delete(batchProduct);
             batchProducts.add(batchProduct);
         }
-
         return batchProducts;
     }
 }

@@ -42,18 +42,32 @@ public class BatchProductController {
         }
     }
 
-    @PostMapping("/createBatchProducts/{batchCode}")
-    public ResponseEntity<?> createBatchProduct(@PathVariable String batchCode, @RequestBody BatchProductDto batchProductDto) {
-        BatchProduct batchProduct = batchProductService.createBatchProduct(batchProductDto, batchCode);
-        if (batchProduct != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(batchProduct);
+//    @PostMapping("/createBatchProducts/{batchCode}")
+//    public ResponseEntity<?> createBatchProduct(@PathVariable String batchCode, @RequestBody BatchProductDto batchProductDto) {
+//        BatchProduct batchProduct = batchProductService.createBatchProduct(batchProductDto, batchCode);
+//        if (batchProduct != null) {
+//            return ResponseEntity.status(HttpStatus.CREATED).body(batchProduct);
+//        }
+//        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//    }
+
+    @PostMapping("/addMoreBatchProductToBatch")
+    public ResponseEntity<?> addMoreBatchProductToBatch(HttpServletRequest request, @Valid @RequestBody BatchProductDto batchProductDto) {
+        try{
+            BatchProduct batchProduct = batchProductService.addMoreBatchProductToBatch(batchProductDto);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "ADD_BATCH_PRODUCT_TO_BATCH", "Tạo danh mục: "+ batchProduct.getProduct().getName() + " by " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(batchProduct);
+        }catch (Exception e){
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @PutMapping("/update/{batchProductId}")
-    public ResponseEntity<?> updateBatchProduct(HttpServletRequest request,@Valid @RequestBody UpdateBatchProductRequest requestUpdate, Long batchProductId) {
+    public ResponseEntity<?> updateBatchProduct(HttpServletRequest request, @Valid @RequestBody UpdateBatchProductRequest requestUpdate, Long batchProductId) {
         try{
             BatchProduct batchProduct = batchProductService.updateBatchProduct(requestUpdate, batchProductId);
             String token = jwtTokenManager.resolveToken(request);
