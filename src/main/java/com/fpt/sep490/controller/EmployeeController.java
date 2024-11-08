@@ -1,10 +1,10 @@
 package com.fpt.sep490.controller;
 
 
+import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
 import com.fpt.sep490.dto.EmployeeDTO;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Employee;
-import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.service.EmployeeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -82,4 +82,11 @@ public class EmployeeController {
            final ApiExceptionResponse response = new ApiExceptionResponse("Update failed",HttpStatus.BAD_REQUEST,LocalDateTime.now());
            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @GetMapping("/active-days")
+    public ResponseEntity<List<EmployeeWithDayActiveDTO>> getDriverEmployees(@RequestParam int month, @RequestParam int year, @RequestParam String role) {
+        List<EmployeeWithDayActiveDTO> employees = employeeService.getEmployees(month, year, role.toUpperCase());
+        return ResponseEntity.ok(employees);
+    }
+
 }

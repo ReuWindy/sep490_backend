@@ -1,10 +1,10 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.Enum.SalaryType;
 import com.fpt.sep490.dto.EmployeeDTO;
+import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
+import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
-import com.fpt.sep490.utils.RandomEmployeeCodeGenerator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService{
@@ -19,14 +20,16 @@ public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
     private final SalaryDetailRepository salaryDetailRepository;
+    private final EmployeeCustomRepository employeeCustomRepository;
 
     private final RoleRepository roleRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository){
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository, EmployeeCustomRepository employeeCustomRepository) {
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
         this.roleRepository = roleRepository;
         this.salaryDetailRepository = salaryDetailRepository;
+        this.employeeCustomRepository = employeeCustomRepository;
     }
 
     @Override
@@ -86,5 +89,27 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public Employee deleteEmployee(int id) {
         return null;
+    }
+
+    @Override
+    public List<EmployeeWithDayActiveDTO> getEmployees(int month, int year, String role) {
+        if (!Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString())
+                && !Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.PORTER.toString())) {
+            throw new ApiRequestException("Invalid role");
+        }
+        List<Employee> employees = employeeCustomRepository.getEmployees(month, year, role);
+        return convertEmployeeToEmployeeWithDayActiveDTO(employees);
+    }
+
+    public List<EmployeeWithDayActiveDTO> convertEmployeeToEmployeeWithDayActiveDTO(List<Employee> employees){
+        if(employees.isEmpty()){
+            throw new ApiRequestException("No employee found");
+        }
+        return employees.stream().map(
+                employee -> new EmployeeWithDayActiveDTO(employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                        employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                        employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(),
+                        employee.getDayActives())
+        ).toList();
     }
 }
