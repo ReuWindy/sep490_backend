@@ -175,12 +175,23 @@ public class OrderServiceImpl implements OrderService{
     public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order Not Found"));
         StatusEnum status = adminOrderDto.getStatus();
-        if(status.equals(StatusEnum.COMPLETED)){
+        if (status != null) {
             updatedOrder.setStatus(status);
-        }else if(status.equals(StatusEnum.IN_PROCESS)) {
+        }else {
+            throw new RuntimeException("Can not Update Order Status !");
+        }
+        orderRepository.save(updatedOrder);
+        return updatedOrder;
+    }
+
+    @Override
+    public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("Order Not Found"));
+        double newDeposit = adminOrderDto.getDeposit();
+        if(newDeposit != 0.0){
             updatedOrder.setDeposit(adminOrderDto.getDeposit());
-            updatedOrder.setStatus(status);
-            double updatedTotalAmount = 0.0;
+        }
+        double updatedTotalAmount = 0.0;
             for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
                 for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
                     if (detailDto.getProductId().equals(updatedDetail.getId())) {
@@ -192,12 +203,9 @@ public class OrderServiceImpl implements OrderService{
                     }
                 }
             }
-            updatedOrder.setTotalAmount(updatedTotalAmount);
-            double remainAmount = updatedTotalAmount - adminOrderDto.getDeposit();
-            updatedOrder.setRemainingAmount(remainAmount);
-        }else {
-            updatedOrder.setStatus(status);
-        }
+        updatedOrder.setTotalAmount(updatedTotalAmount);
+        double remainAmount = updatedTotalAmount - newDeposit;
+        updatedOrder.setRemainingAmount(remainAmount);
         orderRepository.save(updatedOrder);
         return updatedOrder;
     }
