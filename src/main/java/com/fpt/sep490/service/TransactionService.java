@@ -1,13 +1,17 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.model.Transaction;
 
 import java.util.List;
+import java.util.Set;
 
 public interface TransactionService {
-    Transaction updateTransaction(Transaction transaction);
+    Transaction updateTransaction(TransactionDto transactionDto);
 
-    Transaction getTransactionById(int id);
+    Set<TransactionDto> getTransactionByReceiptId(int receiptId);
 
     List<Transaction> getAllTransaction();
+
+    Transaction createTransactionByAdmin(TransactionDto transactionDto);
 }
