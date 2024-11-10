@@ -9,7 +9,7 @@ import java.util.Set;
 public interface TransactionService {
     Transaction updateTransaction(TransactionDto transactionDto);
 
-    Set<TransactionDto> getTransactionByReceiptId(int receiptId);
+    Set<TransactionDto> getTransactionByReceiptId(long receiptId);
 
     List<Transaction> getAllTransaction();
 

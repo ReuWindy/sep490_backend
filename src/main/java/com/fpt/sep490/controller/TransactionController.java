@@ -34,8 +34,8 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @GetMapping("/{receiptVoucherId}")
-    public ResponseEntity<?> getTransactionByReceiptId(@PathVariable int receiptId) {
+    @GetMapping("/{receiptId}")
+    public ResponseEntity<?> getTransactionByReceiptId(@PathVariable long receiptId) {
        Set<TransactionDto> transaction = transactionService.getTransactionByReceiptId(receiptId);
         if(transaction != null){
             return ResponseEntity.status(HttpStatus.OK).body(transaction);
@@ -45,7 +45,7 @@ public class TransactionController {
     }
 
 
-    @PostMapping("/createCategory")
+    @PostMapping("/createTransaction")
     public ResponseEntity<?> createTransaction( @RequestBody TransactionDto transactionDto) {
        Transaction createdTransaction = transactionService.createTransactionByAdmin(transactionDto);
         if(createdTransaction != null){
@@ -55,7 +55,7 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/updateCategory")
+    @PostMapping("/updateTransaction")
     public ResponseEntity<?> updateTransaction(@RequestBody TransactionDto transactionDto) {
       Transaction updatedTransaction = transactionService.updateTransaction(transactionDto);
         if(updatedTransaction != null){

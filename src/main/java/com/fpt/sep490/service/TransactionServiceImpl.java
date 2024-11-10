@@ -2,7 +2,9 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.TransactionDto;
+import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.model.Transaction;
+import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import com.fpt.sep490.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +17,11 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;
+    private final ReceiptVoucherRepository receiptVoucherRepository;
 
-    public TransactionServiceImpl (TransactionRepository transactionRepository){
+    public TransactionServiceImpl (TransactionRepository transactionRepository,ReceiptVoucherRepository receiptVoucherRepository){
         this.transactionRepository = transactionRepository;
+        this.receiptVoucherRepository = receiptVoucherRepository;
     }
     @Override
     public Transaction updateTransaction(TransactionDto transactionDto) {
@@ -37,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public Set<TransactionDto> getTransactionByReceiptId(int receiptId) {
+    public Set<TransactionDto> getTransactionByReceiptId(long receiptId) {
         Set<Transaction> transactions = transactionRepository.findByReceiptVoucher_Id(receiptId);
         return transactions.stream().map(this::convertToDto).collect(Collectors.toSet());
     }
@@ -50,18 +54,23 @@ public class TransactionServiceImpl implements TransactionService{
     @Override
     public Transaction createTransactionByAdmin(TransactionDto transactionDto) {
         Transaction createdTransaction = new Transaction();
-        createdTransaction.setAmount(transactionDto.getAmount());
-        createdTransaction.setTransactionDate(new Date());
-        createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
-        createdTransaction.setStatus(StatusEnum.COMPLETED);
-        transactionRepository.save(createdTransaction);
-        return createdTransaction;
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElse(null);
+        if (receiptVoucher != null) {
+            createdTransaction.setReceiptVoucher(receiptVoucher);
+            createdTransaction.setAmount(transactionDto.getAmount());
+            createdTransaction.setTransactionDate(new Date());
+            createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
+            createdTransaction.setStatus(StatusEnum.COMPLETED);
+            transactionRepository.save(createdTransaction);
+            return createdTransaction;
+        }
+        return null;
     }
 
     private TransactionDto convertToDto(Transaction transaction){
         TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setId(transactionDto.getId());
-        transactionDto.setAmount(transactionDto.getAmount());
+        transactionDto.setId(transaction.getId());
+        transactionDto.setAmount(transaction.getAmount());
         transactionDto.setTransactionDate(transaction.getTransactionDate());
         transactionDto.setPaymentMethod(transaction.getPaymentMethod());
         return transactionDto;

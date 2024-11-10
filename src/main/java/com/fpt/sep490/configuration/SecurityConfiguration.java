@@ -37,7 +37,8 @@ public class SecurityConfiguration {
     List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**",
-                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/ws/info");
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/ws/info",
+                                                "/transaction/**","/inventory/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {

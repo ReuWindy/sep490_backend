@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Set;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    Set<Transaction> findByReceiptVoucher_Id(int receiptId);
+    Set<Transaction> findByReceiptVoucher_Id(long receiptId);
 }
