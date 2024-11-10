@@ -52,6 +52,17 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/batchCode/{batchCode}")
+    public ResponseEntity<?> getAllProducts(@PathVariable String batchCode) {
+        try{
+            List<Product> products = productService.getAllBatchProducts(batchCode);
+            return ResponseEntity.status(HttpStatus.OK).body(products);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable long id) {
         Product product = productService.getProductById((int) id);
@@ -164,6 +175,7 @@ public class ProductController {
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date importDate,
             @RequestParam(required = false) String productQuantity,
             @RequestParam(defaultValue = "asc") String sortDirection,
@@ -171,7 +183,7 @@ public class ProductController {
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<AdminProductDto> pagedResourcesAssembler) {
-        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
+        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, warehouseId, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
         PagedModel<EntityModel<AdminProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }

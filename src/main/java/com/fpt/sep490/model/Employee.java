@@ -1,6 +1,7 @@
 package com.fpt.sep490.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fpt.sep490.Enum.SalaryType;
 import jakarta.persistence.*;
@@ -18,10 +19,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "employees")
 public class Employee extends User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     @Column(name = "employee_code", unique = true)
     private String employeeCode;
 
@@ -39,6 +36,10 @@ public class Employee extends User {
     @JoinColumn(name = "role_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Role role;
+
+    @OneToMany(mappedBy = "expensePayer")
+    @JsonBackReference
+    private Set<ExpenseVoucher> expenseVouchers = new HashSet<>();
 
     public double calculateSalary(int daysWorked) {
         if (role != null && role.getSalaryDetail() != null) {

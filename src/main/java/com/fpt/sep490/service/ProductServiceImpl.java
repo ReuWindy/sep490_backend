@@ -55,6 +55,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> getAllBatchProducts(String batchCode) {
+        Optional<List<Product>> p = Optional.ofNullable(productRepository.findByBatchCode(batchCode));
+        return p.orElse(null);
+    }
+
+    @Override
     public Product getProductById(int id) {
         Optional<Product> p = productRepository.findById((long) id);
         return p.orElse(null);
@@ -62,6 +68,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(ProductDto productDto) {
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(productDto.getName(),
+                Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
+
+        if (existingProduct.isPresent()){
+            throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
+        }
+
         Product product = new Product();
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -114,10 +127,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
+    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecs = new ProductSpecification();
-        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, batchCode, importDate, priceOrder, sortDirection);
+        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, warehouseId, batchCode, importDate, priceOrder, sortDirection);
         Page<Product> products = productRepository.findAll(specification, pageable);
         return products.map(this::convertToAdminProductDto);
     }
@@ -148,8 +161,8 @@ public class ProductServiceImpl implements ProductService {
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+        createdProduct.setSupplier(supplier);
+        createdProduct.setCategory(category);
         productRepository.save(createdProduct);
         return createdProduct;
     }
@@ -158,6 +171,11 @@ public class ProductServiceImpl implements ProductService {
     public Product updateProduct(ProductDto productDto) {
         Product product = productRepository.findById(productDto.getId())
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm"));
+        boolean exist = productRepository.existsByNameAndCategoryIdAndSupplierId(productDto.getId(), productDto.getName(), Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
+
+        if (exist){
+            throw new RuntimeException("Lỗi:  Sản phẩm đã tồn tại");
+        }
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -168,19 +186,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp"));
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi"));
-        Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho"));
-        for (ProductWarehouse pw : product.getProductWarehouses()) {
-            pw.setWarehouse(warehouse);
-            productWareHouseRepository.save(pw);
-        }
 
         product.setCategory(category);
         product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
-        product.setIsDeleted(productDto.isDeleted());
         product.setUpdateAt(new Date());
 
         return productRepository.save(product);
@@ -409,8 +417,8 @@ public class ProductServiceImpl implements ProductService {
 //    }
 
     private Product findOrCreateProduct(importProductDto dto) {
-        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(),
-                Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice());
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(dto.getName(),
+                Long.valueOf(dto.getCategoryId()), dto.getSupplierId());
         if (existingProduct.isPresent()) {
             return existingProduct.get();
         } else {

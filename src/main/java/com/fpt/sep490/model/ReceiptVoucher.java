@@ -24,13 +24,11 @@ public class ReceiptVoucher {
     @Column(name = "receipt_code")
     private String receiptCode;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", referencedColumnName = "id")
-    @JsonManagedReference
-    private Customer receiptPayer;
-
     @Column(name = "receipt_date")
     private Date receiptDate;
+
+    @Column(name = "due_date")
+    private Date dueDate;
 
     @Column(name = "total_amount")
     private double totalAmount;
