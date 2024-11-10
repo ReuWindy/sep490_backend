@@ -62,7 +62,9 @@ public class SecurityConfiguration {
                         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
-                                RequestMethod.POST.name()
+                                RequestMethod.POST.name(),
+                                RequestMethod.PUT.name(),
+                                RequestMethod.DELETE.name()
                         ));
                         corsConfiguration.setAllowCredentials(true);
                         corsConfiguration.setAllowedHeaders(List.of("*"));

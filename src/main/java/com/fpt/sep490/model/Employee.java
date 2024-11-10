@@ -33,6 +33,8 @@ public class Employee extends User {
     @Column(name = "bank_number")
     private String bankNumber;
 
+    @Column(name = "daily_wage")
+    private double dailyWage;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "role_id")

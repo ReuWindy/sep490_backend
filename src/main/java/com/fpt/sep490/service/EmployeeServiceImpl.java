@@ -10,7 +10,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -101,15 +104,76 @@ public class EmployeeServiceImpl implements EmployeeService{
         return convertEmployeeToEmployeeWithDayActiveDTO(employees);
     }
 
+    @Transactional
+    @Override
+    public Employee createDayActive(long id, String date, int mass, String note) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            employeeCustomRepository.createActiveDate(id,formattedDate,mass,note);
+            return employeeCustomRepository.getEmployeeById(id);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void deleteDayActive(long id, String date) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            employeeCustomRepository.deleteActiveDate(id,formattedDate);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Transactional
+    @Override
+    public Employee updateDayActive(long id, String date, int mass, String note) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            return employeeCustomRepository.updateActiveDate(id,formattedDate,mass,note);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Override
+    public List<DayActive> getDayActiveByEmployeeId(long id, int month, int year) {
+        return employeeCustomRepository.getDayActiveByEmployeeId(id,month,year);
+    }
+
+    @Override
+    public List<EmployeeWithDayActiveDTO> getEmployeesByRole(String role) {
+        if (!Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString())
+                && !Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.PORTER.toString())) {
+            throw new ApiRequestException("Invalid role");
+        }
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(role);
+        return convertEmployeeToEmployeeWithDayActiveDTO(employees);
+    }
+
     public List<EmployeeWithDayActiveDTO> convertEmployeeToEmployeeWithDayActiveDTO(List<Employee> employees){
         if(employees.isEmpty()){
-            throw new ApiRequestException("No employee found");
+            return List.of();
         }
         return employees.stream().map(
                 employee -> new EmployeeWithDayActiveDTO(employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
                         employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
                         employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(),
-                        employee.getDayActives())
+                        employee.getDailyWage())
         ).toList();
     }
 }
