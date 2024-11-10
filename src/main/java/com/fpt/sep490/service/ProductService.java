@@ -14,7 +14,6 @@ public interface ProductService {
     Product getProductById(int id);
     Product createProduct(ProductDto productDto);
     Product updateProduct(ProductDto productDto);
-    String exportProduct(List<ExportProductDto> ExportProductDtoList);
     List<Product> getProductsByWarehouse(Long warehouseId);
     void updateProductStatus(String productCode);
     Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize);
@@ -23,6 +22,6 @@ public interface ProductService {
 
     List<BatchProduct> previewBatchProducts(List<importProductDto> ImportProductDtoList);
     String confirmAndAddSelectedProductToWarehouse(long batchId, List<BatchProductSelection> batchProductSelections);
-    String confirmAndExportProducts(Long batchId);
+    String confirmAndExportProducts(Long batchId, List<ExportProductDto> exportProductDtos);
     String prepareExportProduct(List<ExportProductDto> exportProductDtoList);
 }

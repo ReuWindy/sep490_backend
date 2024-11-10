@@ -14,6 +14,8 @@ import java.util.Date;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CreateUserRequest {
     @NotEmpty(message = "{registration_name_not_empty}")
     private String name;

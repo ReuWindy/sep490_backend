@@ -22,4 +22,6 @@ public class BatchProductSelection {
     @NotNull(message = "Id nhà cung cấp không được để trống.")
     @DecimalMin(value = "0", message = "Id nhà cung cấp phải là số dương.")
     private int supplierId;
+
+    private long warehouseId;
 }

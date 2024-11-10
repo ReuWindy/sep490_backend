@@ -37,7 +37,8 @@ public class SecurityConfiguration {
     List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**", "/ReceiptVoucher/**", "/ExpenseVoucher/**",
-                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**");
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/ws/info",
+                                                "/transaction/**","/inventory/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -59,10 +60,12 @@ public class SecurityConfiguration {
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                         CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
-                                RequestMethod.POST.name()
+                                RequestMethod.POST.name(),
+                                RequestMethod.PUT.name(),
+                                RequestMethod.DELETE.name()
                         ));
                         corsConfiguration.setAllowCredentials(true);
                         corsConfiguration.setAllowedHeaders(List.of("*"));
@@ -73,6 +76,7 @@ public class SecurityConfiguration {
                     .csrf(csrf -> csrf
                             .csrfTokenRequestHandler(requestHandler)
                             .ignoringRequestMatchers("/**")
+                            .ignoringRequestMatchers("/ws/info")
                             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                     .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

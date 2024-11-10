@@ -13,6 +13,8 @@ import java.util.Date;
 @Setter
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString
 public class RegistrationRequest {
     @NotEmpty(message = "{registration_name_not_empty}")
