@@ -43,6 +43,11 @@ public class BatchProductServiceImpl implements BatchProductService {
 //    }
 
     @Override
+    public BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchId) {
+        return null;
+    }
+
+    @Override
     public List<BatchProduct> getBatchProductByProductId(Long id) {
         Optional<List<BatchProduct>> b = Optional.ofNullable(batchProductRepository.findByProductId(id));
         return b.orElse(null);
@@ -54,8 +59,6 @@ public class BatchProductServiceImpl implements BatchProductService {
         return b.orElse(null);
     }
 
-    @Override
-    public BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchCode) {
     public List<BatchProduct> getBatchProductByBatchId(Long batchId) {
         return batchProductRepository.findAllByBatchId(batchId);
     }
