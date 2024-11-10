@@ -17,6 +17,7 @@ public class ReceiptVoucherDto {
     private Long id;
     private String receiptCode;
     private Date receiptDate;
+    private Date dueDate;
     private double totalAmount;
     private double paidAmount;
     private double remainAmount;
@@ -31,6 +32,7 @@ public class ReceiptVoucherDto {
         dto.setTotalAmount(receiptVoucher.getTotalAmount());
         dto.setPaidAmount(receiptVoucher.getPaidAmount());
         dto.setRemainAmount(receiptVoucher.getRemainAmount());
+        dto.setDueDate(receiptVoucher.getDueDate());
         List<TransactionDto> transactionDtos = new ArrayList<>();
         for (Transaction t: receiptVoucher.getTransactions()) {
             TransactionDto transactionDto = TransactionDto.toDto(t);

@@ -24,20 +24,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByBatchCode(@Param("batchCode") String batchCode);
 
 
-    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Product p WHERE p.name = :name AND p.category.id = :categoryId AND p.supplier.id = :supplierId AND p.importPrice = :importPrice")
-    boolean existsByNameAndCategoryIdAndSupplierIdAndImportPrice(
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Product p WHERE p.id != :id AND p.name = :name AND p.category.id = :categoryId AND p.supplier.id = :supplierId")
+    boolean existsByNameAndCategoryIdAndSupplierId(
+            @Param("id") Long id,
             @Param("name") String name,
             @Param("categoryId") Long categoryId,
-            @Param("supplierId") Long supplierId,
-            @Param("importPrice") Double importPrice);
-
-
-    @Query("SELECT p FROM Product p WHERE p.name = :name AND p.category.id = :categoryId AND p.supplier.id = :supplierId AND p.importPrice = :importPrice")
-    Optional<Product> findByNameAndCategoryIdAndSupplierIdAndImportPrice(
-            @Param("name") String name,
-            @Param("categoryId") Long categoryId,
-            @Param("supplierId") Long supplierId,
-            @Param("importPrice") Double importPrice);
+            @Param("supplierId") Long supplierId);
 
     @Query("SELECT p FROM Product p WHERE p.name = :name AND p.category.id = :categoryId AND p.supplier.id = :supplierId")
     Optional<Product> findByNameAndCategoryIdAndSupplierId(

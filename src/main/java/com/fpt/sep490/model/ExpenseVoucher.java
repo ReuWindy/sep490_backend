@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,8 +21,8 @@ public class ExpenseVoucher {
     @Column(name = "expense_code")
     private String expenseCode;
 
-    @Column(name = "expense_payer")
-    private String expensePayer;
+    @Column(name = "type")
+    private String type;
 
     @Column(name = "expense_date")
     private Date expenseDate;
@@ -29,10 +30,18 @@ public class ExpenseVoucher {
     @Column(name = "total_amount")
     private double totalAmount;
 
-    @Column(name = "paid_amount")
-    private double paidAmount;
+    @Column(name = "note")
+    private String note;
 
-    @Column(name = "remain_amount")
-    private double remainAmount;
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
 
+    @OneToOne
+    @JoinColumn(name = "warehouse_receipt_id", referencedColumnName = "id")
+    private WarehouseReceipt warehouseReceipt;
+
+    @ManyToOne
+    @JoinColumn(name = "employee_id", referencedColumnName = "id")
+    @JsonManagedReference
+    private Employee expensePayer;
 }

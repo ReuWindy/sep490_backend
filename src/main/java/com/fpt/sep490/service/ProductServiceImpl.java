@@ -68,6 +68,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(ProductDto productDto) {
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(productDto.getName(),
+                Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
+
+        if (existingProduct.isPresent()){
+            throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
+        }
+
         Product product = new Product();
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -154,8 +161,8 @@ public class ProductServiceImpl implements ProductService {
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+        createdProduct.setSupplier(supplier);
+        createdProduct.setCategory(category);
         productRepository.save(createdProduct);
         return createdProduct;
     }
@@ -164,6 +171,11 @@ public class ProductServiceImpl implements ProductService {
     public Product updateProduct(ProductDto productDto) {
         Product product = productRepository.findById(productDto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        boolean exist = productRepository.existsByNameAndCategoryIdAndSupplierId(productDto.getId(), productDto.getName(), Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
+
+        if (exist){
+            throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
+        }
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -174,18 +186,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
-        Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-        for (ProductWarehouse pw : product.getProductWarehouses()) {
-            pw.setWarehouse(warehouse);
-            productWareHouseRepository.save(pw);
-        }
 
         product.setCategory(category);
         product.setSupplier(supplier);
-        product.setUnitOfMeasure(unitOfMeasure);
         product.setUpdateAt(new Date());
 
         return productRepository.save(product);
@@ -441,8 +444,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Product findOrCreateProduct(importProductDto dto) {
-        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierIdAndImportPrice(dto.getName(),
-                Long.valueOf(dto.getCategoryId()), dto.getSupplierId(), dto.getImportPrice());
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(dto.getName(),
+                Long.valueOf(dto.getCategoryId()), dto.getSupplierId());
         if (existingProduct.isPresent()) {
             return existingProduct.get();
         } else {
