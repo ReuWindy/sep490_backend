@@ -1,7 +1,9 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.DriverPayrollResponseDTO;
 import com.fpt.sep490.dto.EmployeeDTO;
 import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
+import com.fpt.sep490.dto.PorterPayrollResponseDTO;
 import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
@@ -165,8 +167,42 @@ public class EmployeeServiceImpl implements EmployeeService{
         return convertEmployeeToEmployeeWithDayActiveDTO(employees);
     }
 
-    public List<EmployeeWithDayActiveDTO> convertEmployeeToEmployeeWithDayActiveDTO(List<Employee> employees){
-        if(employees.isEmpty()){
+    @Override
+    public List<PorterPayrollResponseDTO> getPorterPayroll(int month, int year) {
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(com.fpt.sep490.Enum.EmployeeRole.PORTER.toString());
+        return employees.stream().map(
+                employee -> {
+                    List<DayActive> dayActives = employeeCustomRepository.getDayActiveByEmployeeId(employee.getId(), month, year);
+                    int dayWorked = dayActives.size();
+                    double totalMass = dayActives.stream().mapToDouble(DayActive::getMass).sum();
+                    return new PorterPayrollResponseDTO(
+                            employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                            employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                            employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(), dayWorked, totalMass
+                    );
+                }
+        ).toList();
+    }
+
+    @Override
+    public List<DriverPayrollResponseDTO> getDriverPayroll(int month, int year) {
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString());
+        return employees.stream().map(
+                employee -> {
+                    List<DayActive> dayActives = employeeCustomRepository.getDayActiveByEmployeeId(employee.getId(), month, year);
+                    int dayWorked = dayActives.size();
+                    double totalSalary = employee.getDailyWage() * dayWorked;
+                    return new DriverPayrollResponseDTO(
+                            employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                            employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                            employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(), employee.getDailyWage(), dayWorked, totalSalary
+                    );
+                }
+        ).toList();
+    }
+
+    public List<EmployeeWithDayActiveDTO> convertEmployeeToEmployeeWithDayActiveDTO(List<Employee> employees) {
+        if (employees.isEmpty()) {
             return List.of();
         }
         return employees.stream().map(

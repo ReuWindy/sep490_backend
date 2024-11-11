@@ -1,8 +1,10 @@
 package com.fpt.sep490.service;
 
 
+import com.fpt.sep490.dto.DriverPayrollResponseDTO;
 import com.fpt.sep490.dto.EmployeeDTO;
 import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
+import com.fpt.sep490.dto.PorterPayrollResponseDTO;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
 import java.util.List;
@@ -22,4 +24,6 @@ public interface EmployeeService {
     Employee updateDayActive(long id, String date, int mass, String note);
     List<DayActive> getDayActiveByEmployeeId(long id, int month, int year);
     List<EmployeeWithDayActiveDTO> getEmployeesByRole(String role);
+    List<PorterPayrollResponseDTO> getPorterPayroll(int month, int year);
+    List<DriverPayrollResponseDTO> getDriverPayroll(int month, int year);
 }

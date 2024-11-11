@@ -121,4 +121,16 @@ public class EmployeeController {
         List<EmployeeWithDayActiveDTO> employees = employeeService.getEmployeesByRole(role.toUpperCase());
         return ResponseEntity.ok(employees);
     }
+
+    @GetMapping("/porter-payroll")
+    public ResponseEntity<List<PorterPayrollResponseDTO>> getPorterPayroll(@RequestParam int month, @RequestParam int year) {
+        List<PorterPayrollResponseDTO> porterPayrollResponseDTOS = employeeService.getPorterPayroll(month, year);
+        return new ResponseEntity<>(porterPayrollResponseDTOS, HttpStatus.OK);
+    }
+
+    @GetMapping("/driver-payroll")
+    public ResponseEntity<List<DriverPayrollResponseDTO>> getDriverPayroll(@RequestParam int month, @RequestParam int year) {
+        List<DriverPayrollResponseDTO> driverPayrollResponseDTOS = employeeService.getDriverPayroll(month, year);
+        return new ResponseEntity<>(driverPayrollResponseDTOS, HttpStatus.OK);
+    }
 }

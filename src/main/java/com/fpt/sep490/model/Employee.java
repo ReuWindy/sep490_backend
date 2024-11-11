@@ -1,8 +1,11 @@
 package com.fpt.sep490.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fpt.sep490.Enum.SalaryType;
+import com.fpt.sep490.Enum.EmployeeRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,6 +47,9 @@ public class Employee extends User {
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<DayActive> dayActives;
+
+    @Column(name = "daily_wage")
+    private double dailyWage;
 
     @OneToMany(mappedBy = "expensePayer")
     @JsonBackReference
