@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -58,6 +59,7 @@ public class Product {
     private Set<ProductWarehouse> productWarehouses;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonBackReference
     private Set<BatchProduct> batchProducts;
 
     private double importPrice;

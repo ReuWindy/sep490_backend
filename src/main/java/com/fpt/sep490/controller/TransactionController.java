@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Transaction;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/transaction")
@@ -32,9 +34,9 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getTransactionById(@PathVariable int id) {
-       Transaction transaction = transactionService.getTransactionById(id);
+    @GetMapping("/{receiptId}")
+    public ResponseEntity<?> getTransactionByReceiptId(@PathVariable long receiptId) {
+       Set<TransactionDto> transaction = transactionService.getTransactionByReceiptId(receiptId);
         if(transaction != null){
             return ResponseEntity.status(HttpStatus.OK).body(transaction);
         }
@@ -43,16 +45,21 @@ public class TransactionController {
     }
 
 
-    @PostMapping("/createCategory")
-    public ResponseEntity<?> createTransaction(HttpServletRequest request, @RequestBody Transaction transaction) {
-       return null;
+    @PostMapping("/createTransaction")
+    public ResponseEntity<?> createTransaction( @RequestBody TransactionDto transactionDto) {
+       Transaction createdTransaction = transactionService.createTransactionByAdmin(transactionDto);
+        if(createdTransaction != null){
+            return ResponseEntity.status(HttpStatus.OK).body(createdTransaction);
+        }
+        ApiExceptionResponse response = new ApiExceptionResponse("Created Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/updateCategory")
-    public ResponseEntity<?> updateTransaction(HttpServletRequest request, @RequestBody Transaction transaction) {
-      Transaction updatedTransaction = transactionService.updateTransaction(transaction);
-        if(transaction != null){
-            return ResponseEntity.status(HttpStatus.OK).body(transaction);
+    @PostMapping("/updateTransaction")
+    public ResponseEntity<?> updateTransaction(@RequestBody TransactionDto transactionDto) {
+      Transaction updatedTransaction = transactionService.updateTransaction(transactionDto);
+        if(updatedTransaction != null){
+            return ResponseEntity.status(HttpStatus.OK).body(updatedTransaction);
         }
         ApiExceptionResponse response = new ApiExceptionResponse("Update Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

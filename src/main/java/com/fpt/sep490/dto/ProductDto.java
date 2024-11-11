@@ -18,5 +18,6 @@ public class ProductDto {
     private Long supplierId;
     private Long unitOfMeasureId;
     private Long warehouseId;
+    private boolean isDeleted;
     private Set<UnitWeightPairs> unitWeightPairsList;
 }

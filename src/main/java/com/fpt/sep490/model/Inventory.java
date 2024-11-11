@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -27,5 +28,6 @@ public class Inventory {
     private Date inventoryDate;
 
     @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<InventoryDetail> inventoryDetails;
 }

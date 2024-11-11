@@ -1,8 +1,8 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Category;
+import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.repository.CategoryRepository;
-import com.fpt.sep490.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-    private final ProductRepository productRepository;
-    public CategoryServiceImpl(CategoryRepository categoryRepository, ProductRepository productRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
-        this.productRepository = productRepository;
     }
 
     @Override
@@ -62,32 +61,39 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void disableCategoryAndReassignProduct(int id, long defaultCategoryId) {
-        Category existingCategory = categoryRepository.findById((long) id)
-                .orElseThrow(()-> new RuntimeException("Category not found!!!"));
-        Category defaultCategory = categoryRepository.findById(defaultCategoryId)
-                .orElseGet(() -> {
-                    Category newCategory = new Category();
-                    newCategory.setName("Default Category");
-                    newCategory.setDescription("Default Category");
-                    return categoryRepository.save(newCategory);
-                });
-        productRepository.findByCategoryId((long) id)
+    public List<String> getAllCategoryNames() {
+        return categoryRepository.findAll()
                 .stream()
-                .peek(product -> product.setCategory(defaultCategory))
-                .forEach(productRepository::save);
-        existingCategory.setActive(false);
+                .takeWhile(Category::getActive)
+                .map(Category::getName)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Category> getCategoriesByFilter(String name, int pageNumber, int pageSize) {
+    public Page<Category> getCategoriesByFilter(String name,Boolean status, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
-            Specification<Category> specification = CategorySpecification.hasName(name);
+            Specification<Category> specification = CategorySpecification.hasNameAndStatus(name, status);
             return categoryRepository.findAll(specification, pageable);
         }
         catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public Category enableCategory(Long id) {
+        Category categoryToEnable = categoryRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
+        categoryToEnable.setActive(true);
+        return categoryToEnable;
+    }
+
+    @Override
+    public Category disableCategory(Long id) {
+        Category categoryToDisable = categoryRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
+        categoryToDisable.setActive(false);
+        return categoryToDisable;
     }
 }

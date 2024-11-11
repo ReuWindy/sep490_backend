@@ -1,5 +1,6 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class InventoryDetail {
 
     @ManyToOne
     @JoinColumn(name = "inventory_id")
+    @JsonBackReference
     private Inventory inventory;
 
     @ManyToOne

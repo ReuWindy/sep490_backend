@@ -36,8 +36,8 @@ public class SecurityConfiguration {
                                                  );
     List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
-                                                "/WarehouseReceipt/**", "/employeerole/**",
-                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**");
+                                                "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**","/ws/info","/transaction/**","/inventory/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -59,7 +59,7 @@ public class SecurityConfiguration {
                     .httpBasic(Customizer.withDefaults())
                     .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                         CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
                         corsConfiguration.setAllowedMethods(List.of(
                                 RequestMethod.GET.name(),
                                 RequestMethod.POST.name(),
@@ -75,6 +75,7 @@ public class SecurityConfiguration {
                     .csrf(csrf -> csrf
                             .csrfTokenRequestHandler(requestHandler)
                             .ignoringRequestMatchers("/**")
+                            .ignoringRequestMatchers("/ws/info")
                             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                     .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

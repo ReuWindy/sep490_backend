@@ -11,7 +11,7 @@ public interface NewService {
     News updateNew(int id,NewDto newDto);
     News getNewById(int id);
     List<News> getAllNews();
-    Page<News> getNewsByFilter(String name, String type, String username, int pageNumber, int pageSize );
-    void disableNews(int id);
-    void enableNews(int id);
+    Page<News> getNewsByFilter(String name, String type, String username,Boolean status, int pageNumber, int pageSize );
+    News disableNews(int id);
+    News enableNews(int id);
 }

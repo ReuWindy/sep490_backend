@@ -12,6 +12,8 @@ public interface CategoryService {
     Category getCategoryByName(String name);
     Category createCategory(Category category);
     Category updateCategory(Category category);
-    public void disableCategoryAndReassignProduct(int id, long defaultCategoryId);
-    Page<Category> getCategoriesByFilter(String name, int pageNumber, int pageSize);
+    List<String> getAllCategoryNames();
+    Page<Category> getCategoriesByFilter(String name,Boolean status, int pageNumber, int pageSize);
+    Category enableCategory(Long id);
+    Category disableCategory(Long id);
 }

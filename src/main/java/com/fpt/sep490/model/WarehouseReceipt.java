@@ -32,4 +32,8 @@ public class WarehouseReceipt {
     @JoinColumn(name = "batch_id")
     @JsonBackReference
     private Batch batch;
+
+    @OneToOne(mappedBy = "warehouseReceipt", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private ExpenseVoucher expenseVoucher;
 }

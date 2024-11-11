@@ -52,6 +52,17 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/batchCode/{batchCode}")
+    public ResponseEntity<?> getAllProducts(@PathVariable String batchCode) {
+        try{
+            List<Product> products = productService.getAllBatchProducts(batchCode);
+            return ResponseEntity.status(HttpStatus.OK).body(products);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable long id) {
         Product product = productService.getProductById((int) id);
@@ -78,7 +89,7 @@ public class ProductController {
             List<BatchProduct> importList = productService.previewBatchProducts(importProductDtoList);
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Import Product to batch by :" + username);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Tạo lô hàng nhập kho bởi :" + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -94,7 +105,7 @@ public class ProductController {
             String message = productService.confirmAndAddSelectedProductToWarehouse(batchId, selectedProducts);
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_WAREHOUSE", "Confirm and add selected products to warehouse by :" + username);
+            userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_WAREHOUSE", "Xác nhận thêm lô hàng vào kho bởi :" + username);
 
             return ResponseEntity.status(HttpStatus.OK).body(message);
         } catch (RuntimeException e) {
@@ -110,7 +121,7 @@ public class ProductController {
 
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Prepared export batch by: " + username);
+            userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Tạo lô hàng xuất kho bởi " + username);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
         } catch (RuntimeException e) {
@@ -120,13 +131,13 @@ public class ProductController {
     }
 
     @PostMapping("/export/confirm/{batchId}")
-    public ResponseEntity<?> confirmAndExportProducts(HttpServletRequest request, @PathVariable Long batchId) {
+    public ResponseEntity<?> confirmAndExportProducts(HttpServletRequest request, @PathVariable Long batchId, @Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
         try {
-            String message = productService.confirmAndExportProducts(batchId);
+            String message = productService.confirmAndExportProducts(batchId, exportProductDtoList );
 
             String token = jwtTokenManager.resolveToken(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CONFIRM_EXPORT_PRODUCT", "Confirmed export batch by: " + username);
+            userActivityService.logAndNotifyAdmin(username, "CONFIRM_EXPORT_PRODUCT", "Xác nhận xuất kho lô hàng bởi: " + username);
 
             return ResponseEntity.status(HttpStatus.OK).body(message);
         } catch (RuntimeException e) {
@@ -144,22 +155,27 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
-    @PutMapping("/update/{productCode}")
-    public ResponseEntity<?> updateProductStatus(@PathVariable String productCode) {
-        Optional<Product> product= productRepository.findByProductCode(productCode);
-        if (product.isPresent()) {
-            productService.updateProductStatus(productCode);
-            return ResponseEntity.status(HttpStatus.OK).body(product.get().getIsDeleted());
-        }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update Status Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
+//    @PutMapping("/update/{productCode}")
+//    public ResponseEntity<?> updateProductStatus(@PathVariable String productCode) {
+//        try{
+//            Optional<Product> product= productRepository.findByProductCode(productCode);
+//            if (product.isPresent()) {
+//                productService.updateProductStatus(productCode);
+//                return ResponseEntity.status(HttpStatus.OK).body(product.get().getIsDeleted());
+//            }
+//            re
+//        }catch (Exception e){
+//            final ApiExceptionResponse response = new ApiExceptionResponse("Update Status Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//        }
+//    }
 
     @GetMapping("/admin/products")
     public ResponseEntity<PagedModel<EntityModel<AdminProductDto>>> adminProductPage(
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date importDate,
             @RequestParam(required = false) String productQuantity,
             @RequestParam(defaultValue = "asc") String sortDirection,
@@ -167,7 +183,7 @@ public class ProductController {
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<AdminProductDto> pagedResourcesAssembler) {
-        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
+        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, warehouseId, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
         PagedModel<EntityModel<AdminProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
