@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiExceptionResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
@@ -74,5 +77,19 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = {ApiRequestException.class})
+    public ResponseEntity<ApiException> handleApiRequestException(ApiRequestException e) {
+        HttpStatus badRequest = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(e.getMessage(), badRequest, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, badRequest);
+    }
+
+    @ExceptionHandler(value = {Exception.class})
+    public ResponseEntity<ApiException> handleGlobalException(Exception e) {
+        HttpStatus internalServerError = HttpStatus.INTERNAL_SERVER_ERROR;
+        ApiException apiException = new ApiException(e.getMessage(), internalServerError, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, internalServerError);
     }
 }

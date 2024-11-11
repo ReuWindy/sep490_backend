@@ -34,11 +34,10 @@ public class SecurityConfiguration {
                                                  "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                                  "/user/**", "/employees/**", "/actuator/**", "/logout/**"
                                                  );
-    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**");
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/**");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
-                                                "/WarehouseReceipt/**", "/employeerole/**", "/ReceiptVoucher/**", "/ExpenseVoucher/**",
-                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/ws/info",
-                                                "/transaction/**","/inventory/**");
+                                                "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**", "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**","/ws/info","/transaction/**","/inventory/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {

@@ -1,17 +1,23 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.Enum.SalaryType;
+import com.fpt.sep490.dto.DriverPayrollResponseDTO;
 import com.fpt.sep490.dto.EmployeeDTO;
+import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
+import com.fpt.sep490.dto.PorterPayrollResponseDTO;
+import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
-import com.fpt.sep490.utils.RandomEmployeeCodeGenerator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService{
@@ -19,14 +25,16 @@ public class EmployeeServiceImpl implements EmployeeService{
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
     private final SalaryDetailRepository salaryDetailRepository;
+    private final EmployeeCustomRepository employeeCustomRepository;
 
     private final RoleRepository roleRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository){
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository, EmployeeCustomRepository employeeCustomRepository) {
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
         this.roleRepository = roleRepository;
         this.salaryDetailRepository = salaryDetailRepository;
+        this.employeeCustomRepository = employeeCustomRepository;
     }
 
     @Override
@@ -86,5 +94,122 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public Employee deleteEmployee(int id) {
         return null;
+    }
+
+    @Override
+    public List<EmployeeWithDayActiveDTO> getEmployees(int month, int year, String role) {
+        if (!Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString())
+                && !Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.PORTER.toString())) {
+            throw new ApiRequestException("Invalid role");
+        }
+        List<Employee> employees = employeeCustomRepository.getEmployees(month, year, role);
+        return convertEmployeeToEmployeeWithDayActiveDTO(employees);
+    }
+
+    @Transactional
+    @Override
+    public Employee createDayActive(long id, String date, int mass, String note) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            employeeCustomRepository.createActiveDate(id,formattedDate,mass,note);
+            return employeeCustomRepository.getEmployeeById(id);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void deleteDayActive(long id, String date) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            employeeCustomRepository.deleteActiveDate(id,formattedDate);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Transactional
+    @Override
+    public Employee updateDayActive(long id, String date, int mass, String note) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date dayActive = inputFormat.parse(date);
+            String formattedDateString = dateFormat.format(dayActive);
+            Date formattedDate = dateFormat.parse(formattedDateString);
+            return employeeCustomRepository.updateActiveDate(id,formattedDate,mass,note);
+        } catch (ParseException e) {
+            throw new ApiRequestException("Invalid date format");
+        }
+    }
+
+    @Override
+    public List<DayActive> getDayActiveByEmployeeId(long id, int month, int year) {
+        return employeeCustomRepository.getDayActiveByEmployeeId(id,month,year);
+    }
+
+    @Override
+    public List<EmployeeWithDayActiveDTO> getEmployeesByRole(String role) {
+        if (!Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString())
+                && !Objects.equals(role, com.fpt.sep490.Enum.EmployeeRole.PORTER.toString())) {
+            throw new ApiRequestException("Invalid role");
+        }
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(role);
+        return convertEmployeeToEmployeeWithDayActiveDTO(employees);
+    }
+
+    @Override
+    public List<PorterPayrollResponseDTO> getPorterPayroll(int month, int year) {
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(com.fpt.sep490.Enum.EmployeeRole.PORTER.toString());
+        return employees.stream().map(
+                employee -> {
+                    List<DayActive> dayActives = employeeCustomRepository.getDayActiveByEmployeeId(employee.getId(), month, year);
+                    int dayWorked = dayActives.size();
+                    double totalMass = dayActives.stream().mapToDouble(DayActive::getMass).sum();
+                    return new PorterPayrollResponseDTO(
+                            employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                            employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                            employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(), dayWorked, totalMass
+                    );
+                }
+        ).toList();
+    }
+
+    @Override
+    public List<DriverPayrollResponseDTO> getDriverPayroll(int month, int year) {
+        List<Employee> employees = employeeCustomRepository.getEmployeesByRole(com.fpt.sep490.Enum.EmployeeRole.DRIVER.toString());
+        return employees.stream().map(
+                employee -> {
+                    List<DayActive> dayActives = employeeCustomRepository.getDayActiveByEmployeeId(employee.getId(), month, year);
+                    int dayWorked = dayActives.size();
+                    double totalSalary = employee.getDailyWage() * dayWorked;
+                    return new DriverPayrollResponseDTO(
+                            employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                            employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                            employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(), employee.getDailyWage(), dayWorked, totalSalary
+                    );
+                }
+        ).toList();
+    }
+
+    public List<EmployeeWithDayActiveDTO> convertEmployeeToEmployeeWithDayActiveDTO(List<Employee> employees) {
+        if (employees.isEmpty()) {
+            return List.of();
+        }
+        return employees.stream().map(
+                employee -> new EmployeeWithDayActiveDTO(employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
+                        employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
+                        employee.isGender(), employee.getImage(), employee.getEmployeeRole().toString(),
+                        employee.getDailyWage())
+        ).toList();
     }
 }
