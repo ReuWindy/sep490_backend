@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InventoryDetailDto {
     private long productId;
-    private double quantity;
+    private int quantity;
     private String description;
+    private String unit;
+    private double weightPerUnit;
+    private int systemQuantity;
+    private int quantity_discrepancy;
 }

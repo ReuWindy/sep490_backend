@@ -1,23 +1,32 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.BatchProductSelection;
 import com.fpt.sep490.dto.InventoryDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Inventory;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.InventoryService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/inventory")
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
 
-    public InventoryController(InventoryService inventoryService){
+    public InventoryController(InventoryService inventoryService,JwtTokenManager jwtTokenManager,UserActivityService userActivityService){
         this.inventoryService = inventoryService;
+        this.userActivityService = userActivityService;
+        this.jwtTokenManager = jwtTokenManager;
     }
 
     @PostMapping("/createInventory")
@@ -38,5 +47,22 @@ public class InventoryController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Get Inventory Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @PostMapping("/confirm-add-to-inventory/{inventoryId}")
+    public ResponseEntity<?> confirmAndAddToInventory(HttpServletRequest request,
+                                                      @PathVariable Long inventoryId,
+                                                      @RequestBody InventoryDto inventoryDto) {
+        try {
+            String message = inventoryService.confirmAndAddSelectedProductToInventory(inventoryId, inventoryDto);
+            String token = jwtTokenManager.resolveToken(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_INVENTORY", "Xác nhận lưu phiếu kiểm kho bởi :" + username);
+
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 }
