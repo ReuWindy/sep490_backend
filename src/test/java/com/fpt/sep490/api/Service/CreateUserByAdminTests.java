@@ -56,6 +56,7 @@ public class CreateUserByAdminTests {
 
     @Test
     public void UserService_CreateUserByAdmin_CreateCustomer(){
+        // Arrange : Set up data test
         RegistrationRequest registrationRequest = new RegistrationRequest(
                 "User Test",
                 "User12345",
@@ -92,22 +93,26 @@ public class CreateUserByAdminTests {
         UserType userType = UserType.ROLE_CUSTOMER;
         EmployeeRole employeeRole = new EmployeeRole(1L,"Role 1");
 
+        // Mock the repository calls
         when(bCryptPasswordEncoder.encode(registrationRequest.getPassword())).thenReturn("encodedPassword");
         when(userMapper.convertToCustomer(registrationRequest)).thenReturn(customer);
         when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
 
+        // Act: call the service method under test
         RegistrationResponse response = userService.createUserByAdmin(registrationRequest, userType, createUserRequest);
 
-
+        // Assert : Verify the result
         assertNotNull(response);
 
         ArgumentCaptor<Customer> customerCaptor = ArgumentCaptor.forClass(Customer.class);
 
+        // Verify interactions with repositories
         verify(customerRepository).save(any(Customer.class));
         verify(customerRepository).save(customerCaptor.capture());
 
         Customer capturedCustomer = customerCaptor.getValue();
 
+        // Assert : Verify the result
         assertNotNull(capturedCustomer);
         assertEquals("User Test", capturedCustomer.getName());
         assertEquals("user@gmail.com", capturedCustomer.getEmail());
@@ -117,6 +122,7 @@ public class CreateUserByAdminTests {
 
     @Test
     public void UserService_CreateUserByAdmin_CreateEmployee(){
+        // Arrange : Set up the test data
         RegistrationRequest registrationRequest = new RegistrationRequest(
                 "User Test",
                 "User12345",
@@ -152,24 +158,26 @@ public class CreateUserByAdminTests {
         UserType userType = UserType.ROLE_EMPLOYEE;
         EmployeeRole employeeRole = new EmployeeRole(1L,"Role 1");
 
+        // Mock the repository calls
         when(employeeRoleRepository.findById(1L)).thenReturn(Optional.of(employeeRole));
         when(bCryptPasswordEncoder.encode(registrationRequest.getPassword())).thenReturn("encodedPassword");
 
-
+        // Act: Call the method to test
         RegistrationResponse response = userService.createUserByAdmin(registrationRequest, userType, createUserRequest);
 
-
+        // Assert: Verify the result
         assertNotNull(response);
 
+        // Verify interactions with repositories
         verify(salaryDetailRepository).save(any(SalaryDetail.class));
         verify(roleRepository).save(any(Role.class));
         verify(employeeRepository).save(any(Employee.class));
 
         ArgumentCaptor<Employee> employeeCaptor = ArgumentCaptor.forClass(Employee.class);
         verify(employeeRepository).save(employeeCaptor.capture());
-
         Employee captureEmployee = employeeCaptor.getValue();
 
+        // Assert: Verify the result
         assertNotNull(captureEmployee);
         assertEquals("ABC Bank", captureEmployee.getBankName());
         assertEquals("1234567890", captureEmployee.getBankNumber());
