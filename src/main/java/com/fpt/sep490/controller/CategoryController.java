@@ -111,7 +111,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 
-    @PutMapping("/disable/{id}")
+    @PostMapping("/disable/{id}")
     public ResponseEntity<?> disableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.disableCategory(id);
@@ -125,7 +125,7 @@ public class CategoryController {
         }
     }
 
-    @PutMapping("/enable/{id}")
+    @PostMapping("/enable/{id}")
     public ResponseEntity<?> enableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.enableCategory(id);

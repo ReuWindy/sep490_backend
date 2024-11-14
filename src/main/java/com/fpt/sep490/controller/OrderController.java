@@ -7,6 +7,7 @@ import com.fpt.sep490.model.Order;
 import com.fpt.sep490.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -80,6 +82,20 @@ public class OrderController {
         Page<Order> orderpage = orderService.getAdminOrder(customerName,status,pageNumber,pageSize);
         PagedModel<EntityModel<Order>> pagedModel = pagedResourcesAssembler.toModel(orderpage);
         return ResponseEntity.ok(pagedModel);
+    }
+
+    @GetMapping("/daily-report")
+    public ResponseEntity<?> getDailyOrder(@RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date){
+        DailyOrderResponseDTO report = orderService.getDailyReport(date);
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/top-selling-products")
+    public ResponseEntity<?> getTopSellingProducts(
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+            @RequestParam("type") String type) {
+        List<TopSaleProductDto> topProducts = orderService.getTopSellingProducts(date, type);
+        return ResponseEntity.ok(topProducts);
     }
 
     @PostMapping("/admin/CreateOrder")

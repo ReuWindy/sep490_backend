@@ -12,7 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -208,6 +210,51 @@ public class OrderServiceImpl implements OrderService{
         updatedOrder.setRemainingAmount(remainAmount);
         orderRepository.save(updatedOrder);
         return updatedOrder;
+    }
+
+    @Override
+    public DailyOrderResponseDTO getDailyReport(Date date){
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        List<Order> orders = orderRepository.findAllByOrderDate(localDate);
+        int numberOfOrders = orders.size();
+        double totalPrice = orders.stream().mapToDouble(Order::getTotalAmount).sum();
+        DailyOrderResponseDTO response = new DailyOrderResponseDTO();
+        response.setNumber(numberOfOrders);
+        response.setTotalPrice(totalPrice);
+        return response;
+    }
+
+    @Override
+    public List<TopSaleProductDto> getTopSellingProducts(Date date, String type) {
+        List<Object[]> results;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        switch (type.toLowerCase()) {
+            case "day":
+                results = orderDetailRepository.findTopSellingProductsByDay(date, pageable);
+                break;
+            case "week":
+                results = orderDetailRepository.findTopSellingProductsByWeek(date, pageable);
+                break;
+            case "month":
+                results = orderDetailRepository.findTopSellingProductsByMonth(date, pageable);
+                break;
+            case "year":
+                results = orderDetailRepository.findTopSellingProductsByYear(date, pageable);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
+        }
+
+
+        List<TopSaleProductDto> topProducts = new ArrayList<>();
+        for (Object[] result : results) {
+            TopSaleProductDto dto = new TopSaleProductDto();
+            dto.setProductName((String) result[0]);
+            dto.setQuantitySold(((Number) result[1]).intValue());
+            topProducts.add(dto);
+        }
+        return topProducts;
     }
 
     private OrderDto convertToDTO(Order order) {

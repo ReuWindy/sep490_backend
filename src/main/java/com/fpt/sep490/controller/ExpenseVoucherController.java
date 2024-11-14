@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.ExpenseReportDto;
 import com.fpt.sep490.dto.ExpenseVoucherDto;
 import com.fpt.sep490.dto.ReceiptVoucherExtendDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/ExpenseVoucher")
@@ -52,6 +54,14 @@ public class ExpenseVoucherController {
                 .toModel(expenseVoucherDtos);
 
         return ResponseEntity.ok().body(entityModels);
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<?> getExpenseReport(
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+            @RequestParam("type") String type) {
+        List<ExpenseReportDto> report = expenseVoucherService.getExpenseReport(date, type);
+        return ResponseEntity.ok(report);
     }
 
     @PostMapping("/create")
