@@ -3,6 +3,7 @@ package com.fpt.sep490.dto;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.OrderDetail;
+import com.fpt.sep490.model.ReceiptVoucher;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,4 +25,5 @@ public class OrderDto {
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
     private Customer customer;
     private Set<OrderDetailDto> orderDetails;
+    private ReceiptVoucher receiptVoucher;
 }

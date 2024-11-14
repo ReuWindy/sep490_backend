@@ -45,6 +45,7 @@ public class CreateCustomerOrderTests {
 
     @Test
     public void OrderService_CreateCustomerOrder_CreateOrderWithDisCount() {
+        // Arrange : Set up data test
         Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
         Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);
         customer.setId(1L);
@@ -56,23 +57,26 @@ public class CreateCustomerOrderTests {
         productPrices.add(productPrice);
         price.setProductPrices(productPrices);
         price.setCustomers(customers);
-
         CustomerOrderDto customerOrderDto = new CustomerOrderDto(1L, createOrderDetails()); // Sample order DTO
         DiscountDto discountDto = new DiscountDto("10% for all products",5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
         OrderActivity orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
 
+        // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(discountRepository.getByProductId(1L)).thenReturn(discountDto);
 
+        // Act: call the service method under test
         Order createdOrder = orderService.createCustomerOrder(customerOrderDto);
         orderActivity.setOrder(createdOrder);
 
+        // Assert : Verify the result
         assertNotNull(createdOrder);
         assertEquals(1, createdOrder.getOrderDetails().size());
         assertEquals(StatusEnum.PENDING, createdOrder.getStatus());
         assertTrue(createdOrder.getTotalAmount() > 0);
 
+        // Verify interactions with repositories
         verify(orderRepository).save(any(Order.class));
         verify(orderDetailRepository).saveAll(anySet());
         verify(orderActivityRepository).save(any(OrderActivity.class));
@@ -80,6 +84,7 @@ public class CreateCustomerOrderTests {
 
     @Test
     public void OrderService_CreateCustomerOrder_CreateOrderWithoutDisCount() {
+        // Arrange : Set up data test
         Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
         Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);
         customer.setId(1L);
@@ -91,23 +96,26 @@ public class CreateCustomerOrderTests {
         productPrices.add(productPrice);
         price.setProductPrices(productPrices);
         price.setCustomers(customers);
-
         CustomerOrderDto customerOrderDto = new CustomerOrderDto(1L, createOrderDetails()); // Sample order DTO
         DiscountDto discountDto = new DiscountDto("10% for all products",5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
         OrderActivity orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
 
+        // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(discountRepository.getByProductId(1L)).thenReturn(null);
 
+        // Act: call the service method under test
         Order createdOrder = orderService.createCustomerOrder(customerOrderDto);
         orderActivity.setOrder(createdOrder);
 
+        // Assert : Verify the result
         assertNotNull(createdOrder);
         assertEquals(1, createdOrder.getOrderDetails().size());
         assertEquals(StatusEnum.PENDING, createdOrder.getStatus());
         assertTrue(createdOrder.getTotalAmount() > 0);
 
+        // Verify interactions with repositories
         verify(orderRepository).save(any(Order.class));
         verify(orderDetailRepository).saveAll(anySet());
         verify(orderActivityRepository).save(any(OrderActivity.class));

@@ -253,6 +253,7 @@ public class OrderServiceImpl implements OrderService{
                 ))
                 .collect(Collectors.toSet());
         orderDTO.setOrderDetails(orderDetailDtos);
+        orderDTO.setReceiptVoucher(order.getReceiptVoucher());
         return orderDTO;
     }
 

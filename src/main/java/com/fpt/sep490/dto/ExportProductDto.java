@@ -2,10 +2,16 @@ package com.fpt.sep490.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Valid
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ExportProductDto {
     @NotBlank(message = "Tên không được để trống")
     @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
