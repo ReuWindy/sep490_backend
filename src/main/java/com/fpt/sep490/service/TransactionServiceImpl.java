@@ -56,6 +56,8 @@ public class TransactionServiceImpl implements TransactionService{
         Transaction createdTransaction = new Transaction();
         ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElse(null);
         if (receiptVoucher != null) {
+            receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + transactionDto.getAmount());
+            receiptVoucher.setRemainAmount(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount());
             createdTransaction.setReceiptVoucher(receiptVoucher);
             createdTransaction.setAmount(transactionDto.getAmount());
             createdTransaction.setTransactionDate(new Date());

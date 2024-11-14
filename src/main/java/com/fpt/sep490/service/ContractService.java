@@ -11,7 +11,7 @@ public interface ContractService {
     Contract getContractById(int id);
     Contract getContractByContractNumber(String contractNumber);
     Contract createContract(ContractDto contractDto);
-    Contract updateContract(Contract contract);
+    Contract updateContract(ContractDto contract);
     Contract deleteContract(int id);
     Page<Contract> getContractByFilter(String contractNumber, String name, int pageNumber, int pageSize);
 }

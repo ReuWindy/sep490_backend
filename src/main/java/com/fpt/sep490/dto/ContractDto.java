@@ -14,6 +14,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractDto {
+    private Long id;
     private String contractNumber;
     private double amount;
     private String customerName;

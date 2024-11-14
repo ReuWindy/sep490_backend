@@ -5,6 +5,7 @@ import com.fpt.sep490.controller.BatchController;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
+import com.fpt.sep490.utils.RandomIncomeCodeGenerator;
 import com.fpt.sep490.utils.RandomOrderCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +28,9 @@ public class OrderServiceImpl implements OrderService{
     private final ProductPriceRepository productPriceRepository;
     private final OrderActivityRepository orderActivityRepository;
     private final DiscountRepository discountRepository;
+    private final ReceiptVoucherRepository receiptVoucherRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository,CustomerRepository customerRepository,ProductRepository productRepository,ProductPriceRepository productPriceRepository,OrderActivityRepository orderActivityRepository,DiscountRepository discountRepository){
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
@@ -37,7 +39,9 @@ public class OrderServiceImpl implements OrderService{
         this.productPriceRepository = productPriceRepository;
         this.orderActivityRepository = orderActivityRepository;
         this.discountRepository = discountRepository;
+        this.receiptVoucherRepository = receiptVoucherRepository;
     }
+
     @Override
     public List<OrderDto> getOrderHistoryByCustomerId(long customerId) {
         List<Order> orders = orderRepository.findByCustomerId(customerId);
@@ -110,6 +114,21 @@ public class OrderServiceImpl implements OrderService{
         order.setOrderDetails(orderDetails);
         orderRepository.save(order);
         orderDetailRepository.saveAll(orderDetails);
+
+        Date currentDate = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(Calendar.MONTH, 1);
+
+        ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+        receiptVoucher.setReceiptDate(new Date());
+        receiptVoucher.setOrder(order);
+        receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+        receiptVoucher.setPaidAmount(0);
+        receiptVoucher.setTotalAmount(totalAmount);
+        receiptVoucher.setRemainAmount(totalAmount);
+        receiptVoucher.setDueDate(calendar.getTime());
+        receiptVoucherRepository.save(receiptVoucher);
         logOrderActivity(order,"CREATED","Created Order",customer.getName());
         return order;
     }

@@ -59,7 +59,7 @@ public class ReceiptVoucherController {
 
     @PostMapping("/extend")
     public ResponseEntity<?> createBatchProduct(@RequestBody ReceiptVoucherExtendDto request) {
-        ReceiptVoucher receiptVoucher = receiptVoucherService.extendReceipt(request.getId(), request.getDueDate());
+        ReceiptVoucher receiptVoucher = receiptVoucherService.extendReceipt(request.getId(), request.getNumber(), request.getType());
         if (receiptVoucher != null) {
             return ResponseEntity.ok(receiptVoucher);
         }

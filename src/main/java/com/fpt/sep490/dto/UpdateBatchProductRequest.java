@@ -6,7 +6,7 @@ import lombok.Data;
 public class UpdateBatchProductRequest {
     private int quantity;
     private Double weightPerUnit;
-    private String Unit;
+    private String unit;
     private Double price;
     private String description;
 }
