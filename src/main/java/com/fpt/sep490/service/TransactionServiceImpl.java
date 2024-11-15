@@ -26,6 +26,7 @@ public class TransactionServiceImpl implements TransactionService{
     @Override
     public Transaction updateTransaction(TransactionDto transactionDto) {
         Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElse(null);
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElse(null);
         Date currentDate = new Date();
         long threeDaysAgoMillis = currentDate.getTime() - (3L * 24 * 60 * 60 * 1000);
         if((transactionDto.getTransactionDate().getTime() > threeDaysAgoMillis)) {
@@ -34,6 +35,13 @@ public class TransactionServiceImpl implements TransactionService{
                 updatedTransaction.setTransactionDate(transactionDto.getTransactionDate());
                 updatedTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
                 transactionRepository.save(updatedTransaction);
+
+                double newPaidAmount = receiptVoucher.getPaidAmount() + transactionDto.getAmount();
+                double newRemainAmount = receiptVoucher.getTotalAmount() - newPaidAmount;
+                receiptVoucher.setPaidAmount(newPaidAmount);
+                receiptVoucher.setRemainAmount(newRemainAmount);
+                receiptVoucherRepository.save(receiptVoucher);
+
                 return updatedTransaction;
             }
         }
@@ -62,8 +70,16 @@ public class TransactionServiceImpl implements TransactionService{
             createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
             createdTransaction.setStatus(StatusEnum.COMPLETED);
             transactionRepository.save(createdTransaction);
+
+            double newPaidAmount = receiptVoucher.getPaidAmount() + transactionDto.getAmount();
+            double newRemainAmount = receiptVoucher.getTotalAmount() - newPaidAmount;
+            receiptVoucher.setPaidAmount(newPaidAmount);
+            receiptVoucher.setRemainAmount(newRemainAmount);
+            receiptVoucherRepository.save(receiptVoucher);
+
             return createdTransaction;
         }
+
         return null;
     }
 

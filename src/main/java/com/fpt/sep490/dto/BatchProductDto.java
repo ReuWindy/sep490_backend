@@ -3,6 +3,9 @@ package com.fpt.sep490.dto;
 import lombok.*;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BatchProductDto {
     private int quantity;
     private double price;

@@ -45,7 +45,7 @@ public class CreateAdminOrderTests {
     private OrderServiceImpl orderService;
 
     @Test
-    public void OrderService_CreateAdminOrder_CreateOrder(){
+    public void OrderService_CreateAdminOrder_CreateOrderSuccess(){
 
         Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
         Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);

@@ -70,8 +70,8 @@ public class ContractServiceImpl implements ContractService{
             existingContract.setImageFilePath(contract.getImageFilePath());
             existingContract.setConfirmed(contract.isConfirmed());
             existingContract.setConfirmationDate(contract.getConfirmationDate());
-            contractRepository.save(existingContract);
-            return existingContract;
+            Contract savedContract = contractRepository.save(existingContract);
+            return savedContract;
         }
         return null;
     }
