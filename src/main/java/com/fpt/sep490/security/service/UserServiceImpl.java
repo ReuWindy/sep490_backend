@@ -114,19 +114,32 @@ public class UserServiceImpl implements UserService {
 
         RegistrationResponse errorResponse = userValidationService.validateUser(registrationRequest);
         if (errorResponse.getMessage().isEmpty()) {
-            final User user = UserMapper.INSTANCE.convertToUser(registrationRequest);
+            final Customer user = UserMapper.INSTANCE.convertToCustomer(registrationRequest);
 
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
                 throw new IllegalArgumentException("Password cannot be null or empty");
             }
 
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            user.setUsername(registrationRequest.getUsername());
+            user.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
+            user.setPhone(registrationRequest.getPhone());
+            user.setEmail(registrationRequest.getEmail());
+            user.setAddress(registrationRequest.getAddress());
+            user.setActive(registrationRequest.isActive());
+            user.setDob(registrationRequest.getDob());
+            user.setGender(registrationRequest.isGender());
             user.setFullName(registrationRequest.getName());
             user.setCreateAt(new Date());
-            user.setActive(true);
             user.setUserType(UserType.ROLE_CUSTOMER);
+            user.setActive(true);
 
-            userRepository.save(user);
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
+            user.setName(registrationRequest.getName());
+            user.setSupporter(false);
+            user.setContracts(new HashSet<>());
+            user.setPrice(standardPrice);
+
+            customerRepository.save(user);
 
             final String username = registrationRequest.getUsername();
             final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);

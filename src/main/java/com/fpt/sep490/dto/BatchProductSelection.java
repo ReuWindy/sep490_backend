@@ -8,7 +8,6 @@ import lombok.Data;
 
 @Data
 public class BatchProductSelection {
-    @NotBlank(message = "Id sản phẩm không được để trống.")
     private long productId;
 
     @NotBlank(message = "Loại đóng gói không được để trống.")

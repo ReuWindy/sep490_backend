@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.ExpenseReportDto;
 import com.fpt.sep490.dto.ExpenseVoucherDto;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.ExpenseVoucher;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -99,5 +101,35 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         }
         expenseVoucher.setDeleted(true);
         return expenseVoucherRepository.save(expenseVoucher);
+    }
+
+    @Override
+    public List<ExpenseReportDto> getExpenseReport(Date date, String type) {
+        List<Object[]> results;
+
+        switch (type.toLowerCase()) {
+            case "day":
+                results = expenseVoucherRepository.findDailyExpenseByMonth(date);
+                break;
+            case "week":
+                results = expenseVoucherRepository.findWeeklyExpenseByYear(date);
+                break;
+            case "month":
+                results = expenseVoucherRepository.findMonthlyExpenseByYear(date);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
+        }
+
+        // Chuyển đổi kết quả thành DTO
+        List<ExpenseReportDto> report = new ArrayList<>();
+        for (Object[] result : results) {
+            ExpenseReportDto dto = new ExpenseReportDto();
+            dto.setPeriod(((Number) result[0]).intValue());
+            dto.setTotalAmount((Double) result[1]);
+            report.add(dto);
+        }
+
+        return report;
     }
 }

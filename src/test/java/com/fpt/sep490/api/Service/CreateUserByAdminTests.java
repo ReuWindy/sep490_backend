@@ -22,11 +22,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateUserByAdminTests {
@@ -183,4 +181,84 @@ public class CreateUserByAdminTests {
         assertEquals("1234567890", captureEmployee.getBankNumber());
     }
 
+    @Test
+    void testCreateUserByAdmin_InvalidRegistrationRequest_ShouldThrowException() {
+        // Arrange
+        RegistrationRequest registrationRequest = new RegistrationRequest();
+        registrationRequest.setName(null); // Không hợp lệ
+
+        // Mock validation service để ném ngoại lệ
+        doThrow(new IllegalArgumentException("Invalid registration request"))
+                .when(userValidationService).validateUser(registrationRequest);
+
+        // Act & Assert
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->
+                userService.createUserByAdmin(registrationRequest, UserType.ROLE_EMPLOYEE, new CreateUserRequest()));
+        assertEquals("Invalid registration request", exception.getMessage());
+    }
+
+    @Test
+    void testCreateUserByAdmin_EmployeeRoleNotFound_ShouldThrowException() {
+        // Arrange
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setEmployeeRoleId(999L); // ID không tồn tại
+
+        when(employeeRoleRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                userService.createUserByAdmin(new RegistrationRequest(), UserType.ROLE_EMPLOYEE, createUserRequest));
+        assertEquals("Employee Role not found", exception.getMessage());
+    }
+
+    @Test
+    void testCreateUserByAdmin_StandardPriceNotFound_ShouldThrowException() {
+        // Arrange : Set up data test
+        RegistrationRequest registrationRequest = new RegistrationRequest(
+                "User Test",
+                "User12345",
+                "User123456@",
+                "User123456@",
+                "123456789",
+                true,
+                "user@gmail.com",
+                "user_address",
+                new Date(90,5,15),
+                true);
+
+        CreateUserRequest createUserRequest = new CreateUserRequest(
+                "User Test",
+                "user@gmail.com",
+                "User12345",
+                "User123456@",
+                true,
+                "123456789",
+                "user_address",
+                new Date(90, 5, 15),
+                true,
+                UserType.ROLE_CUSTOMER,
+                1L,
+                "Employee role description.",
+                SalaryType.MONTHLY,
+                100.0,
+                "ABC Bank",
+                "1234567890",
+                "User.jpg"
+        );
+        Customer customer = new Customer();
+        Price price = new Price(1L, "Standard Price", new HashSet<>(),new HashSet<>());
+        UserType userType = UserType.ROLE_CUSTOMER;
+        EmployeeRole employeeRole = new EmployeeRole(1L,"Role 1");
+
+        // Mock the repository calls
+        when(bCryptPasswordEncoder.encode(registrationRequest.getPassword())).thenReturn("encodedPassword");
+        when(userMapper.convertToCustomer(registrationRequest)).thenReturn(customer);
+        when(priceRepository.findById(1L)).thenReturn(Optional.of(price));
+        when(priceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                userService.createUserByAdmin(registrationRequest, UserType.ROLE_CUSTOMER, createUserRequest));
+        assertEquals("Standard Price Not Found!!", exception.getMessage());
+    }
 }
