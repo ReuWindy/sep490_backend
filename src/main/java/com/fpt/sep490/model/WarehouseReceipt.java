@@ -27,11 +27,17 @@ public class WarehouseReceipt {
     @Enumerated(EnumType.STRING)
     private ReceiptType receiptType;
     private String document;
+    private String receiptReason;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "batch_id")
     @JsonBackReference
     private Batch batch;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "order_id")
+    @JsonBackReference
+    private Order order;
 
     @OneToOne(mappedBy = "warehouseReceipt", cascade = CascadeType.ALL)
     @JsonManagedReference

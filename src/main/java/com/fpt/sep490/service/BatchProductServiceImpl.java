@@ -72,6 +72,7 @@ public class BatchProductServiceImpl implements BatchProductService {
      batchProduct.setPrice(request.getPrice());
      batchProduct.setQuantity(request.getQuantity());
      batchProduct.setUnit(request.getUnit());
+     batchProductRepository.save(batchProduct);
      return batchProduct;
     }
 

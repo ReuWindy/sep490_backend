@@ -15,4 +15,5 @@ public class BatchProductDto {
     private long batchId;
     private long productId;
     private long discountId;
+    private boolean isAdded;
 }

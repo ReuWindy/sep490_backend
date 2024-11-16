@@ -11,5 +11,6 @@ import java.util.Date;
 @Data
 public class ReceiptVoucherExtendDto {
     private Long id;
-    private Date dueDate;
+    private int number;
+    private String type;
 }

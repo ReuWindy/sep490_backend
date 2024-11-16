@@ -1,7 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.ReceiptVoucherDto;
-import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import org.springframework.data.domain.Page;
@@ -11,9 +10,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,10 +43,22 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
     }
 
     @Override
-    public ReceiptVoucher extendReceipt(Long id, Date extendDate) {
+    public ReceiptVoucher extendReceipt(Long id, int number, String type) {
         ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Phiếu thu không tồn tại"));
-
+        Date extendDate = receiptVoucher.getDueDate();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(extendDate);
+        if (type.equalsIgnoreCase("Ngày")) {
+            calendar.add(Calendar.DAY_OF_MONTH, number);
+        } else if (type.equalsIgnoreCase("Tuần")) {
+            calendar.add(Calendar.WEEK_OF_YEAR, number);
+        } else if (type.equalsIgnoreCase("Tháng")) {
+            calendar.add(Calendar.MONTH, number);
+        } else {
+            throw new IllegalArgumentException("Loại gia hạn không hợp lệ");
+        }
+        extendDate = calendar.getTime();
         receiptVoucher.setDueDate(extendDate);
         return receiptVoucherRepository.save(receiptVoucher);
     }

@@ -9,5 +9,5 @@ import java.util.Date;
 public interface ReceiptVoucherService {
 
     Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize);
-    ReceiptVoucher extendReceipt(Long id, Date extendDate);
+    ReceiptVoucher extendReceipt(Long id, int number, String type);
 }

@@ -88,7 +88,7 @@ public class BatchProductController {
     }
 
     @PutMapping("/update/{batchProductId}")
-    public ResponseEntity<?> updateBatchProduct(HttpServletRequest request, @Valid @RequestBody UpdateBatchProductRequest requestUpdate, Long batchProductId) {
+    public ResponseEntity<?> updateBatchProduct(HttpServletRequest request, @Valid @RequestBody UpdateBatchProductRequest requestUpdate, @PathVariable Long batchProductId) {
         try{
             BatchProduct batchProduct = batchProductService.updateBatchProduct(requestUpdate, batchProductId);
             String token = jwtTokenManager.resolveToken(request);

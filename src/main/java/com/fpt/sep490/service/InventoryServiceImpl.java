@@ -3,14 +3,19 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.BatchProductSelection;
 import com.fpt.sep490.dto.InventoryDto;
+import com.fpt.sep490.dto.WarehouseReceiptDto;
 import com.fpt.sep490.model.*;
-import com.fpt.sep490.repository.InventoryRepository;
-import com.fpt.sep490.repository.ProductRepository;
-import com.fpt.sep490.repository.ProductWareHouseRepository;
-import com.fpt.sep490.repository.WarehouseRepository;
+import com.fpt.sep490.repository.*;
+import com.fpt.sep490.utils.RandomInventoryCodeGenerator;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,21 +27,30 @@ public class InventoryServiceImpl implements InventoryService{
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
 
-    public InventoryServiceImpl(WarehouseRepository warehouseRepository,InventoryRepository inventoryRepository,ProductRepository productRepository,ProductWareHouseRepository productWareHouseRepository){
-        this.warehouseRepository = warehouseRepository;
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository) {
         this.inventoryRepository = inventoryRepository;
+        this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
         this.productWareHouseRepository = productWareHouseRepository;
     }
+
     @Override
     public Inventory createInventory(InventoryDto inventoryDto) {
         Inventory createdInventory = new Inventory();
         Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(()->new RuntimeException("Warehouse Not Found!"));
-
+        User user = userRepository.findByUsername(inventoryDto.getUsername());
+        if (user == null) {
+            throw new RuntimeException("User Not Found!");
+        }
         createdInventory.setWarehouse(warehouse);
         createdInventory.setInventoryDate(inventoryDto.getInventoryDate());
+        createdInventory.setInventoryCode(RandomInventoryCodeGenerator.generateInventoryCode());
+        createdInventory.setInventoryDate(new Date());
+        createdInventory.setCreateBy(user);
 
         Set<InventoryDetail> details = inventoryDto.getInventoryDetails().stream().map(detailDto ->{
             InventoryDetail inventoryDetail = new InventoryDetail();
@@ -66,13 +80,33 @@ public class InventoryServiceImpl implements InventoryService{
     }
 
     @Override
+    public Page<InventoryDto> getInventoryByFilter(String inventoryCode, Date startDate, Date endDate, int pageNumber, int pageSize) {
+        try {
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<Inventory> specification = InventorySpecification.hasCode(inventoryCode)
+                    .and(InventorySpecification.isInventoryDateBetween(startDate, endDate));
+
+            Page<Inventory> inventoryPage = inventoryRepository.findAll(specification, pageable);
+
+            List<InventoryDto> dtos = inventoryPage.getContent().stream()
+                    .map(InventoryDto::toDto)
+                    .collect(Collectors.toList());
+
+            return new PageImpl<>(dtos, pageable, inventoryPage.getTotalElements());
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    @Override
     public Inventory getInventoryById(long inventoryId) {
         return inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Inventory Not Found"));
     }
 
     @Override
     public String confirmAndAddSelectedProductToInventory(Long inventoryId, InventoryDto inventoryDto) {
-        Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(()-> new EntityNotFoundException("Warehouse Not Found"));
         Inventory inventory = inventoryRepository.findById(inventoryId).orElse(new Inventory());
 
         for(var detail: inventoryDto.getInventoryDetails()) {
@@ -115,4 +149,18 @@ public class InventoryServiceImpl implements InventoryService{
         return "Done!";
     }
 
+    @Override
+    public Inventory deleteInventory(Long id) {
+        Inventory inventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Inventory not found!!"));
+        if (inventory.getStatus() == StatusEnum.COMPLETED) {
+            throw new IllegalStateException("Cannot delete Inventory because the inventory have been confirm.");
+        } else if (inventory.getStatus() == StatusEnum.CANCELED) {
+            inventoryRepository.delete(inventory);
+        } else {
+            inventory.setStatus(StatusEnum.CANCELED);
+            inventoryRepository.save(inventory);
+        }
+        return inventory;
+    }
 }

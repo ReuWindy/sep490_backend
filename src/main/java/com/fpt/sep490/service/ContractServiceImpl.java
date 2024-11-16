@@ -55,23 +55,24 @@ public class ContractServiceImpl implements ContractService{
         newContract.setContractTime(new Date());
         newContract.setConfirmed(false);
         newContract.setCustomer(customer);
+        newContract.setPdfFilePath(contractDto.getPdfFilePath());
         contractRepository.save(newContract);
         return newContract;
     }
 
     @Override
-    public Contract updateContract(Contract contract) {
+    public Contract updateContract(ContractDto contract) {
         Contract existingContract = contractRepository.findById(contract.getId()).orElse(null);
         if(existingContract != null){
-            existingContract.setContractNumber(contract.getContractNumber());
-            existingContract.setContractTime(contract.getContractTime());
-            existingContract.setAmount(contract.getAmount());
-            existingContract.setPdfFilePath(contract.getPdfFilePath());
             existingContract.setImageFilePath(contract.getImageFilePath());
-            existingContract.setConfirmed(contract.isConfirmed());
-            existingContract.setConfirmationDate(contract.getConfirmationDate());
-            Contract savedContract = contractRepository.save(existingContract);
-            return savedContract;
+            if (contract.getConfirmationDate() == null) {
+                existingContract.setConfirmationDate(new Date());
+            } else {
+                existingContract.setConfirmationDate(contract.getConfirmationDate());
+            }
+            existingContract.setConfirmed(true);
+            contractRepository.save(existingContract);
+            return existingContract;
         }
         return null;
     }

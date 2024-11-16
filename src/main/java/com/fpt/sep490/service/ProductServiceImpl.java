@@ -270,8 +270,6 @@ public class ProductServiceImpl implements ProductService {
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
                 productWarehouse.setWarehouse(warehouse);
                 productWareHouseRepository.save(productWarehouse);
-            } else if (!batchProduct.isAdded()) {
-                batchProduct.setDescription("Đã huỷ");
             }
         }
         batchProductRepository.saveAll(batch.getBatchProducts());
