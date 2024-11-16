@@ -17,7 +17,7 @@ public class ExportProductDto {
     @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String productName;
 
-    @NotBlank(message = "Tên không được để trống")
+    @NotBlank(message = "Quy cách đóng gói  không được để trống")
     @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String unit;
 

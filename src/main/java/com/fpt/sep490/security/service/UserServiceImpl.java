@@ -116,10 +116,6 @@ public class UserServiceImpl implements UserService {
         if (errorResponse.getMessage().isEmpty()) {
             final Customer user = UserMapper.INSTANCE.convertToCustomer(registrationRequest);
 
-            if (user.getPassword() == null || user.getPassword().isEmpty()) {
-                throw new IllegalArgumentException("Password cannot be null or empty");
-            }
-
             user.setUsername(registrationRequest.getUsername());
             user.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
             user.setPhone(registrationRequest.getPhone());
@@ -132,6 +128,10 @@ public class UserServiceImpl implements UserService {
             user.setCreateAt(new Date());
             user.setUserType(UserType.ROLE_CUSTOMER);
             user.setActive(true);
+
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password cannot be null or empty");
+            }
 
             Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
             user.setName(registrationRequest.getName());

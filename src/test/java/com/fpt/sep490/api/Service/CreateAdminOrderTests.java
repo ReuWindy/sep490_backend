@@ -9,6 +9,7 @@ import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.service.OrderServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,8 +20,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,28 +41,58 @@ public class CreateAdminOrderTests {
     private ProductPriceRepository productPriceRepository;
     @Mock
     private OrderActivityRepository orderActivityRepository;
+    @Mock
+    private Customer customer;
+    @Mock
+    private Product product;
+    @Mock
+    private ProductPrice productPrice;
+    @Mock
+    private AdminOrderDto adminOrderDto;
+    @Mock
+    private DiscountDto discountDto;
+    @Mock
+    private OrderActivity orderActivity;
     @InjectMocks
     private OrderServiceImpl orderService;
 
-    @Test
-    public void OrderService_CreateAdminOrder_CreateOrderSuccess(){
+    @BeforeEach
+    public void setUp() {
+        // Mock Customer
+        Price price = new Price(1L, "Test Price", new HashSet<>(), new HashSet<>());
+        customer = new Customer("Test Customer", false, new HashSet<>(), price);
+        customer.setId(1L);
 
-        Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
-        Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);
-        customer.setId(1L); // set id for customer
-        Product product = new Product(1L, "Sample Product","Sample Product Description", 120.0,"Sample_Product.png","PROD-1234-123456789",null,null,null,new Date(),new Date(),false, Set.of(), Set.of(),110.0);
-        ProductPrice productPrice = new ProductPrice(1L,90.0 ,product,price);
+        // Mock Product
+        product = new Product(1L, "Sample Product", "Sample Product Description", 120.0, "Sample_Product.png",
+                "PROD-1234-123456789", null, null, null, new Date(), new Date(), false, Set.of(), Set.of(), 110.0);
+
+        // Mock ProductPrice
+        productPrice = new ProductPrice(1L, 90.0, product, price);
+
+        // Set relationships
         Set<ProductPrice> productPrices = new HashSet<>();
-        Set<Customer> customers = new HashSet<>();
-        // add customer to the set
-        customers.add(customer);
-        // Add product price to the set
         productPrices.add(productPrice);
         price.setProductPrices(productPrices);
+
+        Set<Customer> customers = new HashSet<>();
+        customers.add(customer);
         price.setCustomers(customers);
-        AdminOrderDto adminOrderDto = new AdminOrderDto(1L,StatusEnum.PENDING,0.0,100.0,200.0,createOrderDetails()) ;// Sample order DTO
-        DiscountDto discountDto = new DiscountDto("10% for all products",5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
-        OrderActivity orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
+
+        // Mock AdminOrderDto
+        adminOrderDto = new AdminOrderDto(1L, StatusEnum.PENDING, 0.0, 100.0, 200.0, createOrderDetails());
+
+        // Mock DiscountDto
+        discountDto = new DiscountDto("10% for all products", 5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
+
+        // Mock OrderActivity
+        orderActivity = new OrderActivity(1L, null, "CREATED", "Created Order", new Date(), customer.getName());
+
+    }
+
+
+    @Test
+    public void OrderService_CreateAdminOrder_CreateOrderSuccess(){
 
         // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -101,6 +131,59 @@ public class CreateAdminOrderTests {
 
         // Assert: Check if the exception message matches the expected message
         assertEquals("Customer Not Found !", exception.getMessage());
+    }
+
+    @Test
+    public void OrderService_CreateAdminOrder_ProductNotFound(){
+        // Arrange: Đảm bảo khách hàng tồn tại
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            orderService.createAdminOrder(adminOrderDto);
+        });
+
+        // Assert
+        assertEquals("Product not found", exception.getMessage());
+    }
+
+    @Test
+    public void OrderService_createAdminOrder_OrderCreateWithDiscount() {
+        // Arrange
+        adminOrderDto.getOrderDetails().get(0).setDiscount(10.0); // Set 10% discount
+        double expectedDiscountedUnitPrice = 90.0; // 100 - 10
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        // Act
+        Order createdOrder = orderService.createAdminOrder(adminOrderDto);
+
+        // Assert
+        OrderDetail orderDetail = createdOrder.getOrderDetails().iterator().next();
+        assertEquals(expectedDiscountedUnitPrice, orderDetail.getUnitPrice());
+        assertEquals(expectedDiscountedUnitPrice * orderDetail.getQuantity() * orderDetail.getWeightPerUnit(),
+                orderDetail.getTotalPrice());
+    }
+
+    @Test
+    public void OrderService_createAdminOrder_OrderCreateWithNoDiscount() {
+        // Arrange
+        adminOrderDto.getOrderDetails().get(0).setDiscount(0.0); // No discount
+        double expectedUnitPrice = 100.0; // Original price
+
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        // Act
+        Order createdOrder = orderService.createAdminOrder(adminOrderDto);
+
+        // Assert
+        OrderDetail orderDetail = createdOrder.getOrderDetails().iterator().next();
+        assertEquals(expectedUnitPrice, orderDetail.getUnitPrice());
+        assertEquals(expectedUnitPrice * orderDetail.getQuantity() * orderDetail.getWeightPerUnit(),
+                orderDetail.getTotalPrice());
     }
 
     private List<OrderDetailDto> createOrderDetails() {
