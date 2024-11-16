@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.controller.BatchController;
 import com.fpt.sep490.dto.*;
@@ -196,6 +197,14 @@ public class OrderServiceImpl implements OrderService{
         StatusEnum status = adminOrderDto.getStatus();
         if (status != null) {
             updatedOrder.setStatus(status);
+//            if (status == StatusEnum.IN_PROCESS){
+//                WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
+//                warehouseReceipt.setOrder(updatedOrder);
+//                warehouseReceipt.setReceiptDate(new Date());
+//                warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
+//                warehouseReceipt.setDocument("N/A");
+//                warehouseReceipt.setReceiptReason("Bán hàng");
+//            }
         }else {
             throw new RuntimeException("Can not Update Order Status !");
         }

@@ -33,6 +33,26 @@ public class ProductWarehouseController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @GetMapping("/getAllProducts")
+    public ResponseEntity<?> getAllProductWarehouseProducts() {
+        List<ProductWarehouse> productWarehouses = productWarehouseService.getAllProducts();
+        if(!productWarehouses.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(productWarehouses);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found!!", HttpStatus.NOT_FOUND, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @GetMapping("/getAllIngredients")
+    public ResponseEntity<?> getAllProductWarehouseIngredients() {
+        List<ProductWarehouse> productWarehouses = productWarehouseService.getAllIngredients();
+        if(!productWarehouses.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(productWarehouses);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found!!", HttpStatus.NOT_FOUND, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     @PostMapping("/createforbatch/{id}")
     public ResponseEntity<?> createProductWarehouse(@PathVariable long id) {
         ProductWarehouse productWarehouse = productWarehouseService.createProductWarehouseFromBatchProduct(id);

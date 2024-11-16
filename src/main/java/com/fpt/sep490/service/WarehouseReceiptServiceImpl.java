@@ -110,6 +110,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setReceiptType(ReceiptType.EXPORT);
         receipt.setDocument("N/A");
         receipt.setBatch(batch);
+        receipt.setReceiptReason("Sản xuất");
 
         warehouseReceiptRepository.save(receipt);
         return receipt;

@@ -74,9 +74,9 @@ public class ExpenseVoucherController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<?> deleteExpenseVoucher(@RequestBody ExpenseVoucherDto request) {
-        ExpenseVoucher expenseVoucher = expenseVoucherService.deleteExpense(request);
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteExpenseVoucher(@RequestBody ExpenseVoucherDto request, @PathVariable long id) {
+        ExpenseVoucher expenseVoucher = expenseVoucherService.deleteExpense(request, id);
         if (expenseVoucher != null) {
             return ResponseEntity.ok(expenseVoucher);
         }

@@ -17,4 +17,5 @@ public class InventoryDetailDto {
     private double weightPerUnit;
     private int systemQuantity;
     private int quantity_discrepancy;
+    private ProductDto productDto;
 }

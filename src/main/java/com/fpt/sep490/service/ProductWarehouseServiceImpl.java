@@ -8,15 +8,9 @@ import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
 import com.fpt.sep490.repository.WarehouseRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
@@ -41,8 +35,19 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     @Override
     public ProductWarehouse getById(long id) {
         return productWareHouseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("không tìm thấy với id "+ id));
+                .orElseThrow(() -> new RuntimeException("không tìm thấy với id " + id));
     }
+
+    @Override
+    public List<ProductWarehouse> getAllProducts() {
+        Long id = 2L;
+        return productWareHouseRepository.findProductWarehousesByWarehouseId(id);
+    }
+
+    @Override
+    public List<ProductWarehouse> getAllIngredients() {
+        Long id = 1L;
+        return productWareHouseRepository.findProductWarehousesByWarehouseId(id);    }
 
     @Override
     public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse) {
@@ -83,7 +88,6 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
 //        Specification<ProductWarehouse> spec = ProductWareHouseSpecification.hasUnitOrHasWeightPerUnitOrCategoryOrSupplierOrWarehouse(unit, weightPerUnit, categoryId, supplierId, warehouseId, sortDirection, priceOrder);
 //        return productWareHouseRepository.findAll(spec, pageable);
 //    }
-
 
 
 }

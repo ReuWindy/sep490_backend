@@ -21,6 +21,7 @@ public class WarehouseReceiptDto {
     private String document;
     private String batchCode;
     private String username;
+    private String receiptReason;
     private Set<BatchProductDto> batchProductDtos;
 
     public static WarehouseReceiptDto toDto(WarehouseReceipt warehouseReceipt) {
@@ -29,6 +30,7 @@ public class WarehouseReceiptDto {
         dto.setReceiptDate(warehouseReceipt.getReceiptDate());
         dto.setReceiptType(String.valueOf(warehouseReceipt.getReceiptType()));
         dto.setBatchCode(warehouseReceipt.getBatch().getBatchCode());
+        dto.setReceiptReason(warehouseReceipt.getReceiptReason());
         dto.setUsername(warehouseReceipt.getBatch().getBatchCreator().getUsername());
         Set<BatchProductDto> batchProductDtoSet = new HashSet<>();
         for (BatchProduct bp : warehouseReceipt.getBatch().getBatchProducts()) {

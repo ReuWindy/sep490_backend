@@ -17,6 +17,9 @@ public interface ProductWareHouseRepository extends JpaRepository<ProductWarehou
     @Query("SELECT pw.product FROM ProductWarehouse pw WHERE pw.warehouse.id = :warehouseId")
     List<Product> findProductsByWarehouseId(@Param("warehouseId") Long warehouseId);
 
+    @Query("SELECT pw FROM ProductWarehouse pw WHERE pw.warehouse.id = :warehouseId")
+    List<ProductWarehouse> findProductWarehousesByWarehouseId(@Param("warehouseId") Long warehouseId);
+
     Page<ProductWarehouse> findAll(Specification<ProductWarehouse> specification,Pageable pageable);
     Optional<ProductWarehouse> findByProductAndUnitAndWeightPerUnitAndWarehouseId(Product product, String unit, double weightPerUnit, Long warehouseId);
     Optional<ProductWarehouse> findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(String productName, String unit, double weightPerUnit, Long warehouseId);
