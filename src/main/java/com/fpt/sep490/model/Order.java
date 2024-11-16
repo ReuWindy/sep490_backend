@@ -34,6 +34,10 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private StatusEnum status;  // Trạng thái đơn hàng (pending, completed, cancelled)
 
+    @OneToOne
+    @JsonManagedReference
+    @JoinColumn(name = "warehouse_receipt_id")
+    private WarehouseReceipt warehouseReceipt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonManagedReference

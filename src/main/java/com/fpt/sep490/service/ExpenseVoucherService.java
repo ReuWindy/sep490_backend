@@ -12,6 +12,6 @@ public interface ExpenseVoucherService {
     Page<ExpenseVoucherDto> getExpenseVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize);
     ExpenseVoucher createExpense(ExpenseVoucherDto expenseVoucherDto);
     ExpenseVoucher updateExpense(ExpenseVoucherDto expenseVoucherDto);
-    ExpenseVoucher deleteExpense(ExpenseVoucherDto expenseVoucherDto);
+    ExpenseVoucher deleteExpense(ExpenseVoucherDto expenseVoucherDto, Long id);
     List<ExpenseReportDto> getExpenseReport(Date date, String type);
 }

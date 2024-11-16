@@ -82,8 +82,8 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     }
 
     @Override
-    public ExpenseVoucher deleteExpense(ExpenseVoucherDto expenseVoucherDto) {
-        ExpenseVoucher expenseVoucher = expenseVoucherRepository.findById(expenseVoucherDto.getId())
+    public ExpenseVoucher deleteExpense(ExpenseVoucherDto expenseVoucherDto, Long id) {
+        ExpenseVoucher expenseVoucher = expenseVoucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu chi"));
 
         if (expenseVoucher.isDeleted()){

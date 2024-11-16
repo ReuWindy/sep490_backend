@@ -67,7 +67,7 @@ public class ContractController {
     }
 
     @PostMapping("/updateContract")
-    public ResponseEntity<?> updateContract(@RequestBody Contract contract) {
+    public ResponseEntity<?> updateContract(@RequestBody ContractDto contract) {
         Contract updatedContract = contractService.updateContract(contract);
         if (updatedContract != null) {
             return ResponseEntity.status(HttpStatus.OK).body(updatedContract);

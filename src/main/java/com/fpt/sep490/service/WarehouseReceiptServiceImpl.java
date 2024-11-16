@@ -48,6 +48,19 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     }
 
     @Override
+    public WarehouseReceipt deleteReceiptDocument(long receiptId) {
+        WarehouseReceipt warehouseReceipt = warehouseReceiptRepository.findById(receiptId)
+                .orElseThrow(() -> new RuntimeException("Receipt not found!!"));
+        if (warehouseReceipt.getBatch().getBatchProducts().stream()
+                .anyMatch(batchProduct -> batchProduct.isAdded())) {
+            throw new IllegalStateException("Cannot delete WarehouseReceipt because some BatchProducts are marked as added.");
+        } else {
+            warehouseReceiptRepository.delete(warehouseReceipt);
+        }
+        return warehouseReceipt;
+    }
+
+    @Override
     public List<WarehouseReceipt> getAllWarehouseReceipts() {
         return warehouseReceiptRepository.findAll();
     }
@@ -97,6 +110,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setReceiptType(ReceiptType.EXPORT);
         receipt.setDocument("N/A");
         receipt.setBatch(batch);
+        receipt.setReceiptReason("Sản xuất");
 
         warehouseReceiptRepository.save(receipt);
         return receipt;
