@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDetailDto {
-    @NotBlank(message = "Id sản phẩm không được để trống")
     private Long productId;
 
     @NotBlank(message = "Tên tin tức không được để trống")

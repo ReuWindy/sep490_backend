@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,8 +33,9 @@ public class OrderServiceImpl implements OrderService{
     private final OrderActivityRepository orderActivityRepository;
     private final DiscountRepository discountRepository;
     private final ReceiptVoucherRepository receiptVoucherRepository;
+    private final ProductWareHouseRepository productWareHouseRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository,ProductWareHouseRepository productWareHouseRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
@@ -43,6 +45,7 @@ public class OrderServiceImpl implements OrderService{
         this.orderActivityRepository = orderActivityRepository;
         this.discountRepository = discountRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
+        this.productWareHouseRepository = productWareHouseRepository;
     }
 
     @Override
@@ -193,20 +196,49 @@ public class OrderServiceImpl implements OrderService{
         return orders;
     }
 
+    @Transactional
     @Override
     public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order Not Found"));
         StatusEnum status = adminOrderDto.getStatus();
         if (status != null) {
             updatedOrder.setStatus(status);
-//            if (status == StatusEnum.IN_PROCESS){
-//                WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
-//                warehouseReceipt.setOrder(updatedOrder);
-//                warehouseReceipt.setReceiptDate(new Date());
-//                warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
-//                warehouseReceipt.setDocument("N/A");
-//                warehouseReceipt.setReceiptReason("Bán hàng");
-//            }
+            if (status == StatusEnum.IN_PROCESS){
+                Set<OrderDetail> orderDetails = updatedOrder.getOrderDetails();
+                for(OrderDetail orderDetail : orderDetails){
+                    long productId = orderDetail.getProduct().getId();
+                    String unit = orderDetail.getProductUnit();
+                    double weightPerUnit = orderDetail.getWeightPerUnit();
+                    int requiredQuantity = orderDetail.getQuantity();
+
+                    List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
+                            productId,unit,weightPerUnit
+                    );
+                    if(warehouses.isEmpty()){
+                        throw new RuntimeException("Can not find suitable product !");
+                    }
+                    for(ProductWarehouse warehouse : warehouses){
+                        int availableQuantity = warehouse.getQuantity();
+                        if( requiredQuantity <=0 ) break;
+
+                        if (availableQuantity >= requiredQuantity) {
+                            // Trừ toàn bộ số lượng từ kho hiện tại
+                            warehouse.setQuantity(availableQuantity - requiredQuantity);
+                            productWareHouseRepository.save(warehouse);
+                            requiredQuantity = 0;
+                        } else {
+                            // Trừ toàn bộ số lượng khả dụng từ kho hiện tại, chuyển phần còn lại sang kho tiếp theo
+                            requiredQuantity -= availableQuantity;
+                            warehouse.setQuantity(0);
+                            productWareHouseRepository.save(warehouse);
+                        }
+                        // Kiểm tra nếu không đủ hàng trong tất cả các kho
+                        if (requiredQuantity > 0) {
+                            throw new RuntimeException("Not enough stock available for product ID: " + productId);
+                        }
+                    }
+                }
+            }
         }else {
             throw new RuntimeException("Can not Update Order Status !");
         }

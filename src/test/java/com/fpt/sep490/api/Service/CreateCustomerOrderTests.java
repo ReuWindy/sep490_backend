@@ -7,12 +7,17 @@ import com.fpt.sep490.dto.OrderDetailDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.service.OrderServiceImpl;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import jakarta.validation.Validator;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -36,30 +41,54 @@ public class CreateCustomerOrderTests {
     @Mock
     private DiscountRepository discountRepository;
     @Mock
-    private ProductPriceRepository productPriceRepository;
-    @Mock
     private OrderActivityRepository orderActivityRepository;
+    @Mock
+    private Price price;
+    @Mock
+    private Product product;
+    @Mock
+    private ProductPrice productPrice;
+    @Mock
+    private Customer customer;
+    @Mock
+    private DiscountDto discountDto;
+    @Mock
+    private CustomerOrderDto customerOrderDto;
+    @Mock
+    private Validator validator;
+    @Mock
+    private OrderActivity orderActivity;
     @InjectMocks
     private OrderServiceImpl orderService;
+
+    @BeforeEach
+    public void setUp() {
+        // Mock dữ liệu cho Price, Customer và Product
+         customerOrderDto = new CustomerOrderDto(1L, createOrderDetails());
+        price = new Price(1L, "Standard Price", new HashSet<>(), new HashSet<>());
+        product = new Product(
+                1L, "Sample Product", "Product Description",
+                120.0, "Sample_Image.png", "PROD-001", null, null, null,
+                new Date(), new Date(), false, Set.of(), Set.of(), 110.0
+        );
+
+        productPrice = new ProductPrice(1L, 100.0, product, price);
+        customer = new Customer("Test Customer", false, new HashSet<>(), price);
+        discountDto = new DiscountDto("Summer Sale", 5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(5));
+
+        price.getProductPrices().add(productPrice);
+        price.getCustomers().add(customer);
+
+         orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
+
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+
+    }
 
 
     @Test
     public void OrderService_CreateCustomerOrder_CreateOrderWithDisCount() {
-        // Arrange : Set up data test
-        Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
-        Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);
-        customer.setId(1L);
-        Product product = new Product(1L, "Sample Product","Sample Product Description", 120.0,"Sample_Product.png","PROD-1234-123456789",null,null,null,new Date(),new Date(),false,Set.of(), Set.of(),110.0);
-        ProductPrice productPrice = new ProductPrice(1L,90.0 ,product,price);
-        Set<ProductPrice> productPrices = new HashSet<>();
-        Set<Customer> customers = new HashSet<>();
-        customers.add(customer);
-        productPrices.add(productPrice);
-        price.setProductPrices(productPrices);
-        price.setCustomers(customers);
-        CustomerOrderDto customerOrderDto = new CustomerOrderDto(1L, createOrderDetails()); // Sample order DTO
-        DiscountDto discountDto = new DiscountDto("10% for all products",5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
-        OrderActivity orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
 
         // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -84,21 +113,6 @@ public class CreateCustomerOrderTests {
 
     @Test
     public void OrderService_CreateCustomerOrder_CreateOrderWithoutDisCount() {
-        // Arrange : Set up data test
-        Price price = new Price(1L,"Test Price",new HashSet<>(),new HashSet<>());
-        Customer customer = new Customer("Test Customer", false, new HashSet<>(), price);
-        customer.setId(1L);
-        Product product = new Product(1L, "Sample Product","Sample Product Description", 120.0,"Sample_Product.png","PROD-1234-123456789",null,null,null,new Date(),new Date(),false,Set.of(), Set.of(),110.0);
-        ProductPrice productPrice = new ProductPrice(1L,90.0 ,product,price);
-        Set<ProductPrice> productPrices = new HashSet<>();
-        Set<Customer> customers = new HashSet<>();
-        customers.add(customer);
-        productPrices.add(productPrice);
-        price.setProductPrices(productPrices);
-        price.setCustomers(customers);
-        CustomerOrderDto customerOrderDto = new CustomerOrderDto(1L, createOrderDetails()); // Sample order DTO
-        DiscountDto discountDto = new DiscountDto("10% for all products",5.0, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
-        OrderActivity orderActivity = new OrderActivity(1L,null,"CREATED","Created Order",new Date(),customer.getName());
 
         // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
@@ -121,6 +135,46 @@ public class CreateCustomerOrderTests {
         verify(orderActivityRepository).save(any(OrderActivity.class));
     }
 
+    @Test
+    public void createCustomerOrder_ProductNotFound_ShouldThrowException() {
+        // Arrange
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.createCustomerOrder(customerOrderDto));
+        assertEquals("Product not found", exception.getMessage());
+    }
+
+    @Test
+    public void createCustomerOrder_CustomerNotFound_ShouldThrowException() {
+        // Arrange
+        when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.createCustomerOrder(customerOrderDto));
+        assertEquals("Customer Not Found !", exception.getMessage());
+    }
+
+    @Test
+    public void createCustomerOrder_OrderDetailsDtoQuantityNegative(){
+        customerOrderDto.getOrderDetails().get(0).setQuantity(-1);
+
+        Set<ConstraintViolation<OrderDetailDto>> violations = validator.validate(customerOrderDto.getOrderDetails().get(0));
+
+        assertEquals(1, violations.size());
+        assertEquals("Số lượng phải là số dương.", violations.iterator().next().getMessage());
+    }
+
+    @Test
+    public void createCustomerOrder_OrderDetailsDtoUnitPriceNegative(){
+        customerOrderDto.getOrderDetails().get(0).setUnitPrice(-2);
+
+        Set<ConstraintViolation<OrderDetailDto>> violations = validator.validate(customerOrderDto.getOrderDetails().get(0));
+
+        assertEquals(1, violations.size());
+        assertEquals("Giá nhập phải là số dương.", violations.iterator().next().getMessage());
+    }
 
     private List<OrderDetailDto> createOrderDetails() {
         List<OrderDetailDto> orderDetails = new ArrayList<>();
