@@ -27,7 +27,8 @@ public class ProductionOrder {
     @JoinColumn(name = "finished_product_id")
     private Product finishedProduct;
 
-    private double finishedQuantity;
+    @OneToMany(mappedBy = "productionOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<FinishedProduct> finishedProducts; // Danh sách sản phẩm đầu ra
 
     private double defectiveQuantity;  // Số lượng sản phẩm bị hỏng
     private String defectReason;  // Lý do sản phẩm hỏng (lỗi máy móc, lỗi nguyên liệu...)
