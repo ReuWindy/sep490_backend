@@ -210,7 +210,9 @@ public class OrderServiceImpl implements OrderService{
                     String unit = orderDetail.getProductUnit();
                     double weightPerUnit = orderDetail.getWeightPerUnit();
                     int requiredQuantity = orderDetail.getQuantity();
-
+                    if(requiredQuantity < 0){
+                        throw new RuntimeException("Số lượng sản phẩm phải là số dương");
+                    }
                     List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
                             productId,unit,weightPerUnit
                     );
@@ -232,10 +234,11 @@ public class OrderServiceImpl implements OrderService{
                             warehouse.setQuantity(0);
                             productWareHouseRepository.save(warehouse);
                         }
-                        // Kiểm tra nếu không đủ hàng trong tất cả các kho
-                        if (requiredQuantity > 0) {
-                            throw new RuntimeException("Not enough stock available for product ID: " + productId);
-                        }
+
+                    }
+                    // Kiểm tra nếu không đủ hàng trong tất cả các kho
+                    if (requiredQuantity > 0) {
+                        throw new RuntimeException("Not enough stock available for product ID: " + productId);
                     }
                 }
             }
