@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface EmployeeCustomRepository {
     Employee getEmployeeById(long id);
-    List<Employee> getEmployees(int month, int year, String role);
+    List<Employee> getEmployees(String role);
     void createActiveDate(long id, Date date, int mass, String note);
     void deleteActiveDate(long id, Date date);
     Employee updateActiveDate(long id, Date date, int mass, String note);

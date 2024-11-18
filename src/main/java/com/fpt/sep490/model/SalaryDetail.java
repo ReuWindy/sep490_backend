@@ -12,9 +12,9 @@ import lombok.*;
 @NoArgsConstructor
 @Table(name = "salary_details")
 public class SalaryDetail {
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long Id;
+    private long id;
     @Enumerated(EnumType.STRING)
     private SalaryType salaryType;
     private double dailyWage;

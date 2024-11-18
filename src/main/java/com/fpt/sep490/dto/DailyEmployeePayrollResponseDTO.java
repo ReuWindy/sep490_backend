@@ -2,7 +2,7 @@ package com.fpt.sep490.dto;
 
 import java.util.Date;
 
-public record PorterPayrollResponseDTO(
+public record DailyEmployeePayrollResponseDTO(
         long id,
         String phone,
         String email,
