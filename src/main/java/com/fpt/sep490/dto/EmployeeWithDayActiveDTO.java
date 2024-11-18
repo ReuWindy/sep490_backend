@@ -17,6 +17,7 @@ public record EmployeeWithDayActiveDTO(
         boolean gender,
         String image,
         String employeeRole,
+        String employeeSalaryType,
         Double dailyWage
 ) {
 }

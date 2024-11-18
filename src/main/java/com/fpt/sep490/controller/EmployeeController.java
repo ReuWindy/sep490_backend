@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -85,8 +84,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/salary")
-    public ResponseEntity<List<EmployeeWithDayActiveDTO>> getEmployeesForSalary(@RequestParam int month, @RequestParam int year, @RequestParam String role) {
-        List<EmployeeWithDayActiveDTO> employees = employeeService.getEmployees(month, year, role.toUpperCase());
+    public ResponseEntity<List<EmployeeWithDayActiveDTO>> getEmployeesForSalary(@RequestParam String role) {
+        List<EmployeeWithDayActiveDTO> employees = employeeService.getEmployees(role.toUpperCase());
         return ResponseEntity.ok(employees);
     }
 
@@ -122,15 +121,15 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
-    @GetMapping("/porter-payroll")
-    public ResponseEntity<List<PorterPayrollResponseDTO>> getPorterPayroll(@RequestParam int month, @RequestParam int year) {
-        List<PorterPayrollResponseDTO> porterPayrollResponseDTOS = employeeService.getPorterPayroll(month, year);
-        return new ResponseEntity<>(porterPayrollResponseDTOS, HttpStatus.OK);
+    @GetMapping("/daily-payroll")
+    public ResponseEntity<List<DailyEmployeePayrollResponseDTO>> getPorterPayroll(@RequestParam int month, @RequestParam int year) {
+        List<DailyEmployeePayrollResponseDTO> dailyEmployeePayroll = employeeService.getDailyEmployeePayroll(month, year);
+        return new ResponseEntity<>(dailyEmployeePayroll, HttpStatus.OK);
     }
 
-    @GetMapping("/driver-payroll")
-    public ResponseEntity<List<DriverPayrollResponseDTO>> getDriverPayroll(@RequestParam int month, @RequestParam int year) {
-        List<DriverPayrollResponseDTO> driverPayrollResponseDTOS = employeeService.getDriverPayroll(month, year);
-        return new ResponseEntity<>(driverPayrollResponseDTOS, HttpStatus.OK);
+    @GetMapping("/monthly-payroll")
+    public ResponseEntity<List<MonthlyEmployeePayrollResponseDTO>> getDriverPayroll(@RequestParam int month, @RequestParam int year) {
+        List<MonthlyEmployeePayrollResponseDTO> monthlyEmployeePayroll = employeeService.getMonthlyEmployeePayroll(month, year);
+        return new ResponseEntity<>(monthlyEmployeePayroll, HttpStatus.OK);
     }
 }

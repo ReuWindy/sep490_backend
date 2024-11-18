@@ -1,6 +1,7 @@
 package com.fpt.sep490.repository;
 
 import com.fpt.sep490.Enum.EmployeeRole;
+import com.fpt.sep490.Enum.SalaryType;
 import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
@@ -32,17 +33,14 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
     }
 
     @Override
-    public List<Employee> getEmployees(int month, int year, String role) {
+    public List<Employee> getEmployees(String role) {
         TypedQuery<Employee> query = entityManager
                 .createQuery("SELECT e FROM Employee e " +
-                        "JOIN e.dayActives d " +
-                        "WHERE e.employeeRole = :role " +
-                        "AND FUNCTION('MONTH',d.dayActive) = :month " +
-                        "AND FUNCTION('YEAR',d.dayActive) = :year"
+                        "JOIN e.role r " +
+                        "JOIN r.salaryDetail s " +
+                        "WHERE s.salaryType = :role "
                         , Employee.class);
-        query.setParameter("role", EmployeeRole.valueOf(role));
-        query.setParameter("month", month);
-        query.setParameter("year", year);
+        query.setParameter("role", SalaryType.valueOf(role));
         return query.getResultList();
     }
 
@@ -95,8 +93,9 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
 
     @Override
     public List<Employee> getEmployeesByRole(String role) {
-        TypedQuery<Employee> query = entityManager.createQuery("SELECT e FROM Employee e WHERE e.employeeRole = :role", Employee.class);
-        query.setParameter("role", EmployeeRole.valueOf(role));
+        TypedQuery<Employee> query = entityManager.createQuery("SELECT e FROM Employee e " +
+                "WHERE e.role.salaryDetail.salaryType = :role", Employee.class);
+        query.setParameter("role", SalaryType.valueOf(role));
         List<Employee> employees = query.getResultList();
         if (employees.isEmpty()) {
             return List.of();
