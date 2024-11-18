@@ -18,12 +18,8 @@ public class FinishedProduct {
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "production_order_id")
-    private ProductionOrder productionOrder;
-
-    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-
-    private double quantity;
+    private double proportion;
+    private boolean isActive;
 }
