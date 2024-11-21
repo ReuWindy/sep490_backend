@@ -1,6 +1,7 @@
 package com.fpt.sep490.Enum;
 
 public enum EmployeeRole {
-    DRIVER,
-    PORTER
+    DRIVER_EMPLOYEE,
+    PORTER_EMPLOYEE,
+    STOCK_EMPLOYEE,
 }

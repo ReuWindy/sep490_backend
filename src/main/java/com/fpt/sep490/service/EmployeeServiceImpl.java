@@ -8,20 +8,22 @@ import com.fpt.sep490.dto.MonthlyEmployeePayrollResponseDTO;
 import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
-public class EmployeeServiceImpl implements EmployeeService{
+public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
@@ -51,13 +53,13 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     public Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, int pageNumber, int pageSize) {
-           try{
-               Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-               Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrFullNameOrPhoneNumber(employeeCode, fullName, phoneNumber);
-               return employeeRepository.findAll(specification,pageable);
-           }catch (Exception e){
-               return null;
-           }
+        try {
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrFullNameOrPhoneNumber(employeeCode, fullName, phoneNumber);
+            return employeeRepository.findAll(specification, pageable);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -68,9 +70,9 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public Employee updateEmployee(EmployeeDTO employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
-        if(existingEmployee != null){
+        if (existingEmployee != null) {
             EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
-            if(newEmployeeRole != null) {
+            if (newEmployeeRole != null) {
                 existingEmployee.setFullName(employee.getFullName());
                 existingEmployee.setEmail(employee.getEmail());
                 existingEmployee.setPhone(employee.getPhone());
@@ -82,9 +84,19 @@ public class EmployeeServiceImpl implements EmployeeService{
                 existingEmployee.setImage(employee.getImage());
                 existingEmployee.setUpdateAt(new Date());
                 Role role = existingEmployee.getRole();
-                if(role != null){
+                if (role != null) {
                     role.setEmployeeRole(newEmployeeRole);
+                    SalaryDetail salaryDetail = role.getSalaryDetail();
+                    if (salaryDetail != null) {
+                        if (role.getEmployeeRole().getRoleName().equalsIgnoreCase("PORTER_EMPLOYEE")) {
+                            salaryDetail.setDailyWage(0);
+                        } else {
+                            salaryDetail.setDailyWage(employee.getDailyWage());
+                        }
+                    }
+                    role.setSalaryDetail(salaryDetail);
                 }
+                existingEmployee.setRole(role);
                 employeeRepository.save(existingEmployee);
                 return existingEmployee;
             }
@@ -110,13 +122,13 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     @Override
     public Employee createDayActive(long id, String date, int mass, String note) {
-        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date dayActive = inputFormat.parse(date);
             String formattedDateString = dateFormat.format(dayActive);
             Date formattedDate = dateFormat.parse(formattedDateString);
-            employeeCustomRepository.createActiveDate(id,formattedDate,mass,note);
+            employeeCustomRepository.createActiveDate(id, formattedDate, mass, note);
             return employeeCustomRepository.getEmployeeById(id);
         } catch (ParseException e) {
             throw new ApiRequestException("Invalid date format");
@@ -126,13 +138,13 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     @Override
     public void deleteDayActive(long id, String date) {
-        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date dayActive = inputFormat.parse(date);
             String formattedDateString = dateFormat.format(dayActive);
             Date formattedDate = dateFormat.parse(formattedDateString);
-            employeeCustomRepository.deleteActiveDate(id,formattedDate);
+            employeeCustomRepository.deleteActiveDate(id, formattedDate);
         } catch (ParseException e) {
             throw new ApiRequestException("Invalid date format");
         }
@@ -141,13 +153,13 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Transactional
     @Override
     public Employee updateDayActive(long id, String date, int mass, String note) {
-        SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date dayActive = inputFormat.parse(date);
             String formattedDateString = dateFormat.format(dayActive);
             Date formattedDate = dateFormat.parse(formattedDateString);
-            return employeeCustomRepository.updateActiveDate(id,formattedDate,mass,note);
+            return employeeCustomRepository.updateActiveDate(id, formattedDate, mass, note);
         } catch (ParseException e) {
             throw new ApiRequestException("Invalid date format");
         }
@@ -155,7 +167,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     public List<DayActive> getDayActiveByEmployeeId(long id, int month, int year) {
-        return employeeCustomRepository.getDayActiveByEmployeeId(id,month,year);
+        return employeeCustomRepository.getDayActiveByEmployeeId(id, month, year);
     }
 
     @Override
@@ -206,7 +218,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         return employees.stream().map(
                 employee -> new EmployeeWithDayActiveDTO(employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
                         employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
-                        employee.isGender(), employee.getImage(), employee.getRole().getEmployeeRole().getRoleName(),employee.getRole().getSalaryDetail().getSalaryType().toString(),
+                        employee.isGender(), employee.getImage(), employee.getRole().getEmployeeRole().getRoleName(), employee.getRole().getSalaryDetail().getSalaryType().toString(),
                         employee.getRole().getSalaryDetail().getDailyWage())
         ).toList();
     }

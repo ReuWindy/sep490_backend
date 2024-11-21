@@ -2,10 +2,7 @@ package com.fpt.sep490.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fpt.sep490.Enum.SalaryType;
-import com.fpt.sep490.Enum.EmployeeRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,7 +32,7 @@ public class Employee extends User {
     private String bankNumber;
 
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "role_id")
     private Role role;
 
@@ -46,16 +43,4 @@ public class Employee extends User {
     @OneToMany(mappedBy = "expensePayer")
     @JsonBackReference
     private Set<ExpenseVoucher> expenseVouchers = new HashSet<>();
-
-//    public double calculateSalary(int daysWorked) {
-//        if (role != null && role.getSalaryDetail() != null) {
-//            SalaryDetail salaryDetail = role.getSalaryDetail();
-//            if (salaryDetail.getSalaryType() == SalaryType.DAILY) {
-//                return salaryDetail.getDailyWage() * daysWorked;
-//            } else if (salaryDetail.getSalaryType() == SalaryType.MONTHLY) {
-//                return salaryDetail.getMonthlySalary();
-//            }
-//        }
-//        return 0.0;
-//    }
 }
