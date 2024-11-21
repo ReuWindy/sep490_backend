@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.RevenueStatisticsView;
 import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
@@ -44,6 +45,12 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @GetMapping("/revenue")
+    public ResponseEntity<RevenueStatisticsView> getRevenueStatistics(
+            @RequestParam() String timeFilter) {
+        RevenueStatisticsView statisticsView = transactionService.getRevenueStatistics(timeFilter);
+        return ResponseEntity.ok(statisticsView);
+    }
 
     @PostMapping("/createTransaction")
     public ResponseEntity<?> createTransaction( @RequestBody TransactionDto transactionDto) {
@@ -64,5 +71,4 @@ public class TransactionController {
         ApiExceptionResponse response = new ApiExceptionResponse("Update Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-
 }

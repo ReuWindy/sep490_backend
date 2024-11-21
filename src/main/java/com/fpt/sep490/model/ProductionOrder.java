@@ -21,13 +21,11 @@ public class ProductionOrder {
 
     private String productionCode;
     private String description;
+    private double quantity;
     private Date productionDate;
+    private Date completionDate;
 
-    @ManyToOne
-    @JoinColumn(name = "finished_product_id")
-    private Product finishedProduct;
-
-    @OneToMany(mappedBy = "productionOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Transient
     private Set<FinishedProduct> finishedProducts; // Danh sách sản phẩm đầu ra
 
     private double defectiveQuantity;  // Số lượng sản phẩm bị hỏng
@@ -36,6 +34,7 @@ public class ProductionOrder {
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
 
-    @OneToMany(mappedBy = "productionOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<ProductionMaterial> productionMaterials;
+    @ManyToOne
+    @JoinColumn(name = "product_warehouse_id", nullable = false)
+    private ProductWarehouse productWarehouse;
 }

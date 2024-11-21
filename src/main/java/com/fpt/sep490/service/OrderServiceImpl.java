@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -210,7 +211,9 @@ public class OrderServiceImpl implements OrderService{
                     String unit = orderDetail.getProductUnit();
                     double weightPerUnit = orderDetail.getWeightPerUnit();
                     int requiredQuantity = orderDetail.getQuantity();
-
+                    if(requiredQuantity < 0){
+                        throw new RuntimeException("Số lượng sản phẩm phải là số dương");
+                    }
                     List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
                             productId,unit,weightPerUnit
                     );
@@ -232,10 +235,11 @@ public class OrderServiceImpl implements OrderService{
                             warehouse.setQuantity(0);
                             productWareHouseRepository.save(warehouse);
                         }
-                        // Kiểm tra nếu không đủ hàng trong tất cả các kho
-                        if (requiredQuantity > 0) {
-                            throw new RuntimeException("Not enough stock available for product ID: " + productId);
-                        }
+
+                    }
+                    // Kiểm tra nếu không đủ hàng trong tất cả các kho
+                    if (requiredQuantity > 0) {
+                        throw new RuntimeException("Not enough stock available for product ID: " + productId);
                     }
                 }
             }
@@ -289,23 +293,13 @@ public class OrderServiceImpl implements OrderService{
         List<Object[]> results;
         Pageable pageable = PageRequest.of(0, 10);
 
-        switch (type.toLowerCase()) {
-            case "day":
-                results = orderDetailRepository.findTopSellingProductsByDay(date, pageable);
-                break;
-            case "week":
-                results = orderDetailRepository.findTopSellingProductsByWeek(date, pageable);
-                break;
-            case "month":
-                results = orderDetailRepository.findTopSellingProductsByMonth(date, pageable);
-                break;
-            case "year":
-                results = orderDetailRepository.findTopSellingProductsByYear(date, pageable);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid type: " + type);
-        }
-
+        results = switch (type.toLowerCase()) {
+            case "day" -> orderDetailRepository.findTopSellingProductsByDay(date, pageable);
+            case "week" -> orderDetailRepository.findTopSellingProductsByWeek(date, pageable);
+            case "month" -> orderDetailRepository.findTopSellingProductsByMonth(date, pageable);
+            case "year" -> orderDetailRepository.findTopSellingProductsByYear(date, pageable);
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
 
         List<TopSaleProductDto> topProducts = new ArrayList<>();
         for (Object[] result : results) {
@@ -315,6 +309,61 @@ public class OrderServiceImpl implements OrderService{
             topProducts.add(dto);
         }
         return topProducts;
+    }
+
+    @Override
+    public OrderWeightStatisticsView getOrderWeightStatistics(String timeFilter) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate;
+        DateTimeFormatter formatter = switch (timeFilter.toLowerCase()) {
+            case "week" -> {
+                startDate = now.minusDays(6);
+                yield DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            }
+            case "month" -> {
+                startDate = now.minusDays(29);
+                yield DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            }
+            case "year" -> {
+                startDate = now.minusMonths(11).withDayOfMonth(1);
+                yield DateTimeFormatter.ofPattern("yyyy-MM");
+            }
+            default -> throw new IllegalArgumentException("Bộ lọc không hợp lệ: " + timeFilter);
+        };
+
+        List<StatusEnum> statuses = List.of(StatusEnum.COMPLETE, StatusEnum.IN_PROGRESS);
+
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrderStatusAndDateBetween(
+                statuses,
+                java.sql.Date.valueOf(startDate.toLocalDate()),
+                java.sql.Date.valueOf(now.toLocalDate())
+        );
+
+        Map<String, Double> weightMap = orderDetails.stream()
+                .collect(Collectors.groupingBy(
+                        od -> od.getOrder().getOrderDate().toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                                .format(formatter),
+                        Collectors.summingDouble(od -> od.getQuantity() * od.getWeightPerUnit())
+                ));
+
+        List<OrderWeightStatisticsView.WeightDetail> details = weightMap.entrySet().stream()
+                .map(entry -> OrderWeightStatisticsView.WeightDetail.builder()
+                        .timePeriod(entry.getKey())
+                        .weight(entry.getValue())
+                        .build())
+                .sorted(Comparator.comparing(OrderWeightStatisticsView.WeightDetail::getTimePeriod))
+                .collect(Collectors.toList());
+
+        double totalWeight = details.stream()
+                .mapToDouble(OrderWeightStatisticsView.WeightDetail::getWeight)
+                .sum();
+
+        return OrderWeightStatisticsView.builder()
+                .totalWeight(totalWeight)
+                .details(details)
+                .build();
     }
 
     private OrderDto convertToDTO(Order order) {

@@ -49,6 +49,9 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         Date extendDate = receiptVoucher.getDueDate();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(extendDate);
+        if( number <= 0){
+            throw  new IllegalArgumentException("Thời gian gia hạn không được âm hoặc bằng 0");
+        }
         if (type.equalsIgnoreCase("Ngày")) {
             calendar.add(Calendar.DAY_OF_MONTH, number);
         } else if (type.equalsIgnoreCase("Tuần")) {
@@ -60,6 +63,7 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         }
         extendDate = calendar.getTime();
         receiptVoucher.setDueDate(extendDate);
-        return receiptVoucherRepository.save(receiptVoucher);
+        ReceiptVoucher savedVoucher = receiptVoucherRepository.save(receiptVoucher);
+        return savedVoucher;
     }
 }

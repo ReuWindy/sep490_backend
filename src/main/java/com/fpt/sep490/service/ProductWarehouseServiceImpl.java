@@ -1,31 +1,31 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.ImportProductionDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.model.BatchProduct;
+import com.fpt.sep490.model.FinishedProduct;
 import com.fpt.sep490.model.ProductWarehouse;
-import com.fpt.sep490.repository.BatchProductRepository;
-import com.fpt.sep490.repository.ProductRepository;
-import com.fpt.sep490.repository.ProductWareHouseRepository;
-import com.fpt.sep490.repository.WarehouseRepository;
+import com.fpt.sep490.model.ProductionOrder;
+import com.fpt.sep490.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
-    private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
     private final BatchProductRepository batchProductRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
+    private final ProductionOrderRepository productionOrderRepository;
 
-    public ProductWarehouseServiceImpl(ProductRepository productRepository, WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository) {
-        this.productRepository = productRepository;
+    public ProductWarehouseServiceImpl(WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository, ProductionOrderRepository productionOrderRepository) {
         this.warehouseRepository = warehouseRepository;
         this.batchProductRepository = batchProductRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+        this.productionOrderRepository = productionOrderRepository;
     }
-
 
     @Override
     public List<ProductWarehouse> getAll() {
@@ -77,6 +77,34 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     @Override
     public Page<ProductWarehouse> getPageProductWarehouseByFilter(double minPrice, double maxPrice, String unit, double weightPerUnit, int categoryId, int supplierId, int warehouseId, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
         return null;
+    }
+
+    @Override
+    public void importProductWarehouseToProduction(long productionId, ImportProductionDto dto) {
+        ProductionOrder order = productionOrderRepository.findById(productionId)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy đơn sả xuất với id: "+ productionId));
+        Set<FinishedProduct> finishedProducts = order.getFinishedProducts();
+
+        for (FinishedProduct finishedProduct : finishedProducts) {
+            ProductWarehouse productWarehouse = new ProductWarehouse();
+
+            productWarehouse.setWarehouse(warehouseRepository.findById((long) dto.getWarehouseId()).orElseThrow(() -> new RuntimeException("")));
+            productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
+            productWarehouse.setUnit(dto.getUnit());
+            productWarehouse.setProduct(finishedProduct.getProduct());
+            int quantity = (int) ((order.getQuantity() /100) * finishedProduct.getProportion());
+            productWarehouse.setQuantity(quantity);
+            productWarehouse.setWeight(quantity + dto.getWeightPerUnit());
+            productWareHouseRepository.save(productWarehouse);
+        }
+    }
+
+    @Override
+    public void exportProductWarehouseToProduction(long productWarehouseId,int quantity) {
+        ProductWarehouse productWarehouse = productWareHouseRepository.findById(productWarehouseId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong kho với Id: " + productWarehouseId));
+        productWarehouse.setProduct(productWarehouse.getProduct());
+        productWarehouse.setQuantity(productWarehouse.getQuantity() - quantity);
     }
 
 //    @Override

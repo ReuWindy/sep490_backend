@@ -188,7 +188,12 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         expenseVoucher.setTotalAmount(expenseVoucherDto.getTotalAmount());
         expenseVoucher.setNote(expenseVoucherDto.getNote());
         expenseVoucher.setType(expenseVoucherDto.getType());
-        return expenseVoucherRepository.save(expenseVoucher);
+        try {
+            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
+            return savedExpense;
+        }catch (Exception e){
+            throw  new RuntimeException("Lỗi khi cập nhật phiếu chi");
+        }
     }
 
     @Override
@@ -210,7 +215,12 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
             throw new RuntimeException("Đã quá hạn xóa phiếu chi!");
         }
         expenseVoucher.setDeleted(true);
-        return expenseVoucherRepository.save(expenseVoucher);
+        try{
+            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
+            return savedExpense;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi khi xóa phiếu chi");
+        }
     }
 
     @Override

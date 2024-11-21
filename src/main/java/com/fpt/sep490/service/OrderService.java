@@ -3,7 +3,6 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.Order;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Date;
 import java.util.List;
@@ -29,4 +28,6 @@ public interface OrderService {
     DailyOrderResponseDTO getDailyReport(Date date);
 
     List<TopSaleProductDto> getTopSellingProducts(Date date, String type);
+
+    OrderWeightStatisticsView getOrderWeightStatistics(String timeFilter);
 }
