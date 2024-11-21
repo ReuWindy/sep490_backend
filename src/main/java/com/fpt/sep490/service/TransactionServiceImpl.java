@@ -1,6 +1,7 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.StatusEnum;
+import com.fpt.sep490.dto.RevenueStatisticsView;
 import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.model.Transaction;
@@ -8,9 +9,10 @@ import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import com.fpt.sep490.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -105,12 +107,59 @@ public class TransactionServiceImpl implements TransactionService{
         return null;
     }
 
+    @Override
+    public RevenueStatisticsView getRevenueStatistics(String timeFilter) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate;
+        DateTimeFormatter formatter = switch (timeFilter.toLowerCase()) {
+            case "week" -> {
+                startDate = now.minusDays(6);
+                yield DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            }
+            case "month" -> {
+                startDate = now.minusDays(29);
+                yield DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            }
+            case "year" -> {
+                startDate = now.minusMonths(11).withDayOfMonth(1);
+                yield DateTimeFormatter.ofPattern("yyyy-MM");
+            }
+            default -> throw new IllegalArgumentException("Bộ lọc không hợp lệ: " + timeFilter);
+        };
+
+        List<Transaction> transactions = transactionRepository.findAllByTransactionDateBetweenAndStatus(
+                java.sql.Date.valueOf(startDate.toLocalDate()),
+                java.sql.Date.valueOf(now.toLocalDate()),
+                StatusEnum.COMPLETED);
+
+        Map<String, Double> revenueMap = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        transaction -> transaction.getTransactionDate().toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                                .format(formatter),
+                        Collectors.summingDouble(Transaction::getAmount)
+                ));
+
+        List<RevenueStatisticsView.RevenueDetail> details = revenueMap.entrySet().stream()
+                .map(entry -> RevenueStatisticsView.RevenueDetail.builder()
+                        .timePeriod(entry.getKey())
+                        .revenue(entry.getValue())
+                        .build())
+                .sorted(Comparator.comparing(RevenueStatisticsView.RevenueDetail::getTimePeriod))
+                .collect(Collectors.toList());
+
+        double totalRevenue = details.stream()
+                .mapToDouble(RevenueStatisticsView.RevenueDetail::getRevenue)
+                .sum();
+
+        return RevenueStatisticsView.builder()
+                .totalRevenue(totalRevenue)
+                .details(details)
+                .build();
+    }
+
     private TransactionDto convertToDto(Transaction transaction){
-        TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setId(transaction.getId());
-        transactionDto.setAmount(transaction.getAmount());
-        transactionDto.setTransactionDate(transaction.getTransactionDate());
-        transactionDto.setPaymentMethod(transaction.getPaymentMethod());
-        return transactionDto;
+        return TransactionDto.toDto(transaction);
     }
 }

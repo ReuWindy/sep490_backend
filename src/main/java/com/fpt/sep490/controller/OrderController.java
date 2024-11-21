@@ -1,6 +1,5 @@
 package com.fpt.sep490.controller;
 
-import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
@@ -96,6 +95,13 @@ public class OrderController {
             @RequestParam("type") String type) {
         List<TopSaleProductDto> topProducts = orderService.getTopSellingProducts(date, type);
         return ResponseEntity.ok(topProducts);
+    }
+
+    @GetMapping("/weightStatistics")
+    public ResponseEntity<OrderWeightStatisticsView> getOrderWeightStatistics(
+            @RequestParam("timeFilter") String timeFilter) {
+        OrderWeightStatisticsView statistics = orderService.getOrderWeightStatistics(timeFilter);
+        return ResponseEntity.ok(statistics);
     }
 
     @PostMapping("/admin/CreateOrder")

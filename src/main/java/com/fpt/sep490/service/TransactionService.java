@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.RevenueStatisticsView;
 import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.model.Transaction;
 
@@ -14,4 +15,6 @@ public interface TransactionService {
     List<Transaction> getAllTransaction();
 
     Transaction createTransactionByAdmin(TransactionDto transactionDto);
+
+    RevenueStatisticsView getRevenueStatistics(String timeFilter);
 }
