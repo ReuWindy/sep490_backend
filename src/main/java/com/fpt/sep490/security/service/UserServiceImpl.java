@@ -133,11 +133,11 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Password cannot be null or empty");
             }
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
+            //Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
             user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
-            user.setPrice(standardPrice);
+            //user.setPrice(standardPrice);
 
             customerRepository.save(user);
 
