@@ -19,6 +19,7 @@ public class ProductDto {
     private double price;
     private String image;
     private String categoryId;
+    private String categoryName;
     private Long supplierId;
     private Long unitOfMeasureId;
     private Long warehouseId;

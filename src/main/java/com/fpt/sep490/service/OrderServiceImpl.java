@@ -343,12 +343,12 @@ public class OrderServiceImpl implements OrderService{
             default -> throw new IllegalArgumentException("Bộ lọc không hợp lệ: " + timeFilter);
         };
 
-        List<StatusEnum> statuses = List.of(StatusEnum.COMPLETE, StatusEnum.IN_PROGRESS);
+        List<StatusEnum> statuses = List.of(StatusEnum.COMPLETE, StatusEnum.IN_PROCESS);
 
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrderStatusAndDateBetween(
                 statuses,
                 java.sql.Date.valueOf(startDate.toLocalDate()),
-                java.sql.Date.valueOf(now.toLocalDate())
+                java.sql.Date.valueOf(now.toLocalDate().plusDays(1))
         );
 
         Map<String, Double> weightMap = orderDetails.stream()

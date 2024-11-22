@@ -196,6 +196,7 @@ public class ProductController {
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<ProductDto> pagedResourcesAssembler){
+
         Page<ProductDto> productPage = productService.getProductByFilterForCustomer(productCode, categoryName, supplierName, pageNumber, pageSize);
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);

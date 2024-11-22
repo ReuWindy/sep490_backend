@@ -129,7 +129,7 @@ public class TransactionServiceImpl implements TransactionService{
 
         List<Transaction> transactions = transactionRepository.findAllByTransactionDateBetweenAndStatus(
                 java.sql.Date.valueOf(startDate.toLocalDate()),
-                java.sql.Date.valueOf(now.toLocalDate()),
+                java.sql.Date.valueOf(now.toLocalDate().plusDays(1)),
                 StatusEnum.COMPLETED);
 
         Map<String, Double> revenueMap = transactions.stream()
