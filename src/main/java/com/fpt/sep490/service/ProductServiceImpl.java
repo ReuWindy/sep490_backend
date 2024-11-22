@@ -31,12 +31,13 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final BatchRepository batchRepository;
     private final BatchProductRepository batchProductRepository;
-
+    private final UserRepository userRepository;
     private final WarehouseReceiptService warehouseReceiptService;
     private final UserService userService;
+    private final CustomerRepository customerRepository;
+    private final ProductPriceRepository productPriceRepository;
 
-
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, ProductPriceRepository productPriceRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -47,6 +48,9 @@ public class ProductServiceImpl implements ProductService {
         this.batchProductRepository = batchProductRepository;
         this.warehouseReceiptService = warehouseReceiptService;
         this.userService = userService;
+        this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
+        this.productPriceRepository = productPriceRepository;
     }
 
     @Override
@@ -136,12 +140,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
         Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
-        return products.map(this::toProductDto);
+        Customer customer = getCustomerByUsername(username);
+        return products.map(product -> toProductDto(product, customer));
     }
 
     @Override
@@ -468,9 +473,13 @@ public class ProductServiceImpl implements ProductService {
         return dto;
     }
 
-    private ProductDto toProductDto(Product product) {
+    private ProductDto toProductDto(Product product, Customer customer) {
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
-                .map(pw -> new UnitWeightPairs(pw.getUnit(), pw.getWeightPerUnit())).collect(Collectors.toSet());
+                .map(pw -> new UnitWeightPairs(
+                        pw.getUnit(),
+                        pw.getWeightPerUnit(),
+                        pw.getQuantity()
+                        )).collect(Collectors.toSet());
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -489,8 +498,19 @@ public class ProductServiceImpl implements ProductService {
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
+        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(),product.getId()).orElse(null);
+        if(productPrice != null){
+            productDto.setCustomerPrice(productPrice.getUnit_price());
+        }else{
+            productDto.setCustomerPrice(0.0);
+        }
         productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;
     }
 
+    private Customer getCustomerByUsername(String username){
+        User user = userRepository.findByUsername(username);
+        long id = user.getId();
+        return customerRepository.findById(id).orElseThrow(()-> new RuntimeException("no customer here for u"));
+    }
 }

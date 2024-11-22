@@ -25,4 +25,5 @@ public interface ProductWareHouseRepository extends JpaRepository<ProductWarehou
     Optional<ProductWarehouse> findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(String productName, String unit, double weightPerUnit, Long warehouseId);
     Optional<ProductWarehouse> findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(long productId, long warehouseId, String unit, double weightPerUnit);
     List<ProductWarehouse> findByProductIdAndUnitAndWeightPerUnit(long productId, String unit, double weightPerUnit);
+    Optional<ProductWarehouse> findByProductIdAndWeightPerUnitAndUnit(long productId, double weightPerUnit,String unit);
 }
