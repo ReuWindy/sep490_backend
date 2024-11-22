@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class UnitWeightPairs {
     private String productUnit;
     private double weightPerUnit;
+    private int quantity;
 }

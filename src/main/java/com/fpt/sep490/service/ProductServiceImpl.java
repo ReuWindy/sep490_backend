@@ -475,7 +475,11 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductDto toProductDto(Product product, Customer customer) {
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
-                .map(pw -> new UnitWeightPairs(pw.getUnit(), pw.getWeightPerUnit())).collect(Collectors.toSet());
+                .map(pw -> new UnitWeightPairs(
+                        pw.getUnit(),
+                        pw.getWeightPerUnit(),
+                        pw.getQuantity()
+                        )).collect(Collectors.toSet());
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
