@@ -99,19 +99,28 @@ public class OrderServiceImpl implements OrderService{
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : adminOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
-            double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
-            double discountUnitPrice = detailDto.getUnitPrice() - discountPercentage;
+           // Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
+            ProductWarehouse product = productWareHouseRepository.findByProductIdAndProductUnitAndWeightPerUnit(
+                    detailDto.getProductId(),
+                    detailDto.getProductUnit(),
+                    detailDto.getWeightPerUnit()
+            ).orElseThrow(()-> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
+            if(product.getQuantity() < detailDto.getQuantity()){
+                throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
+            }
+            double discount = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
+            double customerUnitPrice = getCustomUnitPrice(customer, product.getProduct(), detailDto.getUnitPrice());
+            double discountUnitPrice = customerUnitPrice - discount;
             double totalPrice = discountUnitPrice * detailDto.getQuantity() * detailDto.getWeightPerUnit();
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)
-                    .product(product)
+                    .product(product.getProduct())
                     .quantity(detailDto.getQuantity())
                     .productUnit(detailDto.getProductUnit())
                     .weightPerUnit(detailDto.getWeightPerUnit())
                     .unitPrice(discountUnitPrice)
-                    .discount(detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0)
+                    .discount(discount)
                     .totalPrice(totalPrice)
                     .build();
             orderDetails.add(orderDetail);
