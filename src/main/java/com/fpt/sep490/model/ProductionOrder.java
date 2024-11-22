@@ -1,10 +1,15 @@
 package com.fpt.sep490.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fpt.sep490.Enum.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Setter
@@ -14,6 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "production_orders")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class ProductionOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,16 +31,23 @@ public class ProductionOrder {
     private Date productionDate;
     private Date completionDate;
 
-    @Transient
-    private Set<FinishedProduct> finishedProducts; // Danh sách sản phẩm đầu ra
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "production_order_finished_product",
+            joinColumns = @JoinColumn(name = "production_order_id"),
+            inverseJoinColumns = @JoinColumn(name = "finished_product_id")
+    )
+    private Set<FinishedProduct> finishedProducts = new HashSet<>();
 
-    private double defectiveQuantity;  // Số lượng sản phẩm bị hỏng
-    private String defectReason;  // Lý do sản phẩm hỏng (lỗi máy móc, lỗi nguyên liệu...)
+    private double defectiveQuantity;
+    private String defectReason;
 
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
 
     @ManyToOne
     @JoinColumn(name = "product_warehouse_id", nullable = false)
+    @JsonBackReference
     private ProductWarehouse productWarehouse;
 }
+
