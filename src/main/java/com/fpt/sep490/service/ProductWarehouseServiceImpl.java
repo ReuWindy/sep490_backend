@@ -10,6 +10,7 @@ import com.fpt.sep490.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -39,15 +40,26 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     }
 
     @Override
-    public List<ProductWarehouse> getAllProducts() {
+    public List<ProductWarehouseDto> getAllProducts() {
         Long id = 2L;
-        return productWareHouseRepository.findProductWarehousesByWarehouseId(id);
+        List<ProductWarehouseDto> productWarehouseDto = new ArrayList<>();
+        List<ProductWarehouse> productWarehouses = productWareHouseRepository.findProductWarehousesByWarehouseId(id);
+        for (ProductWarehouse pw: productWarehouses) {
+            productWarehouseDto.add(ProductWarehouseDto.toDto(pw));
+        }
+        return productWarehouseDto;
     }
 
     @Override
-    public List<ProductWarehouse> getAllIngredients() {
+    public List<ProductWarehouseDto> getAllIngredients() {
         Long id = 1L;
-        return productWareHouseRepository.findProductWarehousesByWarehouseId(id);    }
+        List<ProductWarehouseDto> productWarehouseDto = new ArrayList<>();
+        List<ProductWarehouse> productWarehouses = productWareHouseRepository.findProductWarehousesByWarehouseId(id);
+        for (ProductWarehouse pw: productWarehouses) {
+            productWarehouseDto.add(ProductWarehouseDto.toDto(pw));
+        }
+        return productWarehouseDto;
+    }
 
     @Override
     public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse) {

@@ -232,7 +232,7 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
                 results = expenseVoucherRepository.findDailyExpenseByMonth(date);
                 break;
             case "week":
-                results = expenseVoucherRepository.findWeeklyExpenseByYear(date);
+                results = expenseVoucherRepository.findDailyExpenseByWeek(date);
                 break;
             case "month":
                 results = expenseVoucherRepository.findMonthlyExpenseByYear(date);
