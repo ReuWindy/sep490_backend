@@ -23,8 +23,14 @@ public class DayActive {
     @Column(name = "mass")
     private Integer mass;
 
+    @Column(name = "amount_per_mass")
+    private Double amountPerMass;
+
     @Column(name = "note")
     private String note;
+
+    @Column(name = "isSpend")
+    private boolean isSpend = false;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")

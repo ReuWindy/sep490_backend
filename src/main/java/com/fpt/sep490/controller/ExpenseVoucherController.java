@@ -1,11 +1,11 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.EmployeeIdDto;
+import com.fpt.sep490.dto.EmployeeSalaryDto;
 import com.fpt.sep490.dto.ExpenseReportDto;
 import com.fpt.sep490.dto.ExpenseVoucherDto;
-import com.fpt.sep490.dto.ReceiptVoucherExtendDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.ExpenseVoucher;
-import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ExpenseVoucherService;
 import com.fpt.sep490.service.UserActivityService;
@@ -73,6 +73,27 @@ public class ExpenseVoucherController {
         final ApiExceptionResponse response = new ApiExceptionResponse("Lỗi khi tạo phiếu chi", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @PostMapping("/payEmployeeSalaryByDate")
+    public ResponseEntity<?> payEmployeeSalaryByDate(@RequestBody List<EmployeeSalaryDto> request) {
+        ExpenseVoucher expenseVoucher = expenseVoucherService.createEmployeeExpense(request);
+        if (expenseVoucher != null) {
+            return ResponseEntity.ok(expenseVoucher);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @PostMapping("/payEmployeeSalaryByMonth")
+    public ResponseEntity<?> payEmployeeSalaryByMonth(@RequestBody EmployeeIdDto request) {
+        ExpenseVoucher expenseVoucher = expenseVoucherService.createEmployeeExpense(request.getEmployeeId());
+        if (expenseVoucher != null) {
+            return ResponseEntity.ok(expenseVoucher);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 
     @PostMapping("/update")
     public ResponseEntity<?> updateExpenseVoucher(@RequestBody ExpenseVoucherDto request) {

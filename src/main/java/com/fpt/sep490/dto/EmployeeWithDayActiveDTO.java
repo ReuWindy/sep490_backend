@@ -1,9 +1,6 @@
 package com.fpt.sep490.dto;
 
-import com.fpt.sep490.model.DayActive;
-
 import java.util.Date;
-import java.util.Set;
 
 public record EmployeeWithDayActiveDTO(
         long id,

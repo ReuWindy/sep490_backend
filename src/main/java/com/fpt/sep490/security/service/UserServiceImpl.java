@@ -1,5 +1,6 @@
 package com.fpt.sep490.security.service;
 
+import com.fpt.sep490.Enum.SalaryType;
 import com.fpt.sep490.dto.PasswordRequest;
 import com.fpt.sep490.dto.UserDto;
 import com.fpt.sep490.model.*;
@@ -20,7 +21,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.ErrorResponse;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -41,7 +44,7 @@ public class UserServiceImpl implements UserService {
     private final PriceRepository priceRepository;
 
 
-    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository,EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository,CustomerRepository customerRepository, PriceRepository priceRepository) {
+    public UserServiceImpl(JwtTokenManager jwtTokenManager, com.fpt.sep490.utils.SendMail sendMail, BCryptPasswordEncoder bCryptPasswordEncoder, UserValidationService userValidationService, GeneralMessageAccessor generalMessageAccessor, UserRepository userRepository, UserMapper userMapper, SalaryDetailRepository salaryDetailRepository, RoleRepository roleRepository, EmployeeRoleRepository employeeRoleRepository, EmployeeRepository employeeRepository, CustomerRepository customerRepository, PriceRepository priceRepository) {
         this.jwtTokenManager = jwtTokenManager;
         this.sendMail = sendMail;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -70,7 +73,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteUserByUserName(String username) {
         User user = userRepository.findByUsername(username);
-        if(user!= null) {
+        if (user != null) {
             userRepository.delete(user);
             return true;
         } else {
@@ -87,7 +90,7 @@ public class UserServiceImpl implements UserService {
     public User updateUserProfile(String token, UserDto userDto) {
         String username = jwtTokenManager.getUsernameFromToken(token);
         User u = userRepository.findByUsername(userDto.getUsername());
-        if(username.equals(u.getUsername())){
+        if (username.equals(u.getUsername())) {
             u.setImage(userDto.getImage());
             u.setAddress(userDto.getAddress());
             userRepository.save(u);
@@ -101,7 +104,7 @@ public class UserServiceImpl implements UserService {
         String username = jwtTokenManager.getUsernameFromToken(token);
 
         User u = userRepository.findByUsername(username);
-        if(u != null){
+        if (u != null) {
             u.setPassword(bCryptPasswordEncoder.encode(request.getNewpass()));
             userRepository.save(u);
             return u;
@@ -133,11 +136,11 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Password cannot be null or empty");
             }
 
-            //Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
             user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
-            //user.setPrice(standardPrice);
+            user.setPrice(standardPrice);
 
             customerRepository.save(user);
 
@@ -145,7 +148,7 @@ public class UserServiceImpl implements UserService {
             final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
 
             return new RegistrationResponse(registrationSuccessMessage);
-        }else {
+        } else {
             return errorResponse;
         }
     }
@@ -153,18 +156,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, CreateUserRequest createUserRequest) {
         userValidationService.validateUser(registrationRequest);
-        if(userType == UserType.ROLE_EMPLOYEE){
+        if (userType == UserType.ROLE_EMPLOYEE) {
 
             // find employee role by id
-            EmployeeRole employeeRole = employeeRoleRepository.findById(createUserRequest.getEmployeeRoleId()).orElseThrow(() ->new RuntimeException("Employee Role not found"));
+            EmployeeRole employeeRole = employeeRoleRepository.findById(createUserRequest.getEmployeeRoleId()).orElseThrow(() -> new RuntimeException("Employee Role not found"));
 
             // set attributes of salary detail
             SalaryDetail salaryDetail = new SalaryDetail();
-            salaryDetail.setSalaryType(createUserRequest.getSalaryType());
-            salaryDetail.setDailyWage(createUserRequest.getDailyWage());
-            salaryDetail.setDaysWorked(0);
-            salaryDetail.setMonthlySalary(0);
-
+            if (employeeRole.getRoleName().equalsIgnoreCase("PORTER_EMPLOYEE")) {
+                salaryDetail.setSalaryType(SalaryType.DAILY);
+                salaryDetail.setDailyWage(0);
+            } else {
+                salaryDetail.setSalaryType(SalaryType.MONTHLY);
+                salaryDetail.setDailyWage(createUserRequest.getDailyWage());
+            }
             // set attributes of role
             Role role = new Role();
             role.setSalaryDetail(salaryDetail);
@@ -195,7 +200,7 @@ public class UserServiceImpl implements UserService {
             salaryDetailRepository.save(salaryDetail);
             roleRepository.save(role);
             employeeRepository.save(employee);
-        }else{
+        } else {
             final Customer user = userMapper.convertToCustomer(registrationRequest);
             user.setUsername(createUserRequest.getUsername());
             user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
@@ -211,7 +216,7 @@ public class UserServiceImpl implements UserService {
             user.setUserType(userType);
             user.setActive(true);
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(()->new RuntimeException("Standard Price Not Found!!"));
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
             user.setName(createUserRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());

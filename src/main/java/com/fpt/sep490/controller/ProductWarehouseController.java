@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.ProductWarehouse;
@@ -35,7 +36,7 @@ public class ProductWarehouseController {
 
     @GetMapping("/getAllProducts")
     public ResponseEntity<?> getAllProductWarehouseProducts() {
-        List<ProductWarehouse> productWarehouses = productWarehouseService.getAllProducts();
+        List<ProductWarehouseDto> productWarehouses = productWarehouseService.getAllProducts();
         if(!productWarehouses.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(productWarehouses);
         }
@@ -45,7 +46,7 @@ public class ProductWarehouseController {
 
     @GetMapping("/getAllIngredients")
     public ResponseEntity<?> getAllProductWarehouseIngredients() {
-        List<ProductWarehouse> productWarehouses = productWarehouseService.getAllIngredients();
+        List<ProductWarehouseDto> productWarehouses = productWarehouseService.getAllIngredients();
         if(!productWarehouses.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(productWarehouses);
         }
