@@ -57,13 +57,13 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public OrderDto getOrderByOrderId(long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(()->new RuntimeException("Order Not Found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(()->new RuntimeException("Không tìm thấy đơn hàng này!"));
         return convertToDTO(order);
     }
 
     @Override
     public ContractDto getContractDetailByContractId(long contractId) {
-        Contract contract = contractRepository.findById(contractId).orElse(null);
+        Contract contract = contractRepository.findById(contractId).orElseThrow(()-> new RuntimeException("Không tìm thấy hợp đồng của đơn hàng này!"));
         if(contract != null){
             return convertToContractDTO(contract);
         }
@@ -87,7 +87,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Order createAdminOrder(AdminOrderDto adminOrderDto) {
-        Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Customer Not Found !"));
+        Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Không tìm thấy khách hàng!"));
         Order order = Order.builder()
                 .orderCode(RandomOrderCodeGenerator.generateOrderCode())
                 .customer(customer)
@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService{
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : adminOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
             double discountPercentage = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
             double discountUnitPrice = detailDto.getUnitPrice() - discountPercentage;
             double totalPrice = discountUnitPrice * detailDto.getQuantity() * detailDto.getWeightPerUnit();
@@ -119,8 +119,12 @@ public class OrderServiceImpl implements OrderService{
         }
         order.setTotalAmount(totalAmount);
         order.setOrderDetails(orderDetails);
-        orderRepository.save(order);
-        orderDetailRepository.saveAll(orderDetails);
+        try {
+            orderRepository.save(order);
+            orderDetailRepository.saveAll(orderDetails);
+        }catch (Exception e){
+            throw  new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
+        }
 
         Date currentDate = new Date();
         Calendar calendar = Calendar.getInstance();
@@ -142,7 +146,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Order createCustomerOrder(CustomerOrderDto customerOrderDto) {
-        Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Customer Not Found !"));
+        Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Không tìm thấy khách hàng!"));
         Order order = Order.builder()
                 .orderCode(RandomOrderCodeGenerator.generateOrderCode())
                 .customer(customer)
@@ -154,7 +158,7 @@ public class OrderServiceImpl implements OrderService{
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : customerOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product not found"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
             DiscountDto discountDto = discountRepository.getByProductId(detailDto.getProductId());
             LocalDateTime today = LocalDateTime.now();
             double discountUnit = 0.0;
@@ -182,8 +186,12 @@ public class OrderServiceImpl implements OrderService{
         }
         order.setTotalAmount(totalAmount);
         order.setOrderDetails(orderDetails);
-        orderRepository.save(order);
-        orderDetailRepository.saveAll(orderDetails);
+        try {
+            orderRepository.save(order);
+            orderDetailRepository.saveAll(orderDetails);
+        }catch (Exception e){
+            throw  new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
+        }
         logOrderActivity(order,"CREATED","Created Order",customer.getName());
         return order;
     }
@@ -200,7 +208,7 @@ public class OrderServiceImpl implements OrderService{
     @Transactional
     @Override
     public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order Not Found"));
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         StatusEnum status = adminOrderDto.getStatus();
         if (status != null) {
             updatedOrder.setStatus(status);
@@ -218,7 +226,7 @@ public class OrderServiceImpl implements OrderService{
                             productId,unit,weightPerUnit
                     );
                     if(warehouses.isEmpty()){
-                        throw new RuntimeException("Can not find suitable product !");
+                        throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
                     }
                     for(ProductWarehouse warehouse : warehouses){
                         int availableQuantity = warehouse.getQuantity();
@@ -239,12 +247,12 @@ public class OrderServiceImpl implements OrderService{
                     }
                     // Kiểm tra nếu không đủ hàng trong tất cả các kho
                     if (requiredQuantity > 0) {
-                        throw new RuntimeException("Not enough stock available for product ID: " + productId);
+                        throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
                     }
                 }
             }
         }else {
-            throw new RuntimeException("Can not Update Order Status !");
+            throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");
         }
         orderRepository.save(updatedOrder);
         return updatedOrder;
@@ -252,7 +260,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("Order Not Found"));
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("không tìm thấy đơn hàng!"));
         double newDeposit = adminOrderDto.getDeposit();
         if(newDeposit != 0.0){
             updatedOrder.setDeposit(adminOrderDto.getDeposit());
@@ -272,8 +280,12 @@ public class OrderServiceImpl implements OrderService{
         updatedOrder.setTotalAmount(updatedTotalAmount);
         double remainAmount = updatedTotalAmount - newDeposit;
         updatedOrder.setRemainingAmount(remainAmount);
-        orderRepository.save(updatedOrder);
-        return updatedOrder;
+        try{
+            orderRepository.save(updatedOrder);
+            return updatedOrder;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng!");
+        }
     }
 
     @Override

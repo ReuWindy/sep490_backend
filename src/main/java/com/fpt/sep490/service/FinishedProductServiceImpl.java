@@ -79,7 +79,7 @@ public class FinishedProductServiceImpl implements FinishedProductService {
 
     @Override
     public Set<FinishedProduct> getFinishedProductForProduction(long productId) {
-        List<FinishedProduct> finishedProducts = finishedProductRepository.findByProductId(productId);
+        List<FinishedProduct> finishedProducts = finishedProductRepository.findById(productId).stream().toList();
         if (finishedProducts.isEmpty()) {
             throw new RuntimeException("Không tìm thấy sản phẩm đầu ra nào cho sản phẩm có ID: " + productId);
         }

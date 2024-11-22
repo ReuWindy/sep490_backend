@@ -41,10 +41,10 @@ public class InventoryServiceImpl implements InventoryService{
     @Override
     public Inventory createInventory(InventoryDto inventoryDto) {
         Inventory createdInventory = new Inventory();
-        Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(()->new RuntimeException("Warehouse Not Found!"));
+        Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(()->new RuntimeException("Không tìm thấy kho"));
         User user = userRepository.findByUsername(inventoryDto.getUsername());
         if (user == null) {
-            throw new RuntimeException("User Not Found!");
+            throw new RuntimeException("Không tìm thấy người dùng");
         }
         createdInventory.setWarehouse(warehouse);
         createdInventory.setInventoryDate(inventoryDto.getInventoryDate());
@@ -54,7 +54,7 @@ public class InventoryServiceImpl implements InventoryService{
 
         Set<InventoryDetail> details = inventoryDto.getInventoryDetails().stream().map(detailDto ->{
             InventoryDetail inventoryDetail = new InventoryDetail();
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Product Not Found"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm"));
             inventoryDetail.setProduct(product);
             inventoryDetail.setQuantity(detailDto.getQuantity());
             inventoryDetail.setDescription(detailDto.getDescription());
@@ -107,7 +107,7 @@ public class InventoryServiceImpl implements InventoryService{
 
     @Override
     public String confirmAndAddSelectedProductToInventory(Long inventoryId, InventoryDto inventoryDto) {
-        Inventory inventory = inventoryRepository.findById(inventoryId).orElse(new Inventory());
+        Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Không tìm thấy phiếu kiểm kho phù hợp!"));
 
         for(var detail: inventoryDto.getInventoryDetails()) {
 
@@ -120,7 +120,7 @@ public class InventoryServiceImpl implements InventoryService{
                             && d.getUnit().equals(detail.getUnit())
                             && d.getWeightPerUnit() == detail.getWeightPerUnit())
                     .findFirst()
-                    .orElse(null);  // Không tạo mới, nếu không tìm thấy thì bỏ qua
+                    .orElse(null);   // Không tạo mới, nếu không tìm thấy thì bỏ qua
 
             // Nếu tìm thấy InventoryDetail, cập nhật nó
             if (inventoryDetail != null) {
@@ -136,25 +136,28 @@ public class InventoryServiceImpl implements InventoryService{
 
         }
         inventory.setStatus(StatusEnum.COMPLETED);
-        inventoryRepository.save(inventory);
+        try{
+            inventoryRepository.save(inventory);
 
-        for(var detail : inventory.getInventoryDetails()){
-            ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                            detail.getProduct().getId(), inventoryDto.getWarehouseId(),detail.getUnit(), detail.getWeightPerUnit())
-                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
-            productWarehouse.setQuantity(detail.getQuantity());
-            productWareHouseRepository.save(productWarehouse);
+            for(var detail : inventory.getInventoryDetails()){
+                ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
+                                detail.getProduct().getId(), inventoryDto.getWarehouseId(),detail.getUnit(), detail.getWeightPerUnit())
+                        .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
+                productWarehouse.setQuantity(detail.getQuantity());
+                productWareHouseRepository.save(productWarehouse);
+            }
+            return "Xác nhận phiếu kiểm kho thành công !";
+        }catch (Exception e){
+            throw  new RuntimeException("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !");
         }
-
-        return "Done!";
     }
 
     @Override
     public Inventory deleteInventory(Long id) {
         Inventory inventory = inventoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Inventory not found!!"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu chi!"));
         if (inventory.getStatus() == StatusEnum.COMPLETED) {
-            throw new IllegalStateException("Cannot delete Inventory because the inventory have been confirm.");
+            throw new IllegalStateException("Không thể phiếu kiểm kho này  vì phiếu đã được xác nhận!");
         } else if (inventory.getStatus() == StatusEnum.CANCELED) {
             inventoryRepository.delete(inventory);
         } else {

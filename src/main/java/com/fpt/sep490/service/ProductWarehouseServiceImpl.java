@@ -99,24 +99,32 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
 
         for (FinishedProduct finishedProduct : finishedProducts) {
             ProductWarehouse productWarehouse = new ProductWarehouse();
-
-            productWarehouse.setWarehouse(warehouseRepository.findById((long) dto.getWarehouseId()).orElseThrow(() -> new RuntimeException("")));
+            productWarehouse.setBatchCode(order.getProductionCode());
+            productWarehouse.setWarehouse(warehouseRepository.findById((long) dto.getWarehouseId()).orElseThrow(() -> new RuntimeException("Không tìm thấy kho")));
             productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
             productWarehouse.setUnit(dto.getUnit());
             productWarehouse.setProduct(finishedProduct.getProduct());
-            int quantity = (int) ((order.getQuantity() /100) * finishedProduct.getProportion());
+            int quantity = (int) Math.round((order.getQuantity() / 100.0) * finishedProduct.getProportion());
+
             productWarehouse.setQuantity(quantity);
-            productWarehouse.setWeight(quantity + dto.getWeightPerUnit());
+            productWarehouse.setWeight(quantity * dto.getWeightPerUnit());
             productWareHouseRepository.save(productWarehouse);
         }
     }
 
     @Override
-    public void exportProductWarehouseToProduction(long productWarehouseId,int quantity) {
+    public void exportProductWarehouseToProduction(long productWarehouseId, int quantity) {
         ProductWarehouse productWarehouse = productWareHouseRepository.findById(productWarehouseId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong kho với Id: " + productWarehouseId));
-        productWarehouse.setProduct(productWarehouse.getProduct());
+
+        if (productWarehouse.getQuantity() < quantity) {
+            throw new IllegalArgumentException("Số lượng xuất vượt quá số lượng tồn kho! Số lượng hiện tại: "
+                    + productWarehouse.getQuantity() + ", số lượng yêu cầu: " + quantity);
+        }
+
         productWarehouse.setQuantity(productWarehouse.getQuantity() - quantity);
+
+        productWareHouseRepository.save(productWarehouse);
     }
 
 //    @Override

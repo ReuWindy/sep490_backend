@@ -19,6 +19,7 @@ import com.fpt.sep490.utils.SendMail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponse;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -221,6 +222,7 @@ public class UserServiceImpl implements UserService {
             user.setContracts(new HashSet<>());
             user.setPrice(standardPrice);
             customerRepository.save(user);
+         //   userRepository.save(user);
         }
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);

@@ -53,25 +53,36 @@ public class PriceServiceImpl implements PriceService{
                 .name(request.getName())
                 .productPrices(new HashSet<>())
                 .build();
-        return priceRepository.save(price);
+        try{
+            return priceRepository.save(price);
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo giá mới!");
+        }
     }
 
     @Override
     public Customer updateCustomerPrice(CustomerPriceDto customerPriceDto) {
-        Price price = priceRepository.findById(customerPriceDto.getPriceId()).orElseThrow(()-> new RuntimeException("Price Not Found !"));
-        Customer customer = customerRepository.findById(customerPriceDto.getCustomerIds()).orElseThrow(()->new RuntimeException("Customer Not Found"));
+        Price price = priceRepository.findById(customerPriceDto.getPriceId()).orElseThrow(()-> new RuntimeException("Không tìm thấy giá phù hợp!"));
+        Customer customer = customerRepository.findById(customerPriceDto.getCustomerIds()).orElseThrow(()->new RuntimeException("Không tìm thấy khách hàng phù hợp!"));
         customer.setPrice(price);
-        customerRepository.save(customer);
-        return customer;
+        try {
+            customerRepository.save(customer);
+            return customer;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật khách hàng!");
+        }
     }
 
     @Override
     public List<ProductPrice> updateProductPrice(ProductPriceRequestDto productPriceDto) {
           List<ProductPrice> updatedProductPriceDto = new ArrayList<>();
           for(ProductPriceDto request : productPriceDto.getProductPrice()){
-              Product updatedProduct = productRepository.findById(request.getProductId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
-              Price updatedPrice = priceRepository.findById(request.getPriceId()).orElseThrow(()->new RuntimeException("Updated Product Not Found !"));
+              Product updatedProduct = productRepository.findById(request.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm đang được cập nhật!"));
+              Price updatedPrice = priceRepository.findById(request.getPriceId()).orElseThrow(()->new RuntimeException("Không tìm thấy giá đang được cập nhật!"));
               double updateUnitPrice = request.getUnitPrice();
+              if(updateUnitPrice <=0){
+                  throw new RuntimeException("Giá thiết lập riêng không được trống hay là số âm !");
+              }
               Optional<ProductPrice> existingProductPrice = productPriceRepository.findByPriceIdAndProductId(request.getPriceId(), request.getProductId());
               if(existingProductPrice.isPresent()){
                   ProductPrice productPrice = existingProductPrice.get();
@@ -90,7 +101,7 @@ public class PriceServiceImpl implements PriceService{
 
     @Override
     public void deletePrice(long priceId) {
-        Price price = priceRepository.findById(priceId).orElseThrow(()-> new EntityNotFoundException("Employee not found"));
+        Price price = priceRepository.findById(priceId).orElseThrow(()-> new RuntimeException("Không tìm thấy giá phù hợp!"));
 
         productPriceRepository.deleteByPriceId(priceId);
 

@@ -87,11 +87,11 @@ public class PriceController {
         public ResponseEntity<?> DeletePrice(@PathVariable long priceId){
             try {
                 priceService.deletePrice(priceId);
-                return ResponseEntity.status(HttpStatus.OK).body("Delete Successful !");
-            }catch (EntityNotFoundException exception){
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee Not Found");
+                return ResponseEntity.status(HttpStatus.OK).body("Xóa giá thành công!");
+            }catch (RuntimeException exception){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy giá phù hợp!");
             }catch ( Exception e){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Delete Failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Xảy ra lỗi trong quá trình xóa giá !");
             }
         }
 }   

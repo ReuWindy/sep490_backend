@@ -33,7 +33,7 @@ public class OrderController {
         if(orders != null){
             return ResponseEntity.status(HttpStatus.OK).body(orders);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Không tìm thấy danh sách lịch sử đơn hàng của khách hàng!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -56,7 +56,7 @@ public class OrderController {
         if(order != null){
             return ResponseEntity.status(HttpStatus.OK).body(order);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Không tìm thấy đơn hàng này!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -66,7 +66,7 @@ public class OrderController {
         if(contractDto != null){
             return ResponseEntity.status(HttpStatus.OK).body(contractDto);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Không tìm thấy hợp đồng của đơn hàng này!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

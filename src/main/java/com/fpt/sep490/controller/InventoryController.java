@@ -55,7 +55,7 @@ public class InventoryController {
         if (createdInventory != null) {
             return ResponseEntity.status(HttpStatus.OK).body(createdInventory);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Inventory Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Xảy ra lỗi trong quá trình tạo phiếu kiểm kho", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 

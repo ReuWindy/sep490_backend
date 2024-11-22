@@ -24,7 +24,10 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
     private final ProductWarehouseService productWarehouseService;
     private final ProductionOrderRepository productionOrderRepository;
 
-    public ProductionOrderServiceImpl(FinishedProductService finishedProductService, ProductWarehouseService productWarehouseService, ProductionOrderRepository productionOrderRepository) {
+    public ProductionOrderServiceImpl(
+            FinishedProductService finishedProductService,
+            ProductWarehouseService productWarehouseService,
+            ProductionOrderRepository productionOrderRepository) {
         this.finishedProductService = finishedProductService;
         this.productWarehouseService = productWarehouseService;
         this.productionOrderRepository = productionOrderRepository;
@@ -32,22 +35,27 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
 
     @Override
     public ProductionOrder createProductionOrder(ProductionOrderDto dto) {
-        ProductWarehouse p = productWarehouseService.getById(dto.getProductWarehouseId());
+        ProductWarehouse productWarehouse = productWarehouseService.getById(dto.getProductWarehouseId());
 
-        ProductionOrder productionOrder = new ProductionOrder();
-        productionOrder.setProductionCode(RandomProductionOrderCodeGenerator.generateOrderCode());
-        productionOrder.setDescription("Đơn sản xuất cho của nguyên liệu: "+ p.getProduct().getName());
-        productionOrder.setProductionDate(dto.getProductionDate());
-        productionOrder.setStatus(StatusEnum.PENDING);
-        productionOrder.setQuantity(dto.getQuantity());
-        productionOrder.setDefectiveQuantity(0);
-        productionOrder.setDefectReason("Chưa hoàn thành sản xuất");
-        productionOrder.setProductWarehouse(p);
-        productionOrder.setFinishedProducts(finishedProductService.getFinishedProductForProduction(p.getProduct().getId()));
+        ProductionOrder productionOrder = ProductionOrder.builder()
+                .productionCode(RandomProductionOrderCodeGenerator.generateOrderCode())
+                .description("Đơn sản xuất cho nguyên liệu: " + productWarehouse.getProduct().getName())
+                .productionDate(dto.getProductionDate())
+                .status(StatusEnum.PENDING)
+                .quantity(dto.getQuantity())
+                .defectiveQuantity(0)
+                .defectReason("Chưa hoàn thành sản xuất")
+                .productWarehouse(productWarehouse)
+                .build();
 
-        productionOrderRepository.save(productionOrder);
-        return productionOrder;
+        Set<FinishedProduct> finishedProducts = finishedProductService.getFinishedProductForProduction(productWarehouse.getProduct().getId());
+        if (finishedProducts != null && !finishedProducts.isEmpty()) {
+            productionOrder.setFinishedProducts(finishedProducts);
+        }
+
+        return productionOrderRepository.save(productionOrder);
     }
+
 
     @Override
     public List<ProductionOrder> getAllProductionOrders() {
@@ -56,53 +64,71 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
 
     @Override
     public ProductionOrder getProductionOrderById(Long id) {
-        return productionOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm đầu ra với id:"));
+        ProductionOrder productionOrder = productionOrderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ProductionOrder với ID: " + id));
+        Set<FinishedProduct> finishedProducts = finishedProductService.getFinishedProductForProduction(productionOrder.getProductWarehouse().getProduct().getId());
+        productionOrder.setFinishedProducts(finishedProducts);
+        return productionOrder;
     }
 
     @Override
     public ProductionOrder updateProductionOrder(Long id, ProductionOrderDto dto) {
-        ProductWarehouse pw = productWarehouseService.getById(dto.getProductWarehouseId());
-        ProductionOrder p = productionOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm đầu ra với id:"));
-        ProductWarehouse productwarehouse = productWarehouseService.getById(dto.getProductWarehouseId());
-        p.setProductWarehouse(productwarehouse);
-        p.setDescription(dto.getDescription());
-        p.setProductionDate(dto.getProductionDate());
-        Set<FinishedProduct> finishedProductSet = finishedProductService.getFinishedProductForProduction(pw.getProduct().getId());
-        p.setFinishedProducts(finishedProductSet);
-        return null;
+        ProductionOrder productionOrder = getProductionOrderById(id);
+        ProductWarehouse productWarehouse = productWarehouseService.getById(dto.getProductWarehouseId());
+
+        productionOrder.setProductWarehouse(productWarehouse);
+        productionOrder.setDescription(dto.getDescription());
+        productionOrder.setProductionDate(dto.getProductionDate());
+
+        Set<FinishedProduct> finishedProducts = finishedProductService.getFinishedProductForProduction(productWarehouse.getProduct().getId());
+        if (finishedProducts != null && !finishedProducts.isEmpty()) {
+            productionOrder.setFinishedProducts(finishedProducts);
+        }
+
+        return productionOrderRepository.save(productionOrder);
     }
 
     @Override
     public ProductionOrder deleteProductionOrder(Long id) {
-        ProductionOrder p = productionOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm đầu ra với id:"));
-        productionOrderRepository.delete(p);
-        return p;
+        ProductionOrder productionOrder = getProductionOrderById(id);
+        productionOrderRepository.delete(productionOrder);
+        return productionOrder;
     }
 
     @Override
     public void confirmProductionOrder(Long id) {
-        ProductionOrder p = productionOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm đầu ra với id:"));
-        p.setStatus(StatusEnum.IN_PROCESS);
-        productionOrderRepository.save(p);
-        productWarehouseService.exportProductWarehouseToProduction(p.getProductWarehouse().getId(), (int) p.getQuantity());
+        ProductionOrder productionOrder = getProductionOrderById(id);
+
+        if (productionOrder.getStatus() != StatusEnum.PENDING) {
+            throw new IllegalStateException("Chỉ có thể xác nhận đơn sản xuất ở trạng thái PENDING.");
+        }
+
+        productWarehouseService.exportProductWarehouseToProduction(
+                productionOrder.getProductWarehouse().getId(),
+                (int) productionOrder.getQuantity()
+        );
+
+        productionOrder.setStatus(StatusEnum.IN_PROCESS);
+        productionOrderRepository.save(productionOrder);
 
     }
 
+
     @Override
     public void ConfirmProductionOrderDone(Long id, ImportProductionDto dto, Double defectiveQuantity, String defectiveReason) {
-        ProductionOrder p = productionOrderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm đầu ra với id:"));
-        p.setStatus(StatusEnum.COMPLETED);
-        p.setDescription("Đã hoàn thành sản xuất");
-        p.setDefectiveQuantity(defectiveQuantity);
-        p.setDefectReason(defectiveReason);
-        p.setCompletionDate(new Date());
-        productionOrderRepository.save(p);
-        productWarehouseService.importProductWarehouseToProduction(p.getId(), dto);
+        ProductionOrder productionOrder = getProductionOrderById(id);
+
+        if (productionOrder.getStatus() != StatusEnum.IN_PROCESS) {
+            throw new IllegalStateException("Chỉ có thể hoàn thành đơn sản xuất ở trạng thái IN_PROCESS.");
+        }
+        productWarehouseService.importProductWarehouseToProduction(productionOrder.getId(), dto);
+
+        productionOrder.setDescription("Đã hoàn thành sản xuất");
+        productionOrder.setDefectiveQuantity(defectiveQuantity);
+        productionOrder.setDefectReason(defectiveReason);
+        productionOrder.setStatus(StatusEnum.COMPLETED);
+        productionOrder.setCompletionDate(new Date());
+        productionOrderRepository.save(productionOrder);
     }
 
     @Override
@@ -131,10 +157,11 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             spec = spec.and(ProductionOrderSpecification.hasProductName(productName));
         }
 
-        Page<ProductionOrder> productionOrders = productionOrderRepository.findAll(spec, pageable);
+        Page<ProductionOrder> productionOrders = productionOrderRepository.findAllWithFinishedProducts(spec, pageable);
+
 
         return productionOrders.map(order -> ProductionOrderView.builder()
-                .productName(order.getProductWarehouse().getProduct().getName()) // Sửa ở đây
+                .productName(order.getProductWarehouse().getProduct().getName())
                 .quantity(order.getQuantity())
                 .productionDate(order.getProductionDate())
                 .completionDate(order.getCompletionDate())
@@ -149,4 +176,6 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
                 .status(order.getStatus().name())
                 .build());
     }
+
 }
+
