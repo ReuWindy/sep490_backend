@@ -17,7 +17,7 @@ public interface ProductService {
     List<Product> getProductsByWarehouse(Long warehouseId);
     void updateProductStatus(String productCode);
     Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize);
-    Page<ProductDto> getProductByFilterForCustomer(String productCode,String categoryName, String supplierName, int pageNumber, int pageSize);
+    Page<ProductDto> getProductByFilterForCustomer(String productCode,String categoryName, String supplierName, String username, int pageNumber, int pageSize);
     Product createCustomerProduct(ProductDto productDto);
 
     List<BatchProduct> previewBatchProducts(List<importProductDto> ImportProductDtoList);

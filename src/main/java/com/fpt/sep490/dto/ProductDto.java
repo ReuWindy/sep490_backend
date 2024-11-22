@@ -26,4 +26,5 @@ public class ProductDto {
     private Long warehouseId;
     private boolean isDeleted;
     private Set<UnitWeightPairs> unitWeightPairsList;
+    private double customerPrice;
 }
