@@ -492,8 +492,6 @@ public class ProductServiceImpl implements ProductService {
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
-        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElseThrow(()->new RuntimeException("douma code nhu cai con cak t"));
-        productDto.setCustomerPrice(productPrice.getUnit_price());
         productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;
     }

@@ -100,10 +100,10 @@ public class OrderServiceImpl implements OrderService{
         Set<OrderDetail> orderDetails = new HashSet<>();
         for(var detailDto : adminOrderDto.getOrderDetails()){
            // Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
-            ProductWarehouse product = productWareHouseRepository.findByProductIdAndProductUnitAndWeightPerUnit(
+            ProductWarehouse product = productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
                     detailDto.getProductId(),
-                    detailDto.getProductUnit(),
-                    detailDto.getWeightPerUnit()
+                    detailDto.getWeightPerUnit(),
+                    detailDto.getProductUnit()
             ).orElseThrow(()-> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
             if(product.getQuantity() < detailDto.getQuantity()){
                 throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
