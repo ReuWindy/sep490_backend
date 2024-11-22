@@ -70,7 +70,7 @@ public class ExpenseVoucherController {
         if (expenseVoucher != null) {
             return ResponseEntity.ok(expenseVoucher);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Lỗi khi tạo phiếu chi", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -80,7 +80,7 @@ public class ExpenseVoucherController {
         if (expenseVoucher != null) {
             return ResponseEntity.ok(expenseVoucher);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Lỗi khi cập nhật phiếu chi", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -90,7 +90,7 @@ public class ExpenseVoucherController {
         if (expenseVoucher != null) {
             return ResponseEntity.ok(expenseVoucher);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        final ApiExceptionResponse response = new ApiExceptionResponse("Delete Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }
