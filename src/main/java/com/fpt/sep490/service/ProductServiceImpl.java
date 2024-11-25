@@ -150,6 +150,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        ProductSpecification productSpecification = new ProductSpecification();
+        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        return products.map(product -> toProductDto(product, customer));
+    }
+
+    @Override
     public Product createCustomerProduct(ProductDto productDto) {
         Product createdProduct = new Product();
         createdProduct.setCreateAt(new Date());
@@ -502,7 +513,7 @@ public class ProductServiceImpl implements ProductService {
         if(productPrice != null){
             productDto.setCustomerPrice(productPrice.getUnit_price());
         }else{
-            productDto.setCustomerPrice(0.0);
+            productDto.setCustomerPrice(product.getPrice());
         }
         productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;

@@ -14,6 +14,7 @@ public class ProductWarehouseDto {
     private String description;
     private long productId;
     private long warehouseId;
+    private int quantity;
     private ProductDto product;
 
     public static ProductWarehouseDto toDto(ProductWarehouse productWarehouse) {
@@ -24,7 +25,9 @@ public class ProductWarehouseDto {
         dto.setUnit(productWarehouse.getUnit());
         dto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
         dto.setBatchCode(productWarehouse.getBatchCode());
+        dto.setQuantity(productWarehouse.getQuantity());
         ProductDto productDto = new ProductDto();
+        productDto.setId(productWarehouse.getProduct().getId());
         productDto.setProductCode(productWarehouse.getProduct().getProductCode());
         productDto.setName(productWarehouse.getProduct().getName());
         productDto.setDescription(productWarehouse.getProduct().getDescription());

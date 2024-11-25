@@ -2,6 +2,7 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.ImportProductionDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
+import com.fpt.sep490.dto.ProductionCompleteDto;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.FinishedProduct;
 import com.fpt.sep490.model.ProductWarehouse;
@@ -92,22 +93,12 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     }
 
     @Override
-    public void importProductWarehouseToProduction(long productionId, ImportProductionDto dto) {
-        ProductionOrder order = productionOrderRepository.findById(productionId)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy đơn sả xuất với id: "+ productionId));
-        Set<FinishedProduct> finishedProducts = order.getFinishedProducts();
-
-        for (FinishedProduct finishedProduct : finishedProducts) {
-            ProductWarehouse productWarehouse = new ProductWarehouse();
-            productWarehouse.setBatchCode(order.getProductionCode());
-            productWarehouse.setWarehouse(warehouseRepository.findById((long) dto.getWarehouseId()).orElseThrow(() -> new RuntimeException("Không tìm thấy kho")));
-            productWarehouse.setWeightPerUnit(dto.getWeightPerUnit());
-            productWarehouse.setUnit(dto.getUnit());
-            productWarehouse.setProduct(finishedProduct.getProduct());
-            int quantity = (int) Math.round((order.getQuantity() / 100.0) * finishedProduct.getProportion());
-
-            productWarehouse.setQuantity(quantity);
-            productWarehouse.setWeight(quantity * dto.getWeightPerUnit());
+    public void importProductWarehouseToProduction(List<ProductionCompleteDto> dtos) {
+        for (ProductionCompleteDto dto : dtos) {
+            ProductWarehouse productWarehouse = productWareHouseRepository.findById(dto.getProductWarehouseId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+            productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
+            productWarehouse.setWeight(productWarehouse.getQuantity() * productWarehouse.getWeightPerUnit());
             productWareHouseRepository.save(productWarehouse);
         }
     }
