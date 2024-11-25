@@ -13,7 +13,7 @@ import java.util.List;
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
     List<OrderDetail> findByOrderId(long orderId);
 
-    @Query("SELECT od.product.name AS productName, SUM(od.quantity) AS quantitySold " +
+    @Query("SELECT od.product.name AS productName, SUM(od.quantity * od.weightPerUnit) AS quantitySold " +
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE DATE(o.orderDate) = DATE(:date) " +
@@ -22,7 +22,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     List<Object[]> findTopSellingProductsByDay(Date date, Pageable pageable);
 
     // Thống kê theo tuần
-    @Query("SELECT od.product.name AS productName, SUM(od.quantity) AS quantitySold " +
+    @Query("SELECT od.product.name AS productName, SUM(od.quantity * od.weightPerUnit) AS quantitySold " +
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE FUNCTION('YEARWEEK', o.orderDate, 1) = FUNCTION('YEARWEEK', :date, 1) " +
@@ -31,7 +31,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     List<Object[]> findTopSellingProductsByWeek(Date date, Pageable pageable);
 
     // Thống kê theo tháng
-    @Query("SELECT od.product.name AS productName, SUM(od.quantity) AS quantitySold " +
+    @Query("SELECT od.product.name AS productName, SUM(od.quantity * od.weightPerUnit) AS quantitySold " +
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE MONTH(o.orderDate) = MONTH(:date) AND YEAR(o.orderDate) = YEAR(:date) " +
@@ -40,7 +40,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     List<Object[]> findTopSellingProductsByMonth(Date date, Pageable pageable);
 
     // Thống kê theo năm
-    @Query("SELECT od.product.name AS productName, SUM(od.quantity) AS quantitySold " +
+    @Query("SELECT od.product.name AS productName, SUM(od.quantity * od.weightPerUnit) AS quantitySold " +
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE YEAR(o.orderDate) = YEAR(:date) " +

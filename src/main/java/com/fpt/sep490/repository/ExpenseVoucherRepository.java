@@ -20,12 +20,12 @@ public interface ExpenseVoucherRepository extends JpaRepository<ExpenseVoucher, 
             "ORDER BY DAY(ev.expenseDate)")
     List<Object[]> findDailyExpenseByMonth(Date date);
 
-    @Query("SELECT FUNCTION('WEEK', ev.expenseDate) AS week, SUM(ev.totalAmount) AS totalAmount " +
+    @Query("SELECT DAY(ev.expenseDate) AS day, SUM(ev.totalAmount) AS totalAmount " +
             "FROM ExpenseVoucher ev " +
-            "WHERE YEAR(ev.expenseDate) = YEAR(:date) " +
-            "GROUP BY FUNCTION('WEEK', ev.expenseDate) " +
-            "ORDER BY FUNCTION('WEEK', ev.expenseDate)")
-    List<Object[]> findWeeklyExpenseByYear(Date date);
+            "WHERE WEEK(ev.expenseDate) = WEEK(:date) AND YEAR(ev.expenseDate) = YEAR(:date) " +
+            "GROUP BY DAY(ev.expenseDate) " +
+            "ORDER BY DAY(ev.expenseDate)")
+    List<Object[]> findDailyExpenseByWeek(Date date);
 
     @Query("SELECT MONTH(ev.expenseDate) AS month, SUM(ev.totalAmount) AS totalAmount " +
             "FROM ExpenseVoucher ev " +

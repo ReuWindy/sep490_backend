@@ -18,7 +18,4 @@ public class SalaryDetail {
     @Enumerated(EnumType.STRING)
     private SalaryType salaryType;
     private double dailyWage;
-    private int daysWorked;
-    private double monthlySalary;
-
 }

@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UnitWeightPairs {
-    private String productUnit;
-    private double weightPerUnit;
-    private int quantity;
+public class EmployeeSalaryDto {
+    private int dayActiveId;
+    private double amountByTon;
 }

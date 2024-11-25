@@ -1,6 +1,5 @@
 package com.fpt.sep490.repository;
 
-import com.fpt.sep490.Enum.EmployeeRole;
 import com.fpt.sep490.Enum.SalaryType;
 import com.fpt.sep490.exceptions.ApiRequestException;
 import com.fpt.sep490.model.DayActive;

@@ -18,4 +18,5 @@ public class EmployeeDTO {
     private boolean gender;
     private String image;
     private Long employeeRoleId;
+    private double dailyWage;
 }

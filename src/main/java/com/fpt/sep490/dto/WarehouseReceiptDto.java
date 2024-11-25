@@ -23,8 +23,10 @@ public class WarehouseReceiptDto {
     private String username;
     private String receiptReason;
     private Set<BatchProductDto> batchProductDtos;
+    private String status;
 
     public static WarehouseReceiptDto toDto(WarehouseReceipt warehouseReceipt) {
+        int count = 0;
         WarehouseReceiptDto dto = new WarehouseReceiptDto();
         dto.setId(warehouseReceipt.getId());
         dto.setReceiptDate(warehouseReceipt.getReceiptDate());
@@ -38,7 +40,17 @@ public class WarehouseReceiptDto {
             batchProductDto.setBatchId(bp.getId());
             batchProductDto.setProductId(bp.getProduct().getId());
             batchProductDto.setAdded(bp.isAdded());
+            if (batchProductDto.isAdded()){
+                count++;
+            }
             batchProductDtoSet.add(batchProductDto);
+        }
+        if (count == batchProductDtoSet.size()) {
+            dto.setStatus("Đã xác nhận");
+        } else if (count == 0) {
+            dto.setStatus("Chờ xác nhận");
+        } else {
+            dto.setStatus("Đang xử lý");
         }
         dto.setBatchProductDtos(batchProductDtoSet);
         return dto;

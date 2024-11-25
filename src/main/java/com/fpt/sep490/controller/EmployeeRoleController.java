@@ -1,7 +1,6 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.EmployeeRole;
 import com.fpt.sep490.service.EmployeeRoleService;
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,7 @@ public class EmployeeRoleController {
 
     private final EmployeeRoleService employeeRoleService;
 
-    public EmployeeRoleController (EmployeeRoleService employeeRoleService){
+    public EmployeeRoleController(EmployeeRoleService employeeRoleService) {
         this.employeeRoleService = employeeRoleService;
     }
 

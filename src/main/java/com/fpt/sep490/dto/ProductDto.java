@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,9 +19,11 @@ public class ProductDto {
     private double price;
     private String image;
     private String categoryId;
+    private String categoryName;
     private Long supplierId;
     private Long unitOfMeasureId;
     private Long warehouseId;
     private boolean isDeleted;
     private Set<UnitWeightPairs> unitWeightPairsList;
+    private double customerPrice;
 }
