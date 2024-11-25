@@ -6,7 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+
 @Getter
 @Setter
 @Entity
@@ -20,5 +21,5 @@ public class UserActivity {
     private String username;
     private String activity;
     private String object;
-    private LocalDateTime timestamp;
+    private Date timestamp;
 }
