@@ -81,4 +81,5 @@ public class JwtTokenManager {
         final JWTVerifier verifier = JWT.require(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes())).build();
         return verifier.verify(token);
     }
+
 }

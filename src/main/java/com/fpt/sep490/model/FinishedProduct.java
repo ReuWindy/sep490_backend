@@ -24,5 +24,13 @@ public class FinishedProduct {
     @JoinColumn(name = "product_id")
     private Product product;
     private double proportion;
+    private double quantity;
+    private double finalQuantity;
+    private double defectQuantity;
+    private String note;
     private boolean isActive;
+
+    @ManyToOne
+    @JoinColumn(name = "production_order_id", nullable = false)
+    private ProductionOrder productionOrder;
 }

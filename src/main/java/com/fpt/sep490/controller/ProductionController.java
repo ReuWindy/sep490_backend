@@ -1,8 +1,6 @@
 package com.fpt.sep490.controller;
 
-import com.fpt.sep490.dto.ImportProductionDto;
-import com.fpt.sep490.dto.ProductionOrderDto;
-import com.fpt.sep490.dto.ProductionOrderView;
+import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.ProductionOrder;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
@@ -48,7 +46,7 @@ public class ProductionController {
 
     @GetMapping("/getById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
-        ProductionOrder productionOrder = productionOrderService.getProductionOrderById(id);
+        ProductionOrderView productionOrder = productionOrderService.getProductionOrderById(id);
         if (productionOrder != null) {
             return ResponseEntity.status(HttpStatus.OK).body(productionOrder);
         }
@@ -73,26 +71,40 @@ public class ProductionController {
 
     @PostMapping("/createProductionOrder")
     public ResponseEntity<?> createProductionOrder(HttpServletRequest request, @Valid @RequestBody ProductionOrderDto dto) {
-        try{
+        try {
             ProductionOrder productionOrder = productionOrderService.createProductionOrder(dto);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCTION_ORDER", "Tạo đơn sản xuất cho: "+ productionOrder.getProductWarehouse().getProduct().getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCTION_ORDER", "Tạo đơn sản xuất cho: " + productionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(productionOrder);
-        }catch (Exception e) {
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> updateProductionOrder(HttpServletRequest request,@PathVariable long id , @Valid @RequestBody ProductionOrderDto dto) {
+    public ResponseEntity<?> updateProductionOrder(HttpServletRequest request, @PathVariable long id, @Valid @RequestBody ProductionOrderDto dto) {
         try {
             ProductionOrder updatedProductionOrder = productionOrderService.updateProductionOrder(id, dto);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_PRODUCTION_ORDER", "Cập nhật đơn sản xuất cho: " + updatedProductionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedProductionOrder);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<?> cancelProductionOrder(HttpServletRequest request, @PathVariable long id) {
+        try {
+            productionOrderService.cancelProductionOrder(id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CANCEL_PRODUCTION_ORDER", "Hủy đơn sản xuất bởi người dùng: " + username);
+            return ResponseEntity.ok("Đơn sản xuất đã được hủy thành công!");
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -117,7 +129,7 @@ public class ProductionController {
     public ResponseEntity<?> confirmProductionOrder(HttpServletRequest request, @PathVariable Long id) {
         try {
             productionOrderService.confirmProductionOrder(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_PRODUCTION_ORDER", "Xác nhận đơn sản xuất bởi người dùng: " + username);
             return ResponseEntity.ok("Đơn sản xuất đã được xác nhận thành công!");
@@ -127,16 +139,28 @@ public class ProductionController {
         }
     }
 
+    @PostMapping("/finishProduction/{id}")
+    public ResponseEntity<?> finishProductionOrder(HttpServletRequest request, @PathVariable Long id, @Valid @RequestBody List<ProductionFinishDto> dto) {
+        try {
+            ProductionOrder productionOrder = productionOrderService.finishProductionOrder(dto, id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCTION_ORDER", "Cập nhật thành phẩm cho: " + productionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(productionOrder);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @PostMapping("/confirm-done/{id}")
     public ResponseEntity<?> confirmProductionOrderDone(
             HttpServletRequest request,
             @PathVariable Long id,
-            @Valid @RequestBody ImportProductionDto dto,
-            @RequestParam Double defectiveQuantity,
-            @RequestParam String defectiveReason) {
+            @Valid @RequestBody List<ProductionCompleteDto> dtos) {
         try {
-            productionOrderService.ConfirmProductionOrderDone(id, dto, defectiveQuantity, defectiveReason);
-            String token = jwtTokenManager.resolveToken(request);
+            productionOrderService.ConfirmProductionOrderDone(id, dtos);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DONE_PRODUCTION_ORDER", "Xác nhận đơn sản xuất hoàn thành bởi người dùng: " + username);
             return ResponseEntity.ok("Đơn sản xuất đã được hoàn thành!");

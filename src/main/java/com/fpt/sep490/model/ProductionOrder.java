@@ -31,16 +31,8 @@ public class ProductionOrder {
     private Date productionDate;
     private Date completionDate;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "production_order_finished_product",
-            joinColumns = @JoinColumn(name = "production_order_id"),
-            inverseJoinColumns = @JoinColumn(name = "finished_product_id")
-    )
+    @OneToMany(mappedBy = "productionOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FinishedProduct> finishedProducts = new HashSet<>();
-
-    private double defectiveQuantity;
-    private String defectReason;
 
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
@@ -49,5 +41,9 @@ public class ProductionOrder {
     @JoinColumn(name = "product_warehouse_id", nullable = false)
     @JsonBackReference
     private ProductWarehouse productWarehouse;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createBy;
 }
 
