@@ -88,7 +88,7 @@ public class ProductController {
     public ResponseEntity<?> importProduct(HttpServletRequest request, @Valid @RequestBody List<importProductDto> importProductDtoList) {
         try {
             List<BatchProduct> importList = productService.previewBatchProducts(importProductDtoList);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Tạo lô hàng nhập kho bởi :" + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
@@ -104,7 +104,7 @@ public class ProductController {
                                                       @RequestBody List<BatchProductSelection> selectedProducts) {
         try {
             String message = productService.confirmAndAddSelectedProductToWarehouse(batchId, selectedProducts);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_WAREHOUSE", "Xác nhận thêm lô hàng vào kho bởi :" + username);
 
@@ -119,7 +119,7 @@ public class ProductController {
     public ResponseEntity<?> prepareExportProduct(HttpServletRequest request, @Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
         try {
             String message = productService.prepareExportProduct(exportProductDtoList);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Tạo lô hàng xuất kho bởi " + username);
 
@@ -135,7 +135,7 @@ public class ProductController {
         try {
             String message = productService.confirmAndExportProducts(batchId, exportProductDtoList );
 
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_EXPORT_PRODUCT", "Xác nhận xuất kho lô hàng bởi: " + username);
 

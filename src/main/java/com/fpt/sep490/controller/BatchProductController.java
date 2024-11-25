@@ -91,7 +91,7 @@ public class BatchProductController {
     public ResponseEntity<?> updateBatchProduct(HttpServletRequest request, @Valid @RequestBody UpdateBatchProductRequest requestUpdate, @PathVariable Long batchProductId) {
         try{
             BatchProduct batchProduct = batchProductService.updateBatchProduct(requestUpdate, batchProductId);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_BATCH_PRODUCT", "Tạo danh mục: "+ batchProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(batchProduct);

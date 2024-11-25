@@ -44,6 +44,18 @@ public class JwtTokenManager {
         return null;
     }
 
+    public String resolveTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     public static FirebaseToken verifyIdToken(String idToken) throws FirebaseAuthException {
         return FirebaseAuth.getInstance().verifyIdToken(idToken);
     }
