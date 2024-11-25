@@ -74,7 +74,7 @@ public class CategoryController {
     public ResponseEntity<?> createCategory(HttpServletRequest request, @RequestBody Category category) {
         try{
             Category createdCategory = categoryService.createCategory(category);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", "Tạo danh mục: "+ createdCategory.getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
@@ -88,7 +88,7 @@ public class CategoryController {
     public ResponseEntity<?> updateCategory(HttpServletRequest request, @RequestBody Category category) {
         try{
             Category updatedCategory = categoryService.updateCategory(category);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: "+ updatedCategory.getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
@@ -115,7 +115,7 @@ public class CategoryController {
     public ResponseEntity<?> disableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.disableCategory(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_CATEGORY", "Ẩn danh mục "+ category.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);
@@ -129,7 +129,7 @@ public class CategoryController {
     public ResponseEntity<?> enableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.enableCategory(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_CATEGORY", "Kích hoạt danh mục "+ category.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);

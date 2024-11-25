@@ -75,7 +75,7 @@ public class ProductionController {
     public ResponseEntity<?> createProductionOrder(HttpServletRequest request, @Valid @RequestBody ProductionOrderDto dto) {
         try{
             ProductionOrder productionOrder = productionOrderService.createProductionOrder(dto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCTION_ORDER", "Tạo đơn sản xuất cho: "+ productionOrder.getProductWarehouse().getProduct().getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(productionOrder);
@@ -89,7 +89,7 @@ public class ProductionController {
     public ResponseEntity<?> updateProductionOrder(HttpServletRequest request,@PathVariable long id , @Valid @RequestBody ProductionOrderDto dto) {
         try {
             ProductionOrder updatedProductionOrder = productionOrderService.updateProductionOrder(id, dto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_PRODUCTION_ORDER", "Cập nhật đơn sản xuất cho: " + updatedProductionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedProductionOrder);
@@ -103,7 +103,7 @@ public class ProductionController {
     public ResponseEntity<?> deleteProductionOrder(HttpServletRequest request, @RequestParam Long id) {
         try {
             ProductionOrder deletedProductionOrder = productionOrderService.deleteProductionOrder(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DELETE_PRODUCTION_ORDER", "Xóa đơn sản xuất cho: " + deletedProductionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(deletedProductionOrder);

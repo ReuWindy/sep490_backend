@@ -58,7 +58,7 @@ public class NewController {
     public ResponseEntity<?> createNew(HttpServletRequest request, @RequestBody NewDto news) {
         try {
             News createdNew = newService.createNew(news);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_NEWS", "Tạo danh mục tin "+ news.getName() + " bởi người dùng: " + username);
                 return ResponseEntity.status(HttpStatus.CREATED).body(createdNew);
@@ -87,7 +87,7 @@ public class NewController {
     public ResponseEntity<?> disableNew(HttpServletRequest request, @PathVariable int id) {
         try {
             News news = newService.disableNews(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_NEWS", "Ẩn danh mục tin "+ news.getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).build();
@@ -101,7 +101,7 @@ public class NewController {
     public ResponseEntity<?> enableNew(HttpServletRequest request, @PathVariable int id) {
         try {
              News news = newService.enableNews(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_NEWS", "Kích hoạt danh mục tin "+ news.getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).build();
@@ -115,7 +115,7 @@ public class NewController {
     public ResponseEntity<?> updateNew(HttpServletRequest request, @PathVariable int id,@Valid @RequestBody NewDto news) {
         try{
             News updatedNew = newService.updateNew(id, news);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_NEWS", "Cập nhật danh mục tin "+ updatedNew.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).build();

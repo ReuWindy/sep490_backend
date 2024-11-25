@@ -77,7 +77,7 @@ public class SupplierController {
     public ResponseEntity<?> createSupplier(HttpServletRequest request, @RequestBody Supplier supplier) {
         try{
             Supplier createdSupplier = supplierService.createSupplier(supplier);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_SUPPLIER", "Tạo mới nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSupplier);
@@ -91,7 +91,7 @@ public class SupplierController {
     public ResponseEntity<?> updateSupplier(HttpServletRequest request, @RequestBody Supplier supplier) {
         try{
             Supplier updatedSupplier = supplierService.updateSupplier(supplier);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_SUPPLIER", "Cập nhật nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
                 return ResponseEntity.status(HttpStatus.OK).body(updatedSupplier);
@@ -128,7 +128,7 @@ public class SupplierController {
     public ResponseEntity<?> disableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.disableSupplier(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_SUPPLIER", "Ẩn nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
@@ -142,7 +142,7 @@ public class SupplierController {
     public ResponseEntity<?> enableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.enableSupplier(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_SUPPLIER", "Kích hoạt nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
