@@ -39,7 +39,7 @@ public class SecurityConfiguration {
                                                 "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**","/ws/info",
-                                                "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**");
+                                                "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {

@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
@@ -40,8 +39,8 @@ public class UserActivityService {
             String activity,
             Date startDate,
             Date endDate,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
+
         Specification<UserActivity> spec = Specification.where(UserActivitySpecification.hasUsername(username))
                 .and(UserActivitySpecification.hasActivity(activity))
                 .and(UserActivitySpecification.isBetweenDates(startDate, endDate));
