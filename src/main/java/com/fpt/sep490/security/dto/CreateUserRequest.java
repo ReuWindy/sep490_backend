@@ -1,11 +1,9 @@
 package com.fpt.sep490.security.dto;
 
 import com.fpt.sep490.Enum.SalaryType;
-import com.fpt.sep490.model.EmployeeRole;
 import com.fpt.sep490.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
@@ -30,7 +28,7 @@ public class CreateUserRequest {
     private String password;
     private boolean active = true;
     @NotBlank(message = "Số điện thoại không được bỏ trống")
-    @Pattern(regexp = "^(\\+84|0)[3-9]{1}[0-9]{8}$", message = "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số")
+    @Pattern(regexp = "^(\\+84|0)[3-9][0-9]{8}$", message = "Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số")
     private String phone;
     private String address;
     private Date dateOfBirth;

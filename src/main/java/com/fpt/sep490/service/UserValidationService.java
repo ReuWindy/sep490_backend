@@ -1,6 +1,5 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.exceptions.RegistrationException;
 import com.fpt.sep490.repository.UserRepository;
 import com.fpt.sep490.security.dto.RegistrationRequest;
 import com.fpt.sep490.security.dto.RegistrationResponse;
@@ -9,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,23 +34,23 @@ public class UserValidationService {
         final String password = registrationRequest.getPassword();
         final String phone = registrationRequest.getPhone();
 
-        if(!checkUsername(username)) {
+        if (!checkUsername(username)) {
             final String existsUsername = exceptionMessageAccessor.getMessage(null, USERNAME_ALREADY_EXISTS);
             registrationResponses.add(new RegistrationResponse(existsUsername));
         }
 
-        if(!checkEmail(email)){
+        if (!checkEmail(email)) {
             final String existsEmail = exceptionMessageAccessor.getMessage(null, EMAIL_ALREADY_EXISTS);
             registrationResponses.add(new RegistrationResponse(existsEmail));
         }
 
-        if(!checkPassword(password)) {
+        if (!checkPassword(password)) {
             final String invalidPassword = exceptionMessageAccessor.getMessage(null, PASSWORD_INVALID);
             registrationResponses.add(new RegistrationResponse(invalidPassword));
         }
 
         StringJoiner joiner = new StringJoiner(", ");
-        for(RegistrationResponse registrationResponse : registrationResponses) {
+        for (RegistrationResponse registrationResponse : registrationResponses) {
             joiner.add(registrationResponse.getMessage());
         }
         String allError = joiner.toString();

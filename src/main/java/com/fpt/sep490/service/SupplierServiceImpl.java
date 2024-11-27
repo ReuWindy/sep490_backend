@@ -1,34 +1,25 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Supplier;
-import com.fpt.sep490.model.SupplierProduct;
-import com.fpt.sep490.repository.SupplierProductRepository;
 import com.fpt.sep490.repository.SupplierRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class SupplierServiceImpl implements SupplierService{
+public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
-    private final SupplierProductRepository supplierProductRepository;
-    private final DataExporterService dataExporterService;
 
-    public SupplierServiceImpl(SupplierRepository supplierRepository, SupplierProductRepository supplierProductRepository, DataExporterService dataExporterService){
+    public SupplierServiceImpl(SupplierRepository supplierRepository) {
         this.supplierRepository = supplierRepository;
-        this.supplierProductRepository = supplierProductRepository;
-        this.dataExporterService = dataExporterService;
     }
 
     @Override
@@ -89,7 +80,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier updateSupplier(Supplier supplier) {
         Supplier existingSupplier = supplierRepository.findById(supplier.getId()).orElse(null);
-        if(existingSupplier != null){
+        if (existingSupplier != null) {
             if (supplier.getName().isBlank()) {
                 throw new RuntimeException("Tên nhà cung cấp không được để trống");
             }
@@ -152,27 +143,27 @@ public class SupplierServiceImpl implements SupplierService{
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void disableSupplierAndReassignProducts(Long supplierId, Long defaultSupplierId) {
-           Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                   .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
-           Supplier defaultSupplier = supplierRepository.findById(defaultSupplierId)
-                   .orElseGet(()-> {
-                       Supplier newDefaultSupplier = new Supplier();
-                       newDefaultSupplier.setName("Default Supplier");
-                       return supplierRepository.save(newDefaultSupplier);
-                   });
-           supplierProductRepository.findBySupplierId(supplierId)
-                   .stream()
-                   .peek(sp -> sp.setSupplier(defaultSupplier))
-                   .forEach(supplierProductRepository::save);
-           supplierToDisable.setActive(!supplierToDisable.isActive());
-    }
+//    @Transactional
+//    public void disableSupplierAndReassignProducts(Long supplierId, Long defaultSupplierId) {
+//           Supplier supplierToDisable = supplierRepository.findById(supplierId)
+//                   .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+//           Supplier defaultSupplier = supplierRepository.findById(defaultSupplierId)
+//                   .orElseGet(()-> {
+//                       Supplier newDefaultSupplier = new Supplier();
+//                       newDefaultSupplier.setName("Default Supplier");
+//                       return supplierRepository.save(newDefaultSupplier);
+//                   });
+//           supplierProductRepository.findBySupplierId(supplierId)
+//                   .stream()
+//                   .peek(sp -> sp.setSupplier(defaultSupplier))
+//                   .forEach(supplierProductRepository::save);
+//           supplierToDisable.setActive(!supplierToDisable.isActive());
+//    }
 
     @Override
     public Supplier disableSupplier(Long supplierId) {
         Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy nhà cung cấp"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToDisable.setActive(false);
         return supplierToDisable;
     }
@@ -180,7 +171,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier enableSupplier(Long supplierId) {
         Supplier supplierToEnable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy nhà cung cấp"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToEnable.setActive(true);
         return supplierToEnable;
     }

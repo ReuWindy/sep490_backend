@@ -13,17 +13,22 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductWareHouseRepository extends JpaRepository<ProductWarehouse, Long> {
-    List<ProductWarehouse> findByProductId(long productId);
+
     @Query("SELECT pw.product FROM ProductWarehouse pw WHERE pw.warehouse.id = :warehouseId")
     List<Product> findProductsByWarehouseId(@Param("warehouseId") Long warehouseId);
 
     @Query("SELECT pw FROM ProductWarehouse pw WHERE pw.warehouse.id = :warehouseId")
     List<ProductWarehouse> findProductWarehousesByWarehouseId(@Param("warehouseId") Long warehouseId);
 
-    Page<ProductWarehouse> findAll(Specification<ProductWarehouse> specification,Pageable pageable);
+    Page<ProductWarehouse> findAll(Specification<ProductWarehouse> specification, Pageable pageable);
+
     Optional<ProductWarehouse> findByProductAndUnitAndWeightPerUnitAndWarehouseId(Product product, String unit, double weightPerUnit, Long warehouseId);
+
     Optional<ProductWarehouse> findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(String productName, String unit, double weightPerUnit, Long warehouseId);
+
     Optional<ProductWarehouse> findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(long productId, long warehouseId, String unit, double weightPerUnit);
+
     List<ProductWarehouse> findByProductIdAndUnitAndWeightPerUnit(long productId, String unit, double weightPerUnit);
-    Optional<ProductWarehouse> findByProductIdAndWeightPerUnitAndUnit(long productId, double weightPerUnit,String unit);
+
+    Optional<ProductWarehouse> findByProductIdAndWeightPerUnitAndUnit(long productId, double weightPerUnit, String unit);
 }

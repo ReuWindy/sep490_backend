@@ -3,7 +3,6 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.InventoryDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Inventory;
-import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.InventoryService;
 import com.fpt.sep490.service.UserActivityService;
@@ -64,7 +63,7 @@ public class InventoryController {
         Inventory inventory = inventoryService.deleteInventory(id);
         String token = jwtTokenManager.resolveToken(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
-        userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete inventory: "+ inventory.getId() +" by "+ username);
+        userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete inventory: " + inventory.getId() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted receipt");
     }
 

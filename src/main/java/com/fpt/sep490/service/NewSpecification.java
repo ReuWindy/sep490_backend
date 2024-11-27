@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NewSpecification {
-    public static Specification<News> hasNameOrTypeOrCreatedBy(String name, String type, String username, Boolean status){
+    public static Specification<News> hasNameOrTypeOrCreatedBy(String name, String type, String username, Boolean status) {
         return (root, query, criteriaBuilder) -> {
 
             List<Predicate> predicates = new ArrayList<>();

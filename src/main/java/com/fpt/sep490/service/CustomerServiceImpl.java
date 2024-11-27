@@ -4,7 +4,6 @@ import com.fpt.sep490.dto.CustomerDto;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
-import com.fpt.sep490.repository.CustomerRepository;
 import com.fpt.sep490.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,11 +21,9 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-    private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, UserRepository userRepository) {
-        this.customerRepository = customerRepository;
+    public CustomerServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -34,8 +31,7 @@ public class CustomerServiceImpl implements CustomerService {
     public List<CustomerDto> getAllCustomers() {
         List<User> users = userRepository.findAllByUserType(UserType.ROLE_CUSTOMER);
         return users.stream().map(user -> {
-            if (user instanceof Customer) {
-                Customer customer = (Customer) user;
+            if (user instanceof Customer customer) {
                 return convertCustomerToDTO(customer);
             } else {
                 return convertUserToCustomerDTO(user);
@@ -48,8 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
         Optional<User> customerOptional = userRepository.findById((long) id);
         if (customerOptional.isPresent()) {
             User user = customerOptional.get();
-            if (user instanceof Customer) {
-                Customer customer = (Customer) user;
+            if (user instanceof Customer customer) {
                 if (customer.getContracts() != null) {
                     ((Customer) user).setContracts(customer.getContracts());
                 } else {
@@ -90,7 +85,7 @@ public class CustomerServiceImpl implements CustomerService {
                 throw new RuntimeException("Số điện thoại không được để trống");
             }
             String phoneNumber = existingCustomer.getPhone();
-            String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+            String phoneNumberRegex = "^(\\+84|0)[3-9][0-9]{8}$";
 
             Pattern phonePattern = Pattern.compile(phoneNumberRegex);
             if (!phonePattern.matcher(phoneNumber).matches()) {
@@ -163,23 +158,4 @@ public class CustomerServiceImpl implements CustomerService {
         dto.setContracts(new HashSet<>());
         return dto;
     }
-
-//    private CustomerDto convertToDTO(Customer customer) {
-//        double totalContractValue = 0;
-//        if(customer.getContracts() != null && !customer.getContracts().isEmpty()) {
-//            totalContractValue = customer.getContracts().stream()
-//                    .mapToDouble(contract -> contract.getAmount())
-//                    .sum();
-//        }
-//
-//        return new CustomerDto(
-//                customer.getId(),
-//                customer.getName(),
-//                customer.getPhone(),
-//                customer.getEmail(),
-//                customer.getAddress(),
-//                totalContractValue
-//        );
-//    }
-
 }

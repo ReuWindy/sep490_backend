@@ -11,4 +11,5 @@ import java.util.Set;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Set<Transaction> findByReceiptVoucher_Id(long receiptId);
 
-    List<Transaction> findAllByTransactionDateBetweenAndStatus(Date startDate, Date endDate, StatusEnum status);}
+    List<Transaction> findAllByTransactionDateBetweenAndStatus(Date startDate, Date endDate, StatusEnum status);
+}

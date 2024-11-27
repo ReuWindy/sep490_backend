@@ -1,16 +1,10 @@
 package com.fpt.sep490.controller;
 
-import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.dto.ReceiptVoucherDto;
 import com.fpt.sep490.dto.ReceiptVoucherExtendDto;
-import com.fpt.sep490.dto.WarehouseReceiptDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Batch;
 import com.fpt.sep490.model.ReceiptVoucher;
-import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ReceiptVoucherService;
-import com.fpt.sep490.service.UserActivityService;
-import com.fpt.sep490.service.WarehouseReceiptService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -28,14 +22,10 @@ import java.util.Date;
 @RequestMapping("/ReceiptVoucher")
 public class ReceiptVoucherController {
     private final ReceiptVoucherService receiptVoucherService;
-    private final JwtTokenManager jwtTokenManager;
-    private final UserActivityService userActivityService;
     private final ModelMapper modelMapper;
 
-    public ReceiptVoucherController(ReceiptVoucherService receiptVoucherService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, ModelMapper modelMapper) {
+    public ReceiptVoucherController(ReceiptVoucherService receiptVoucherService, ModelMapper modelMapper) {
         this.receiptVoucherService = receiptVoucherService;
-        this.jwtTokenManager = jwtTokenManager;
-        this.userActivityService = userActivityService;
         this.modelMapper = modelMapper;
     }
 

@@ -36,6 +36,7 @@ public class ProductSpecification {
             }
 
             List<Order> orders = getSortByField(root, criteriaBuilder, priceOrder, sortDirection);
+            assert query != null;
             query.orderBy(orders);
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -76,11 +77,7 @@ public class ProductSpecification {
             orders.add(criteriaBuilder.desc(root.get("createAt")));
         }
         if (orders.isEmpty()) {
-            if (sortDirection != null && sortDirection.equalsIgnoreCase("asc")) {
-                orders.add(criteriaBuilder.asc(root.get("createAt")));
-            } else {
-                orders.add(criteriaBuilder.desc(root.get("createAt")));
-            }
+            orders.add(criteriaBuilder.desc(root.get("createAt")));
         }
         return orders;
     }

@@ -1,9 +1,7 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Warehouse;
-import com.fpt.sep490.repository.WarehouseRepository;
 import com.fpt.sep490.service.WarehouseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,24 +14,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/warehouses")
 public class WarehouseController {
-
     private final WarehouseService warehouseService;
 
-    public WarehouseController(WarehouseService warehouseService){
+    public WarehouseController(WarehouseService warehouseService) {
         this.warehouseService = warehouseService;
     }
 
     @GetMapping("All")
-    public ResponseEntity<?> getAllWarehouses(){
+    public ResponseEntity<?> getAllWarehouses() {
         List<Warehouse> warehouses = warehouseService.getAllWarehouse();
-        if(!warehouses.isEmpty()){
+        if (!warehouses.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(warehouses);
         }
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getWarehouseById(@PathVariable int id){
+    public ResponseEntity<?> getWarehouseById(@PathVariable int id) {
         Warehouse warehouse = warehouseService.getWarehouseById(id);
         if (warehouse != null) {
             return ResponseEntity.status(HttpStatus.OK).body(warehouse);

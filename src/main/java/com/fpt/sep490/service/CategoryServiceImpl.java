@@ -5,7 +5,6 @@ import com.fpt.sep490.dto.TopCategoryDto;
 import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.OrderDetail;
-import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.repository.CategoryRepository;
 import com.fpt.sep490.repository.OrderDetailRepository;
 import org.springframework.data.domain.Page;
@@ -23,6 +22,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final OrderDetailRepository orderDetailRepository;
+
     public CategoryServiceImpl(CategoryRepository categoryRepository, OrderDetailRepository orderDetailRepository) {
         this.categoryRepository = categoryRepository;
         this.orderDetailRepository = orderDetailRepository;
@@ -84,13 +84,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Page<Category> getCategoriesByFilter(String name,Boolean status, int pageNumber, int pageSize) {
+    public Page<Category> getCategoriesByFilter(String name, Boolean status, int pageNumber, int pageSize) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
             Specification<Category> specification = CategorySpecification.hasNameAndStatus(name, status);
             return categoryRepository.findAll(specification, pageable);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -98,7 +97,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category enableCategory(Long id) {
         Category categoryToEnable = categoryRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy danh mục"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
         categoryToEnable.setActive(true);
         return categoryToEnable;
     }
@@ -106,7 +105,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category disableCategory(Long id) {
         Category categoryToDisable = categoryRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy danh mục"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
         categoryToDisable.setActive(false);
         return categoryToDisable;
     }

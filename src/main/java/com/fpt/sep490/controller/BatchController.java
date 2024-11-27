@@ -68,8 +68,7 @@ public class BatchController {
         Batch batch = batchService.updateBatchStatus(id, status);
         String token = jwtTokenManager.resolveToken(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
-        userActivityService.logAndNotifyAdmin(username, "UPDATE_BATCH_STATUS", "Update status for batch: "+ batch.getBatchCode() +" by "+ username);
+        userActivityService.logAndNotifyAdmin(username, "UPDATE_BATCH_STATUS", "Update status for batch: " + batch.getBatchCode() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
-

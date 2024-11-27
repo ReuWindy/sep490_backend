@@ -4,7 +4,6 @@ import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.Product;
-import com.fpt.sep490.repository.ProductRepository;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.UserActivityService;
@@ -29,13 +28,12 @@ import java.util.List;
 @Validated
 public class ProductController {
     private final ProductService productService;
-    private final ProductRepository productRepository;
+
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
 
-    public ProductController(ProductService productService, ProductRepository productRepository, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
+    public ProductController(ProductService productService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
         this.productService = productService;
-        this.productRepository = productRepository;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
     }
@@ -205,7 +203,6 @@ public class ProductController {
 
     @GetMapping("/admin/products/customer")
     public ResponseEntity<PagedModel<EntityModel<ProductDto>>> customerProductPage(
-            HttpServletRequest request,
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String supplierName,

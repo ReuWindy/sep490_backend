@@ -7,18 +7,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
-import java.util.Set;
 
 public interface FinishedProductService {
     List<FinishedProduct> getAllFinishedProduct();
+
     FinishedProduct getFinishedProductById(long id);
-    Set<FinishedProduct> getFinishedProductForProduction(long productId);
+
     Page<FinishedProductView> getPagedFinishedProducts(int page, int size, Specification<FinishedProduct> spec);
 
     FinishedProduct createFinishedProduct(FinishedProductDto dto);
-    FinishedProduct updateFinishedProduct(long id, FinishedProductDto dto, Boolean isActive);
-    FinishedProduct deleteFinishedProduct(long id);
 
+    FinishedProduct updateFinishedProduct(long id, FinishedProductDto dto, Boolean isActive);
+
+    FinishedProduct deleteFinishedProduct(long id);
 
     boolean CheckSumProductProportion(long productId);
 }

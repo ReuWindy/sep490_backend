@@ -1,5 +1,6 @@
 package com.fpt.sep490.exceptions;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,7 +19,7 @@ public class CustomExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, Object> response = new HashMap<>();
         List<String> message = ex.getBindingResult().getAllErrors().stream()
-                .map(error -> error.getDefaultMessage())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
         response.put("message", message);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

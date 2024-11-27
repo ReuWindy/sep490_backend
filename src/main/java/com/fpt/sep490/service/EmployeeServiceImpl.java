@@ -27,16 +27,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
-    private final SalaryDetailRepository salaryDetailRepository;
     private final EmployeeCustomRepository employeeCustomRepository;
 
-    private final RoleRepository roleRepository;
-
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository, EmployeeCustomRepository employeeCustomRepository) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, EmployeeCustomRepository employeeCustomRepository) {
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
-        this.roleRepository = roleRepository;
-        this.salaryDetailRepository = salaryDetailRepository;
         this.employeeCustomRepository = employeeCustomRepository;
     }
 
@@ -104,10 +99,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         return null;
     }
 
-    @Override
-    public Employee deleteEmployee(int id) {
-        return null;
-    }
+//    @Override
+//    public Employee deleteEmployee(int id) {
+//        return null;
+//    }
 
     @Override
     public List<EmployeeWithDayActiveDTO> getEmployees(String role) {

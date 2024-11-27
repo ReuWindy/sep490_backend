@@ -1,10 +1,8 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.ContractDto;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Contract;
 import com.fpt.sep490.model.Customer;
-import com.fpt.sep490.model.User;
 import com.fpt.sep490.repository.ContractRepository;
 import com.fpt.sep490.repository.CustomerRepository;
 import com.fpt.sep490.utils.ContractNumberGenerator;
@@ -19,11 +17,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ContractServiceImpl implements ContractService{
+public class ContractServiceImpl implements ContractService {
     private final ContractRepository contractRepository;
     private final CustomerRepository customerRepository;
 
-    public ContractServiceImpl(ContractRepository contractRepository, CustomerRepository customerRepository){
+    public ContractServiceImpl(ContractRepository contractRepository, CustomerRepository customerRepository) {
         this.contractRepository = contractRepository;
         this.customerRepository = customerRepository;
     }
@@ -63,7 +61,7 @@ public class ContractServiceImpl implements ContractService{
     @Override
     public Contract updateContract(ContractDto contract) {
         Contract existingContract = contractRepository.findById(contract.getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-        if(existingContract != null){
+        if (existingContract != null) {
             existingContract.setImageFilePath(contract.getImageFilePath());
             if (contract.getConfirmationDate() == null) {
                 existingContract.setConfirmationDate(new Date());

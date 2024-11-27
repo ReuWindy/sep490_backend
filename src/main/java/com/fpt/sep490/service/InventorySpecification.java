@@ -1,7 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Inventory;
-import com.fpt.sep490.model.WarehouseReceipt;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 

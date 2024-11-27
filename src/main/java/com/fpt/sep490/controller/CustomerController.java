@@ -9,9 +9,9 @@ import com.fpt.sep490.service.CustomerService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,16 +28,16 @@ public class CustomerController {
     private final UserActivityService userActivityService;
     private final JwtTokenManager jwtTokenManager;
 
-    public CustomerController (CustomerService customerService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager){
+    public CustomerController(CustomerService customerService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager) {
         this.customerService = customerService;
         this.userActivityService = userActivityService;
         this.jwtTokenManager = jwtTokenManager;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllCustomerWithContractPrice(){
+    public ResponseEntity<?> getAllCustomerWithContractPrice() {
         List<CustomerDto> customers = customerService.getAllCustomers();
-        if(!customers.isEmpty()){
+        if (!customers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(customers);
         }
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
@@ -50,7 +50,7 @@ public class CustomerController {
             @RequestParam(required = false) String phone,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
-            PagedResourcesAssembler<User> pagedResourcesAssembler){
+            PagedResourcesAssembler<User> pagedResourcesAssembler) {
         Page<User> customerPage = customerService.getCustomerByFilter(fullName, email, phone, pageNumber, pageSize);
         PagedModel<EntityModel<User>> pagedModel = pagedResourcesAssembler.toModel(customerPage);
 
@@ -58,7 +58,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCustomerById(@PathVariable int id){
+    public ResponseEntity<?> getCustomerById(@PathVariable int id) {
         User customer = customerService.getCustomerById(id);
         if (customer != null) {
             return ResponseEntity.status(HttpStatus.OK).body(customer);
@@ -75,11 +75,11 @@ public class CustomerController {
     @PostMapping("/updateCustomer")
     public ResponseEntity<?> updateCustomer(@RequestBody User user) {
         User existingCustomer = customerService.updateCustomer(user);
-        if(existingCustomer != null){
+        if (existingCustomer != null) {
             return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST,LocalDateTime.now());
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
