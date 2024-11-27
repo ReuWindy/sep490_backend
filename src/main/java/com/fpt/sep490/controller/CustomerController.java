@@ -4,7 +4,10 @@ import com.fpt.sep490.dto.CustomerDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.CustomerService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -22,9 +25,13 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final UserActivityService userActivityService;
+    private final JwtTokenManager jwtTokenManager;
 
-    public CustomerController (CustomerService customerService){
+    public CustomerController (CustomerService customerService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager){
         this.customerService = customerService;
+        this.userActivityService = userActivityService;
+        this.jwtTokenManager = jwtTokenManager;
     }
 
     @GetMapping("/all")
@@ -66,8 +73,8 @@ public class CustomerController {
     }
 
     @PostMapping("/updateCustomer")
-    public ResponseEntity<?> updateCustomer(@RequestBody Customer customer) {
-        User existingCustomer = customerService.updateCustomer(customer);
+    public ResponseEntity<?> updateCustomer(@RequestBody User user) {
+        User existingCustomer = customerService.updateCustomer(user);
         if(existingCustomer != null){
             return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
         }
@@ -75,4 +82,31 @@ public class CustomerController {
        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> disableCustomer(HttpServletRequest request, @PathVariable long id) {
+        try {
+            User customer = customerService.deleteCustomer(id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "DISABLE_CUSTOMER", "Ẩn khách hàng " + customer.getFullName() + " bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(customer);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/enable/{id}")
+    public ResponseEntity<?> enableCustomer(HttpServletRequest request, @PathVariable long id) {
+        try {
+            User customer = customerService.enableCustomer(id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "ENABLE_CUSTOMER", "Khôi phục khách hàng " + customer.getFullName() + " bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(customer);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
 }

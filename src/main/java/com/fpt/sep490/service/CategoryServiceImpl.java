@@ -40,6 +40,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category createCategory(Category category) {
         Category newCategory = new Category();
+        if (category.getName().isBlank()) {
+            throw new RuntimeException("Tên danh mục không được trống");
+        }
         newCategory.setName(category.getName());
         newCategory.setDescription(category.getDescription());
         newCategory.setActive(true);
@@ -49,8 +52,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category updateCategory(Category category) {
-        Category existingCategory = categoryRepository.findById(category.getId()).orElse(null);
+        Category existingCategory = categoryRepository.findById(category.getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
         if (existingCategory != null) {
+            if (category.getName().isBlank()) {
+                throw new RuntimeException("Tên danh mục không được trống");
+            }
             existingCategory.setName(category.getName());
             existingCategory.setDescription(category.getDescription());
             categoryRepository.save(existingCategory);
@@ -84,7 +90,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category enableCategory(Long id) {
         Category categoryToEnable = categoryRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy danh mục"));
         categoryToEnable.setActive(true);
         return categoryToEnable;
     }
@@ -92,7 +98,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category disableCategory(Long id) {
         Category categoryToDisable = categoryRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy danh mục"));
         categoryToDisable.setActive(false);
         return categoryToDisable;
     }

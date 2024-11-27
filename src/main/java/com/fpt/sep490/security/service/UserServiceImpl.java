@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Password cannot be null or empty");
             }
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Lỗi thiết lập bảng giá!"));
             user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
@@ -158,10 +158,8 @@ public class UserServiceImpl implements UserService {
         userValidationService.validateUser(registrationRequest);
         if (userType == UserType.ROLE_EMPLOYEE) {
 
-            // find employee role by id
             EmployeeRole employeeRole = employeeRoleRepository.findById(createUserRequest.getEmployeeRoleId()).orElseThrow(() -> new RuntimeException("Employee Role not found"));
 
-            // set attributes of salary detail
             SalaryDetail salaryDetail = new SalaryDetail();
             if (employeeRole.getRoleName().equalsIgnoreCase("PORTER_EMPLOYEE")) {
                 salaryDetail.setSalaryType(SalaryType.DAILY);

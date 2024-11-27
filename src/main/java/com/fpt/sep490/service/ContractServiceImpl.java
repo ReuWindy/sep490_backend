@@ -62,7 +62,7 @@ public class ContractServiceImpl implements ContractService{
 
     @Override
     public Contract updateContract(ContractDto contract) {
-        Contract existingContract = contractRepository.findById(contract.getId()).orElse(null);
+        Contract existingContract = contractRepository.findById(contract.getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
         if(existingContract != null){
             existingContract.setImageFilePath(contract.getImageFilePath());
             if (contract.getConfirmationDate() == null) {

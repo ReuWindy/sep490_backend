@@ -16,9 +16,9 @@ public interface PriceService {
     List<Price> findAllPrices();
 
     Page<Price> getPriceByFilter(String name, int pageNumber, int pageSize);
+    Price UpdatePrice(PriceRequestDto request);
     Price AddPrice(PriceRequestDto request);
-
-    Customer updateCustomerPrice(CustomerPriceDto customerPriceDto);
+    List<Customer> updateCustomerPrice(CustomerPriceDto customerPriceDto);
 
     List<ProductPrice> updateProductPrice(ProductPriceRequestDto productPriceDto);
 

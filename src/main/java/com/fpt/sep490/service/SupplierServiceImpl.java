@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +51,32 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier createSupplier(Supplier supplier) {
         Supplier newSupplier = new Supplier();
+        if (supplier.getName().isBlank()) {
+            throw new RuntimeException("Tên nhà cung cấp không được để trống");
+        }
+        if (supplier.getContactPerson().isBlank()) {
+            throw new RuntimeException("Tên người đại diện không được để trống");
+        }
+        if (supplier.getEmail().isBlank()) {
+            throw new RuntimeException("Địa chỉ email không được để trống");
+        }
+        String email = supplier.getEmail();
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+        Pattern pattern = Pattern.compile(emailRegex);
+        if (!pattern.matcher(email).matches()) {
+            throw new RuntimeException("Địa chỉ email không hợp lệ");
+        }
+        if (supplier.getPhoneNumber().isBlank()) {
+            throw new RuntimeException("Số điện thoại không được để trống");
+        }
+        String phoneNumber = supplier.getPhoneNumber();
+        String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+
+        Pattern phonePattern = Pattern.compile(phoneNumberRegex);
+        if (!phonePattern.matcher(phoneNumber).matches()) {
+            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
+        }
         newSupplier.setName(supplier.getName());
         newSupplier.setContactPerson(supplier.getContactPerson());
         newSupplier.setEmail(supplier.getEmail());
@@ -63,6 +90,32 @@ public class SupplierServiceImpl implements SupplierService{
     public Supplier updateSupplier(Supplier supplier) {
         Supplier existingSupplier = supplierRepository.findById(supplier.getId()).orElse(null);
         if(existingSupplier != null){
+            if (supplier.getName().isBlank()) {
+                throw new RuntimeException("Tên nhà cung cấp không được để trống");
+            }
+            if (supplier.getContactPerson().isBlank()) {
+                throw new RuntimeException("Tên người đại diện không được để trống");
+            }
+            if (supplier.getEmail().isBlank()) {
+                throw new RuntimeException("Địa chỉ email không được để trống");
+            }
+            String email = supplier.getEmail();
+            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+            Pattern pattern = Pattern.compile(emailRegex);
+            if (!pattern.matcher(email).matches()) {
+                throw new RuntimeException("Địa chỉ email không hợp lệ");
+            }
+            if (supplier.getPhoneNumber().isBlank()) {
+                throw new RuntimeException("Số điện thoại không được để trống");
+            }
+            String phoneNumber = supplier.getPhoneNumber();
+            String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+
+            Pattern phonePattern = Pattern.compile(phoneNumberRegex);
+            if (!phonePattern.matcher(phoneNumber).matches()) {
+                throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
+            }
             existingSupplier.setName(supplier.getName());
             existingSupplier.setContactPerson(supplier.getContactPerson());
             existingSupplier.setEmail(supplier.getEmail());
@@ -119,7 +172,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier disableSupplier(Long supplierId) {
         Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToDisable.setActive(false);
         return supplierToDisable;
     }
@@ -127,7 +180,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier enableSupplier(Long supplierId) {
         Supplier supplierToEnable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToEnable.setActive(true);
         return supplierToEnable;
     }
