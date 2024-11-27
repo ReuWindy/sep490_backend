@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Supplier;
@@ -61,13 +62,24 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/getAllActive")
     public ResponseEntity<?> getAllActiveSupplierNames() {
         List<String> resultList = categoryService.getAllCategoryNames();
         if(!resultList.isEmpty()){
             return ResponseEntity.status(HttpStatus.OK).body(resultList);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
+    }
+
+    @GetMapping("/top5")
+    public ResponseEntity<?> getTopCategoriesWithTotalAmount(@RequestParam(defaultValue = "5") int limit) {
+        try {
+            TopCategoryResponseDTO response = categoryService.getTopCategoriesWithTotalAmount(limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     @PostMapping("/createCategory")
