@@ -63,7 +63,7 @@ public class GetExpenseReportTests {
     @Test
     void testGetExpenseReportByWeek() {
 
-        when(expenseVoucherRepository.findWeeklyExpenseByYear(any())).thenReturn(mockResults);
+        when(expenseVoucherRepository.findDailyExpenseByWeek(any())).thenReturn(mockResults);
 
         Date date = new Date(); // Ngày hiện tại
         List<ExpenseReportDto> report = expenseVoucherService.getExpenseReport(date, "week");

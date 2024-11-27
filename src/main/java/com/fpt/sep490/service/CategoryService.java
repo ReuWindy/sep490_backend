@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.model.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,5 @@ public interface CategoryService {
     Page<Category> getCategoriesByFilter(String name,Boolean status, int pageNumber, int pageSize);
     Category enableCategory(Long id);
     Category disableCategory(Long id);
+    TopCategoryResponseDTO getTopCategoriesWithTotalAmount(int limit);
 }

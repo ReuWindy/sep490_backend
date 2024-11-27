@@ -8,6 +8,7 @@ import com.fpt.sep490.model.Transaction;
 import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import com.fpt.sep490.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -25,6 +26,7 @@ public class TransactionServiceImpl implements TransactionService{
         this.transactionRepository = transactionRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
     }
+    @Transactional
     @Override
     public Transaction updateTransaction(TransactionDto transactionDto) {
         Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElseThrow(()->new RuntimeException("Transaction Not Found !"));
@@ -32,33 +34,33 @@ public class TransactionServiceImpl implements TransactionService{
         Date currentDate = new Date();
         long threeDaysAgoMillis = currentDate.getTime() - (3L * 24 * 60 * 60 * 1000);
         if((transactionDto.getTransactionDate().getTime() > threeDaysAgoMillis)) {
-            if(updatedTransaction != null) {
-                if(transactionDto.getAmount() <= 0){
+            if(transactionDto.getAmount() <= 0){
                     throw new RuntimeException("Số tiền giao dịch phải là số dương");
-                }
-                updatedTransaction.setAmount(transactionDto.getAmount());
-                updatedTransaction.setTransactionDate(transactionDto.getTransactionDate());
-                if(transactionDto.getPaymentMethod() == null){
-                    throw new RuntimeException("Phương thức thanh toán không được để trống");
-                }
-                updatedTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
-                transactionRepository.save(updatedTransaction);
+            }
+            if(transactionDto.getPaymentMethod() == null){
+                throw new RuntimeException("Phương thức thanh toán không được để trống");
+            }
+            // calculate difference of new and old amount of transaction
+            double difference = transactionDto.getAmount() - updatedTransaction.getAmount();
 
-                double newPaidAmount = receiptVoucher.getPaidAmount() + transactionDto.getAmount();
-                double newRemainAmount = receiptVoucher.getTotalAmount() - newPaidAmount;
-                receiptVoucher.setPaidAmount(newPaidAmount);
-                receiptVoucher.setRemainAmount(newRemainAmount);
-                try {
-                    receiptVoucherRepository.save(receiptVoucher);
-                    return updatedTransaction;
-                }catch (Exception e){
-                    throw new RuntimeException("Xảy ra lỗi khi lưu giao dịch !");
-                }
+            // update attribute of transaction
+            updatedTransaction.setAmount(transactionDto.getAmount());
+            updatedTransaction.setTransactionDate(transactionDto.getTransactionDate());
+            updatedTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
+
+            // update attribute of receipt voucher
+            receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + difference);
+            receiptVoucher.setRemainAmount(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount());
+            try {
+                transactionRepository.save(updatedTransaction);
+                receiptVoucherRepository.save(receiptVoucher);
+                return updatedTransaction;
+            }catch (Exception e){
+                throw new RuntimeException("Xảy ra lỗi khi lưu giao dịch !");
             }
         }else {
             throw new RuntimeException("Giao dịch đã quá hạn và không thể cập nhật.");
         }
-        return null;
     }
 
     @Override
@@ -72,39 +74,42 @@ public class TransactionServiceImpl implements TransactionService{
         return transactionRepository.findAll();
     }
 
+    @Transactional
     @Override
     public Transaction createTransactionByAdmin(TransactionDto transactionDto) {
-        Transaction createdTransaction = new Transaction();
         ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()-> new RuntimeException("ReceiptVoucher Not Found !"));
-        if (receiptVoucher != null) {
-            receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + transactionDto.getAmount());
-            receiptVoucher.setRemainAmount(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount());
-            createdTransaction.setReceiptVoucher(receiptVoucher);
-            if(transactionDto.getAmount() <= 0){
-                throw new RuntimeException("Số tiền giao dịch phải là số dương");
-            }
-            createdTransaction.setAmount(transactionDto.getAmount());
-            createdTransaction.setTransactionDate(new Date());
-            if(transactionDto.getPaymentMethod() == null){
-                throw new RuntimeException("Phương thức thanh toán không được để trống");
-            }
-            createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
-            createdTransaction.setStatus(StatusEnum.COMPLETED);
-            transactionRepository.save(createdTransaction);
+        Transaction createdTransaction = new Transaction();
 
-            double newPaidAmount = receiptVoucher.getPaidAmount() + transactionDto.getAmount();
-            double newRemainAmount = receiptVoucher.getTotalAmount() - newPaidAmount;
-            receiptVoucher.setPaidAmount(newPaidAmount);
-            receiptVoucher.setRemainAmount(newRemainAmount);
-            try {
-                receiptVoucherRepository.save(receiptVoucher);
-                return createdTransaction;
-            }catch (Exception e){
-                throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới");
-            }
+        // check if amount of transaction is negative
+        if(transactionDto.getAmount() <= 0){
+            throw new RuntimeException("Số tiền giao dịch phải là số dương");
         }
+        // check if amount of transaction is more than totalAmount
+        if(transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount()){
+            throw new RuntimeException("Số tiền thanh toán vượt quá số tiền cần thanh toán");
+        }
+        // set up newPaidAmount and new RemainAmount of receipt voucher
+        receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + transactionDto.getAmount());
+        receiptVoucher.setRemainAmount(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount());
 
-        return null;
+        //set up attribute of transaction
+        createdTransaction.setReceiptVoucher(receiptVoucher);
+        createdTransaction.setAmount(transactionDto.getAmount());
+        createdTransaction.setTransactionDate(new Date());
+        if(transactionDto.getPaymentMethod() == null){
+            throw new RuntimeException("Phương thức thanh toán không được để trống");
+        }
+        createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
+        createdTransaction.setStatus(StatusEnum.COMPLETED);
+
+        // save transaction and receiptVoucher
+        try {
+            transactionRepository.save(createdTransaction);
+            receiptVoucherRepository.save(receiptVoucher);
+            return createdTransaction;
+        }catch (Exception e){
+                throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới :" + e.getMessage());
+        }
     }
 
     @Override

@@ -1,14 +1,20 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.StatusEnum;
+import com.fpt.sep490.dto.TopCategoryDto;
+import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.model.Category;
+import com.fpt.sep490.model.OrderDetail;
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.repository.CategoryRepository;
+import com.fpt.sep490.repository.OrderDetailRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,8 +22,10 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    private final OrderDetailRepository orderDetailRepository;
+    public CategoryServiceImpl(CategoryRepository categoryRepository, OrderDetailRepository orderDetailRepository) {
         this.categoryRepository = categoryRepository;
+        this.orderDetailRepository = orderDetailRepository;
     }
 
     @Override
@@ -101,5 +109,39 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy danh mục"));
         categoryToDisable.setActive(false);
         return categoryToDisable;
+    }
+
+    @Override
+    public TopCategoryResponseDTO getTopCategoriesWithTotalAmount(int limit) {
+        List<TopCategoryDto> topCategories = orderDetailRepository.findAll().stream()
+                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED)
+                .collect(Collectors.groupingBy(
+                        od -> od.getProduct().getCategory().getName(),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> new TopCategoryDto(
+                                        list.get(0).getProduct().getCategory().getName(),
+                                        list.stream().map(OrderDetail::getOrder).distinct().count(),
+                                        list.stream().mapToLong(OrderDetail::getQuantity).sum()
+                                )
+                        )
+                ))
+                .values()
+                .stream()
+                .sorted(Comparator.comparingLong(TopCategoryDto::getTotalQuantity).reversed())
+                .limit(limit)
+                .toList();
+
+        double totalAmount = orderDetailRepository.findAll().stream()
+                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED)
+                .filter(od -> topCategories.stream()
+                        .map(TopCategoryDto::getCategoryName)
+                        .toList()
+                        .contains(od.getProduct().getCategory().getName()))
+                .mapToDouble(OrderDetail::getTotalPrice)
+                .sum();
+
+        return new TopCategoryResponseDTO(topCategories, totalAmount);
+
     }
 }
