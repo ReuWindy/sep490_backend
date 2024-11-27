@@ -75,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(productDto.getName(),
                 Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
 
-        if (existingProduct.isPresent()){
+        if (existingProduct.isPresent()) {
             throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
         }
 
@@ -87,13 +87,13 @@ public class ProductServiceImpl implements ProductService {
         product.setProductCode(RandomProductCodeGenerator.generateProductCode());
 
         Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
 
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp"));
 
         UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(productDto.getUnitOfMeasureId())
-                .orElseThrow(() -> new RuntimeException("Unit of Measure not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn vị"));
 
         product.setCategory(category);
         product.setSupplier(supplier);
@@ -103,13 +103,13 @@ public class ProductServiceImpl implements ProductService {
 
         if (productDto.getWarehouseId() != null) {
             Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
 
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
             product.setCreateAt(new Date());
-            product.setIsDeleted(false);
+            product.setIsDeleted(true);
 
             productWareHouseRepository.save(productWarehouse);
         }
@@ -189,7 +189,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm"));
         boolean exist = productRepository.existsByNameAndCategoryIdAndSupplierId(productDto.getId(), productDto.getName(), Long.valueOf(productDto.getCategoryId()), productDto.getSupplierId());
 
-        if (exist){
+        if (exist) {
             throw new RuntimeException("Lỗi:  Sản phẩm đã tồn tại");
         }
 
@@ -281,10 +281,14 @@ public class ProductServiceImpl implements ProductService {
                 productWarehouse.setWeight(batchProduct.getWeight());
                 productWarehouse.setUnit(batchProduct.getUnit());
                 productWarehouse.setProduct(batchProduct.getProduct());
+                Product product = productWarehouse.getProduct();
+                product.setImportPrice(productWarehouse.getImportPrice() / productWarehouse.getWeightPerUnit());
+                product.setIsDeleted(false);
 
                 Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
                 productWarehouse.setWarehouse(warehouse);
+                productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
             }
         }
@@ -472,8 +476,10 @@ public class ProductServiceImpl implements ProductService {
                 dto.setBatchCode(firstBatchProduct.getBatch().getBatchCode());
             }
         }
+        dto.setActive(product.getIsDeleted());
         dto.setImportDate(product.getCreateAt());
         dto.setPrice((long) product.getImportPrice());
+        dto.setUpdateAt(product.getUpdateAt());
         if (product.getProductWarehouses() != null && !product.getProductWarehouses().isEmpty()) {
             dto.setProductQuantity(String.valueOf(
                     product.getProductWarehouses().iterator().next().getQuantity()));
@@ -481,6 +487,18 @@ public class ProductServiceImpl implements ProductService {
         if (product.getSupplier() != null && product.getSupplier().isActive()) {
             dto.setSupplierName(product.getSupplier().getName());
         }
+        if (product.getCategory() != null && product.getCategory().getActive()) {
+            dto.setCategoryName(product.getCategory().getName());
+        }
+        List<ProductWarehouseDto> productWarehouseDtos = new ArrayList<>();
+        for (ProductWarehouse productWarehouse: product.getProductWarehouses()) {
+            ProductWarehouseDto productWarehouseDto = new ProductWarehouseDto();
+            productWarehouseDto.setQuantity(productWarehouse.getQuantity());
+            productWarehouseDto.setUnit(productWarehouse.getUnit());
+            productWarehouseDto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
+            productWarehouseDtos.add(productWarehouseDto);
+        }
+        dto.setProductWarehouseDtos(productWarehouseDtos);
         return dto;
     }
 
@@ -490,7 +508,7 @@ public class ProductServiceImpl implements ProductService {
                         pw.getUnit(),
                         pw.getWeightPerUnit(),
                         pw.getQuantity()
-                        )).collect(Collectors.toSet());
+                )).collect(Collectors.toSet());
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -500,7 +518,7 @@ public class ProductServiceImpl implements ProductService {
         productDto.setImage(product.getImage());
 
         if (product.getCategory() != null) {
-            productDto.setCategoryId(String.valueOf(product.getCategory().getId()));
+            productDto.setCategoryId(product.getCategory().getId());
             productDto.setCategoryName(product.getCategory().getName());
         }
         if (product.getSupplier() != null) {
@@ -509,19 +527,35 @@ public class ProductServiceImpl implements ProductService {
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
-        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(),product.getId()).orElse(null);
-        if(productPrice != null){
+        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+        if (productPrice != null) {
             productDto.setCustomerPrice(productPrice.getUnit_price());
-        }else{
+        } else {
             productDto.setCustomerPrice(product.getPrice());
         }
         productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;
     }
 
-    private Customer getCustomerByUsername(String username){
+    private Customer getCustomerByUsername(String username) {
         User user = userRepository.findByUsername(username);
         long id = user.getId();
-        return customerRepository.findById(id).orElseThrow(()-> new RuntimeException("no customer here for u"));
+        return customerRepository.findById(id).orElseThrow(() -> new RuntimeException("no customer here for u"));
+    }
+
+    @Override
+    public Product disableProduct(Long id) {
+        Product productToDisable = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        productToDisable.setIsDeleted(true);
+        return productToDisable;
+    }
+
+    @Override
+    public Product enableProduct(Long id) {
+        Product productToEnable = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        productToEnable.setIsDeleted(false);
+        return productToEnable;
     }
 }

@@ -123,7 +123,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 
-    @PostMapping("/disable/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> disableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.disableCategory(id);

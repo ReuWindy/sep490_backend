@@ -15,14 +15,14 @@ import java.util.Set;
 @NoArgsConstructor
 public class ProductDto {
     private long id;
-    @NotBlank(message = "Tên sản phẩm không được để trông")
+    @NotBlank(message = "Tên sản phẩm không được để trống")
     private String name;
     private String productCode;
     private String description;
     private double price;
     private String image;
     @NotNull(message = "Vui lòng chọn danh mục")
-    private String categoryId;
+    private Long categoryId;
     private String categoryName;
     @NotNull(message = "Vui lòng chọn nhà cung cấp")
     private Long supplierId;

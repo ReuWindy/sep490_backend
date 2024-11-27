@@ -14,7 +14,7 @@ public class ProductSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("productCode"), productCode));
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
             }
             if (productName != null && !productName.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + productName + "%"));

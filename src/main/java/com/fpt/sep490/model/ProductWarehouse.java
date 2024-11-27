@@ -17,25 +17,25 @@ import lombok.*;
 public class ProductWarehouse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "product_quantity")
-    private int quantity;
+    private Integer quantity;
 
     @Column(name = "product_batch_code")
     private String batchCode;
 
     @Column(name = "product_import_price")
-    private double importPrice;
+    private Double importPrice;
 
     @Column(name = "product_sell_price")
-    private double sellPrice;
+    private Double sellPrice;
 
     @Column(name = "product_weight")
-    private double weight;
+    private Double weight;
 
     @Column(name = "weight_per_unit")
-    private double weightPerUnit;
+    private Double weightPerUnit;
 
     @Column(name = "product_unit")
     private String unit;

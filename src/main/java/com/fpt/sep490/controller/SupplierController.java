@@ -124,7 +124,7 @@ public class SupplierController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
     }
 
-    @PutMapping("/disable/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> disableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.disableSupplier(id);
@@ -138,7 +138,7 @@ public class SupplierController {
         }
     }
 
-    @PutMapping("/enable/{id}")
+    @PostMapping("/enable/{id}")
     public ResponseEntity<?> enableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.enableSupplier(id);
