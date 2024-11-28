@@ -76,7 +76,7 @@ public class ConfirmAndExportProductsTests {
         productWarehouse = new ProductWarehouse();
         productWarehouse.setProduct(product);
         productWarehouse.setUnit("kg");
-        productWarehouse.setWeightPerUnit(100);
+        productWarehouse.setWeightPerUnit(100.0);
         productWarehouse.setQuantity(15);
 
         // Data test cho ExportProductDto
