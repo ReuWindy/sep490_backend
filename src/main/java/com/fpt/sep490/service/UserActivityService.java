@@ -26,12 +26,12 @@ public class UserActivityService {
         userActivity.setObject(object);
         userActivity.setTimestamp(new Date());
         userActivityRepository.save(userActivity);
-        String message = String.format("Time: %s, User: %s, Action: %s, Object: %s",
-                userActivity.getTimestamp(),
-                userActivity.getUsername(),
-                userActivity.getActivity(),
-                userActivity.getObject());
-        notificationService.notifyAdmin(message);
+//        String message = String.format("Time: %s, User: %s, Action: %s, Object: %s",
+//                userActivity.getTimestamp(),
+//                userActivity.getUsername(),
+//                userActivity.getActivity(),
+//                userActivity.getObject());
+//        notificationService.notifyAdmin(message);
     }
 
     public Page<UserActivity> getFilteredUserActivities(
