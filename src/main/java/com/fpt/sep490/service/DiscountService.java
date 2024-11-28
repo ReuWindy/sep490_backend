@@ -9,10 +9,16 @@ import java.util.List;
 
 public interface DiscountService {
     List<Discount> getAllDiscounts();
+
     Discount getDiscountById(int id);
+
     Discount createDiscount(DiscountDto discountDto);
+
     Discount updateDiscount(Discount discount);
+
     Discount disableDiscount(int id);
+
     void AutoDisableExpiredDiscount();
-    Page<Discount> getDiscountByFilter(int supplierId, String customerName, int productId, LocalDateTime startDate, LocalDateTime endDate, int pageNumber, int pageSize );
+
+    Page<Discount> getDiscountByFilter(int supplierId, String customerName, int productId, LocalDateTime startDate, LocalDateTime endDate, int pageNumber, int pageSize);
 }

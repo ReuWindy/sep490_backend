@@ -25,7 +25,7 @@ public class SendMail {
             message.setSubject(subject);
             mailSender.send(message);
         } catch (Exception e) {
-            System.out.println(e);
+            throw new RuntimeException(e);
         }
     }
 }

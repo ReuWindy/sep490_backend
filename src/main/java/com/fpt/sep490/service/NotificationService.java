@@ -10,6 +10,7 @@ public class NotificationService {
     public NotificationService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
+
     public void notifyAdmin(String message) {
         messagingTemplate.convertAndSend("/topic/notification", message);
     }

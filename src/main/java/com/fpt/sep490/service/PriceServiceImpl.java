@@ -73,7 +73,6 @@ public class PriceServiceImpl implements PriceService {
         try {
             return priceRepository.save(price);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Xảy ra lỗi trong quá trình tạo bảng giá mới!");
         }
     }
@@ -125,17 +124,17 @@ public class PriceServiceImpl implements PriceService {
                 throw new RuntimeException("Giá thiết lập riêng không được trống hay là số âm !");
             }
             Optional<ProductPrice> existingProductPrice = productPriceRepository.findByPriceIdAndProductId(request.getPriceId(), request.getProductId());
+            ProductPrice productPrice;
             if (existingProductPrice.isPresent()) {
-                ProductPrice productPrice = existingProductPrice.get();
+                productPrice = existingProductPrice.get();
                 productPrice.setUnit_price(updateUnitPrice);
-                updatedProductPriceDto.add(productPriceRepository.save(productPrice));
             } else {
-                ProductPrice productPrice = new ProductPrice();
+                productPrice = new ProductPrice();
                 productPrice.setUnit_price(updateUnitPrice);
                 productPrice.setProduct(updatedProduct);
                 productPrice.setPrice(updatedPrice);
-                updatedProductPriceDto.add(productPriceRepository.save(productPrice));
             }
+            updatedProductPriceDto.add(productPriceRepository.save(productPrice));
         }
         return updatedProductPriceDto;
     }

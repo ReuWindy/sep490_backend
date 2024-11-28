@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
-    List<OrderDetail> findByOrderId(long orderId);
 
     @Query("SELECT od.product.name AS productName, SUM(od.quantity * od.weightPerUnit) AS quantitySold " +
             "FROM OrderDetail od " +

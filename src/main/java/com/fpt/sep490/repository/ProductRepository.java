@@ -13,8 +13,11 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryId(Long categoryId);
+
     Optional<Product> findByProductCode(String code);
+
     Page<Product> findAll(Specification<Product> specification, Pageable pageable);
+
     Product findByName(String name);
 
     @Query("SELECT p FROM Product p " +
@@ -36,5 +39,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("name") String name,
             @Param("categoryId") Long categoryId,
             @Param("supplierId") Long supplierId
-            );
+    );
 }

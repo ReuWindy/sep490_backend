@@ -3,16 +3,18 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.RevenueStatisticsView;
 import com.fpt.sep490.dto.TransactionDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Transaction;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.TransactionService;
-import com.google.api.Http;
+import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -20,55 +22,74 @@ import java.util.Set;
 @RequestMapping("/transaction")
 public class TransactionController {
     private final TransactionService transactionService;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public TransactionController (TransactionService transactionService){
+    public TransactionController(TransactionService transactionService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.transactionService = transactionService;
+        this.jwtTokenManager = jwtTokenManager;
+        this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllTransaction() {
+    public ResponseEntity<?> getAllTransactions() {
         List<Transaction> transactions = transactionService.getAllTransaction();
-        if(transactions != null){
+        if (!transactions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(transactions);
         }
-        ApiExceptionResponse response = new ApiExceptionResponse("Get All Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
     }
 
     @GetMapping("/{receiptId}")
     public ResponseEntity<?> getTransactionByReceiptId(@PathVariable long receiptId) {
-       Set<TransactionDto> transaction = transactionService.getTransactionByReceiptId(receiptId);
-        if(transaction != null){
+        Set<TransactionDto> transaction = transactionService.getTransactionByReceiptId(receiptId);
+        if (transaction != null && !transaction.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(transaction);
         }
-        ApiExceptionResponse response = new ApiExceptionResponse("Get Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        ApiExceptionResponse response = new ApiExceptionResponse("Transaction not found", HttpStatus.NOT_FOUND, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @GetMapping("/revenue")
-    public ResponseEntity<RevenueStatisticsView> getRevenueStatistics(
-            @RequestParam() String timeFilter) {
-        RevenueStatisticsView statisticsView = transactionService.getRevenueStatistics(timeFilter);
-        return ResponseEntity.ok(statisticsView);
-    }
-
-    @PostMapping("/createTransaction")
-    public ResponseEntity<?> createTransaction( @RequestBody TransactionDto transactionDto) {
-       Transaction createdTransaction = transactionService.createTransactionByAdmin(transactionDto);
-        if(createdTransaction != null){
-            return ResponseEntity.status(HttpStatus.OK).body(createdTransaction);
+    public ResponseEntity<?> getRevenueStatistics(@RequestParam String timeFilter) {
+        try {
+            RevenueStatisticsView statisticsView = transactionService.getRevenueStatistics(timeFilter);
+            return ResponseEntity.ok(statisticsView);
+        } catch (Exception e) {
+            ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        ApiExceptionResponse response = new ApiExceptionResponse("Created Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PostMapping("/updateTransaction")
-    public ResponseEntity<?> updateTransaction(@RequestBody TransactionDto transactionDto) {
-      Transaction updatedTransaction = transactionService.updateTransaction(transactionDto);
-        if(updatedTransaction != null){
+    @PostMapping("/create")
+    public ResponseEntity<?> createTransaction(HttpServletRequest request, @RequestBody TransactionDto transactionDto) {
+        try {
+            Transaction createdTransaction = transactionService.createTransactionByAdmin(transactionDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_TRANSACTION", "Tạo giao dịch: " + createdTransaction.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/transactions", "Giao dịch " + createdTransaction.getId() + " đã được tạo bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
+        } catch (Exception e) {
+            ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateTransaction(HttpServletRequest request, @RequestBody TransactionDto transactionDto) {
+        try {
+            Transaction updatedTransaction = transactionService.updateTransaction(transactionDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_TRANSACTION", "Cập nhật giao dịch: " + updatedTransaction.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/transactions", " Giao dịch " + updatedTransaction.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedTransaction);
+        } catch (Exception e) {
+            ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        ApiExceptionResponse response = new ApiExceptionResponse("Update Transaction Failed",HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

@@ -1,32 +1,24 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.dto.ImportProductionDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
 import com.fpt.sep490.model.BatchProduct;
-import com.fpt.sep490.model.FinishedProduct;
 import com.fpt.sep490.model.ProductWarehouse;
-import com.fpt.sep490.model.ProductionOrder;
-import com.fpt.sep490.repository.*;
-import org.springframework.data.domain.Page;
+import com.fpt.sep490.repository.BatchProductRepository;
+import com.fpt.sep490.repository.ProductWareHouseRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
-    private final WarehouseRepository warehouseRepository;
     private final BatchProductRepository batchProductRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
-    private final ProductionOrderRepository productionOrderRepository;
 
-    public ProductWarehouseServiceImpl(WarehouseRepository warehouseRepository, BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository, ProductionOrderRepository productionOrderRepository) {
-        this.warehouseRepository = warehouseRepository;
+    public ProductWarehouseServiceImpl(BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository) {
         this.batchProductRepository = batchProductRepository;
         this.productWareHouseRepository = productWareHouseRepository;
-        this.productionOrderRepository = productionOrderRepository;
     }
 
     @Override
@@ -45,7 +37,7 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         Long id = 2L;
         List<ProductWarehouseDto> productWarehouseDto = new ArrayList<>();
         List<ProductWarehouse> productWarehouses = productWareHouseRepository.findProductWarehousesByWarehouseId(id);
-        for (ProductWarehouse pw: productWarehouses) {
+        for (ProductWarehouse pw : productWarehouses) {
             productWarehouseDto.add(ProductWarehouseDto.toDto(pw));
         }
         return productWarehouseDto;
@@ -56,15 +48,10 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         Long id = 1L;
         List<ProductWarehouseDto> productWarehouseDto = new ArrayList<>();
         List<ProductWarehouse> productWarehouses = productWareHouseRepository.findProductWarehousesByWarehouseId(id);
-        for (ProductWarehouse pw: productWarehouses) {
+        for (ProductWarehouse pw : productWarehouses) {
             productWarehouseDto.add(ProductWarehouseDto.toDto(pw));
         }
         return productWarehouseDto;
-    }
-
-    @Override
-    public ProductWarehouse createProductWarehouse(ProductWarehouseDto productWarehouse) {
-        return null;
     }
 
     @Override
@@ -78,18 +65,7 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         productWarehouse.setWeight(batchProduct.getWeight());
         productWarehouse.setUnit(batchProduct.getUnit());
         productWarehouse.setProduct(batchProduct.getProduct());
-
-//        long warehouseId = batchProduct.getBatch().getWarehouse().getId();
-//        Warehouse defaultWarehouse = warehouseRepository.findById(warehouseId).orElseThrow(() -> new RuntimeException("Warehouse không tìm thấy với id: " + warehouseId ));
-//        productWarehouse.setWarehouse(defaultWarehouse);
-//        productWarehouse.setBatchCode(batchProduct.getBatch().getBatchCode());
-//        productWareHouseRepository.save(productWarehouse);
         return productWarehouse;
-    }
-
-    @Override
-    public Page<ProductWarehouse> getPageProductWarehouseByFilter(double minPrice, double maxPrice, String unit, double weightPerUnit, int categoryId, int supplierId, int warehouseId, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
-        return null;
     }
 
     @Override
@@ -117,16 +93,4 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
 
         productWareHouseRepository.save(productWarehouse);
     }
-
-//    @Override
-//    public Page<ProductWarehouse> getPageProductWarehouseByFilter(double minPrice, double maxPrice, String unit,
-//                                                                  double weightPerUnit, int categoryId, int supplierId,
-//                                                                  int warehouseId, String sortDirection, String priceOrder,
-//                                                                  int pageNumber, int pageSize) {
-//        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-//        Specification<ProductWarehouse> spec = ProductWareHouseSpecification.hasUnitOrHasWeightPerUnitOrCategoryOrSupplierOrWarehouse(unit, weightPerUnit, categoryId, supplierId, warehouseId, sortDirection, priceOrder);
-//        return productWareHouseRepository.findAll(spec, pageable);
-//    }
-
-
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface DataExporterService {
-    void exportToExcel(List<Map<String,Object>> dataList, OutputStream outputStream)throws IOException;
+    void exportToExcel(List<Map<String, Object>> dataList, OutputStream outputStream) throws IOException;
+
     List<Map<String, Object>> importFromExcel(String filename) throws IOException;
 }

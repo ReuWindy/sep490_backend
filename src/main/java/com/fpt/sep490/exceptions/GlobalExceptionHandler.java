@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex) {
 
         String errorMessage = Stream.concat(
-                        ex.getBindingResult().getFieldErrors().stream().map(error -> String.format("Field %s: %s", error.getField(),  error.getDefaultMessage())),
+                        ex.getBindingResult().getFieldErrors().stream().map(error -> String.format("Field %s: %s", error.getField(), error.getDefaultMessage())),
                         ex.getBindingResult().getGlobalErrors().stream().map(globalEr -> String.format("Object %s: %s", globalEr.getObjectName(), globalEr.getDefaultMessage())))
                 .collect(Collectors.joining(", "));
 
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiExceptionResponse> handleRuntimeExceptions(RuntimeException ex) {
         ApiExceptionResponse error = new ApiExceptionResponse(
-                "Runtime exception: " +ex.getMessage(),
+                "Runtime exception: " + ex.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);

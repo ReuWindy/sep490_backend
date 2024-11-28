@@ -27,7 +27,6 @@ public class UserController {
     private final JwtTokenService jwtTokenService;
     private final JwtTokenManager jwtTokenManager;
 
-
     public UserController(UserService userService, JwtTokenService jwtTokenService, JwtTokenManager jwtTokenManager) {
         this.userService = userService;
         this.jwtTokenService = jwtTokenService;
@@ -106,8 +105,8 @@ public class UserController {
     @PutMapping("/profileEdit/{token}")
     public ResponseEntity<?> profileEdit(@PathVariable String token, @RequestBody UserDto userDto) {
         User u = userService.updateUserProfile(token, userDto);
-        if(u != null) {
-            return  ResponseEntity.status(HttpStatus.OK).body(null);
+        if (u != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(null);
         }
         ApiExceptionResponse response = new ApiExceptionResponse("User not found!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -120,15 +119,16 @@ public class UserController {
         loginRequest.setUsername(username);
         loginRequest.setPassword(request.getOldpass());
         LoginResponse loginResponse = jwtTokenService.getLoginResponse(loginRequest, response);
-        if(loginResponse != null) {
+        if (loginResponse != null) {
             User u = userService.changePassword(token, request);
-            if(u != null) {
-                return  ResponseEntity.status(HttpStatus.OK).body(null);
+            if (u != null) {
+                return ResponseEntity.status(HttpStatus.OK).body(null);
             }
         }
         ApiExceptionResponse responseAPI = new ApiExceptionResponse("User not found!", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseAPI);
     }
+
     @PostMapping("/create")
     public ResponseEntity<RegistrationResponse> registrationRequest(@Valid @RequestBody CreateUserRequest createUserRequest) {
         User existPhone = userService.findByPhoneNumber(createUserRequest.getPhone());

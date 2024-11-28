@@ -1,13 +1,10 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.StatusEnum;
-import com.fpt.sep490.dto.BatchProductSelection;
 import com.fpt.sep490.dto.InventoryDto;
-import com.fpt.sep490.dto.WarehouseReceiptDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomInventoryCodeGenerator;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -16,13 +13,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class InventoryServiceImpl implements InventoryService{
+public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final WarehouseRepository warehouseRepository;
@@ -41,7 +37,7 @@ public class InventoryServiceImpl implements InventoryService{
     @Override
     public Inventory createInventory(InventoryDto inventoryDto) {
         Inventory createdInventory = new Inventory();
-        Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(()->new RuntimeException("Không tìm thấy kho"));
+        Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
         User user = userRepository.findByUsername(inventoryDto.getUsername());
         if (user == null) {
             throw new RuntimeException("Không tìm thấy người dùng");
@@ -52,9 +48,9 @@ public class InventoryServiceImpl implements InventoryService{
         createdInventory.setInventoryDate(new Date());
         createdInventory.setCreateBy(user);
 
-        Set<InventoryDetail> details = inventoryDto.getInventoryDetails().stream().map(detailDto ->{
+        Set<InventoryDetail> details = inventoryDto.getInventoryDetails().stream().map(detailDto -> {
             InventoryDetail inventoryDetail = new InventoryDetail();
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm"));
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
             inventoryDetail.setProduct(product);
             inventoryDetail.setQuantity(detailDto.getQuantity());
             inventoryDetail.setDescription(detailDto.getDescription());
@@ -63,7 +59,7 @@ public class InventoryServiceImpl implements InventoryService{
             inventoryDetail.setWeightPerUnit(detailDto.getWeightPerUnit());
 
             ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                            detailDto.getProductId(), inventoryDto.getWarehouseId(),detailDto.getUnit(), detailDto.getWeightPerUnit())
+                            detailDto.getProductId(), inventoryDto.getWarehouseId(), detailDto.getUnit(), detailDto.getWeightPerUnit())
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
             inventoryDetail.setSystemQuantity(productWarehouse.getQuantity());
             inventoryDetail.setQuantity_discrepancy(detailDto.getQuantity() - productWarehouse.getQuantity());
@@ -93,8 +89,7 @@ public class InventoryServiceImpl implements InventoryService{
                     .collect(Collectors.toList());
 
             return new PageImpl<>(dtos, pageable, inventoryPage.getTotalElements());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -102,17 +97,17 @@ public class InventoryServiceImpl implements InventoryService{
 
     @Override
     public Inventory getInventoryById(long inventoryId) {
-        return inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Inventory Not Found"));
+        return inventoryRepository.findById(inventoryId).orElseThrow(() -> new RuntimeException("Inventory Not Found"));
     }
 
     @Override
     public String confirmAndAddSelectedProductToInventory(Long inventoryId, InventoryDto inventoryDto) {
-        Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Không tìm thấy phiếu kiểm kho phù hợp!"));
+        Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu kiểm kho phù hợp!"));
 
-        for(var detail: inventoryDto.getInventoryDetails()) {
+        for (var detail : inventoryDto.getInventoryDetails()) {
 
             ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                            detail.getProductId(), inventoryDto.getWarehouseId(),detail.getUnit(), detail.getWeightPerUnit())
+                            detail.getProductId(), inventoryDto.getWarehouseId(), detail.getUnit(), detail.getWeightPerUnit())
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
 
             InventoryDetail inventoryDetail = inventory.getInventoryDetails().stream()
@@ -136,19 +131,19 @@ public class InventoryServiceImpl implements InventoryService{
 
         }
         inventory.setStatus(StatusEnum.COMPLETED);
-        try{
+        try {
             inventoryRepository.save(inventory);
 
-            for(var detail : inventory.getInventoryDetails()){
+            for (var detail : inventory.getInventoryDetails()) {
                 ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                                detail.getProduct().getId(), inventoryDto.getWarehouseId(),detail.getUnit(), detail.getWeightPerUnit())
+                                detail.getProduct().getId(), inventoryDto.getWarehouseId(), detail.getUnit(), detail.getWeightPerUnit())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
                 productWarehouse.setQuantity(detail.getQuantity());
                 productWareHouseRepository.save(productWarehouse);
             }
             return "Xác nhận phiếu kiểm kho thành công !";
-        }catch (Exception e){
-            throw  new RuntimeException("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !");
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !");
         }
     }
 

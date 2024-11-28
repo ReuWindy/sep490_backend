@@ -53,7 +53,7 @@ public class EmployeeController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<Employee> pagedResourcesAssembler
-    ){
+    ) {
         Page<Employee> employeePage = employeeService.getEmployeeByFilter(employeeCode, fullName, phoneNumber, pageNumber, pageSize);
 
         PagedModel<EntityModel<Employee>> pagedModel = pagedResourcesAssembler.toModel(employeePage);
@@ -72,23 +72,23 @@ public class EmployeeController {
     }
 
     @PostMapping("/createEmployee")
-    public ResponseEntity<?> createEmployee(@RequestBody EmployeeDTO employeeDTO){
-          Employee employee = employeeService.createEmployee(employeeDTO);
-          if(employee != null){
-              return ResponseEntity.status(HttpStatus.OK).body(employee);
-          }
-          final ApiExceptionResponse response = new ApiExceptionResponse("Create failed",HttpStatus.BAD_REQUEST,LocalDateTime.now());
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<?> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
+        Employee employee = employeeService.createEmployee(employeeDTO);
+        if (employee != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(employee);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @PostMapping("/updateEmployee")
-    public ResponseEntity<?> updateEmployee(@RequestBody EmployeeDTO employeeDTO){
-           Employee updatedEmployee = employeeService.updateEmployee(employeeDTO);
-           if(updatedEmployee != null){
-               return ResponseEntity.status(HttpStatus.OK).body(updatedEmployee);
-           }
-           final ApiExceptionResponse response = new ApiExceptionResponse("Update failed",HttpStatus.BAD_REQUEST,LocalDateTime.now());
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    public ResponseEntity<?> updateEmployee(@RequestBody EmployeeDTO employeeDTO) {
+        Employee updatedEmployee = employeeService.updateEmployee(employeeDTO);
+        if (updatedEmployee != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(updatedEmployee);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Update failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @GetMapping("/salary")
@@ -111,8 +111,8 @@ public class EmployeeController {
     }
 
     @PutMapping("/salary")
-    public ResponseEntity<CreateSuccessResponseDTO> updateEmployeeActiveDay(@RequestBody ActiveDateRequestDTO activeDateRequestDTO){
-        Employee employee = employeeService.updateDayActive(activeDateRequestDTO.employeeId(),activeDateRequestDTO.dayActive(),activeDateRequestDTO.mass(),activeDateRequestDTO.note());
+    public ResponseEntity<CreateSuccessResponseDTO> updateEmployeeActiveDay(@RequestBody ActiveDateRequestDTO activeDateRequestDTO) {
+        Employee employee = employeeService.updateDayActive(activeDateRequestDTO.employeeId(), activeDateRequestDTO.dayActive(), activeDateRequestDTO.mass(), activeDateRequestDTO.note());
         CreateSuccessResponseDTO createSuccessDTO = new CreateSuccessResponseDTO("success", "Update Success", new EmployeeResponseDTO(employee.getId(), employee.getEmployeeCode(), employee.getFullName()), LocalDateTime.now());
         return new ResponseEntity<>(createSuccessDTO, HttpStatus.OK);
     }

@@ -54,7 +54,7 @@ public class UpdateProductTests {
         productDto = new ProductDto();
         productDto.setId(1L);
         productDto.setName("Updated Product");
-        productDto.setCategoryId("2");
+        productDto.setCategoryId(Long.valueOf("2"));
         productDto.setSupplierId(2L);
         productDto.setDescription("Updated product description");
         productDto.setPrice(150.0);

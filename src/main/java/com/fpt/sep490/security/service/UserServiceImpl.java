@@ -19,7 +19,6 @@ import com.fpt.sep490.utils.SendMail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.ErrorResponse;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -136,7 +135,7 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Password cannot be null or empty");
             }
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Lỗi thiết lập bảng giá!"));
+            Price standardPrice = priceRepository.findById(1L).orElseThrow(() -> new RuntimeException("Lỗi thiết lập bảng giá!"));
             user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
@@ -214,13 +213,13 @@ public class UserServiceImpl implements UserService {
             user.setUserType(userType);
             user.setActive(true);
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
+            Price standardPrice = priceRepository.findById(1L).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
             user.setName(createUserRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
             user.setPrice(standardPrice);
             customerRepository.save(user);
-         //   userRepository.save(user);
+            //   userRepository.save(user);
         }
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);

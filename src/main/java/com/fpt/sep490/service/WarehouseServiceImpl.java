@@ -1,6 +1,5 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Warehouse;
 import com.fpt.sep490.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
@@ -9,11 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class WarehouseServiceImpl implements WarehouseService{
+public class WarehouseServiceImpl implements WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
 
-    public WarehouseServiceImpl(WarehouseRepository warehouseRepository){
+    public WarehouseServiceImpl(WarehouseRepository warehouseRepository) {
         this.warehouseRepository = warehouseRepository;
     }
 
@@ -24,7 +23,7 @@ public class WarehouseServiceImpl implements WarehouseService{
 
     @Override
     public Warehouse getWarehouseById(int id) {
-        Optional<Warehouse> warehouse = warehouseRepository.findById( (long) id);
+        Optional<Warehouse> warehouse = warehouseRepository.findById((long) id);
         return warehouse.orElse(null);
     }
 
@@ -37,7 +36,7 @@ public class WarehouseServiceImpl implements WarehouseService{
     @Override
     public Warehouse createWarehouse(Warehouse warehouse) {
         String warehouseName = warehouse.getName();
-        if("Kho nguyen lieu".equals(warehouseName) || "Kho hang hoa".equals(warehouseName)){
+        if ("Kho nguyen lieu".equals(warehouseName) || "Kho hang hoa".equals(warehouseName)) {
             Warehouse newWarehouse = new Warehouse();
             newWarehouse.setName(warehouseName);
             newWarehouse.setLocation(warehouse.getLocation());
@@ -50,7 +49,7 @@ public class WarehouseServiceImpl implements WarehouseService{
     @Override
     public Warehouse updateWarehouse(Warehouse warehouse) {
         Warehouse existingWarehouse = warehouseRepository.findById(warehouse.getId()).orElse(null);
-        if(existingWarehouse != null){
+        if (existingWarehouse != null) {
             String warehouseName = warehouse.getName();
             if ("Kho nguyen lieu".equals(warehouseName) || "Kho hang hoa".equals(warehouseName)) {
                 existingWarehouse.setName(warehouseName);

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class DiscountServiceImpl implements DiscountService{
+public class DiscountServiceImpl implements DiscountService {
     private final DiscountRepository discountRepository;
 
     public DiscountServiceImpl(DiscountRepository discountRepository) {
@@ -56,16 +56,14 @@ public class DiscountServiceImpl implements DiscountService{
         Discount discount = getDiscountById(id);
         discount.setActive(true);
         discountRepository.save(discount);
-        return  discount;
+        return discount;
     }
 
     @Override
     @Scheduled(cron = "0 0 0 * * ?")
     public void AutoDisableExpiredDiscount() {
         List<Discount> discounts = discountRepository.findActiveDiscountsWithEndDateBefore(LocalDateTime.now());
-        discounts.forEach(discount -> {
-            discount.setActive(false);
-        });
+        discounts.forEach(discount -> discount.setActive(false));
         discountRepository.saveAll(discounts);
     }
 

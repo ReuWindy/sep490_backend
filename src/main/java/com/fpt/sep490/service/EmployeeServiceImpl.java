@@ -28,16 +28,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
-    private final SalaryDetailRepository salaryDetailRepository;
     private final EmployeeCustomRepository employeeCustomRepository;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, RoleRepository roleRepository, SalaryDetailRepository salaryDetailRepository, EmployeeCustomRepository employeeCustomRepository, UserRepository userRepository) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, EmployeeCustomRepository employeeCustomRepository, UserRepository userRepository) {
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
-        this.roleRepository = roleRepository;
-        this.salaryDetailRepository = salaryDetailRepository;
         this.employeeCustomRepository = employeeCustomRepository;
         this.userRepository = userRepository;
     }

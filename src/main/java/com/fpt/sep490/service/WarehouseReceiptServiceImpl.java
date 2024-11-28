@@ -131,8 +131,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
                     .collect(Collectors.toList());
 
             return new PageImpl<>(dtos, pageable, warehouseReceiptPage.getTotalElements());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }

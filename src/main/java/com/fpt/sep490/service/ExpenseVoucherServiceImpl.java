@@ -164,7 +164,7 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         newExpenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
         newExpenseVoucher.setExpenseDate(new Date());
         newExpenseVoucher.setTotalAmount(totalAmount);
-        if (minDateOpt.isPresent() && maxDateOpt.isPresent()) {
+        if (minDateOpt.isPresent()) {
             LocalDate minDate = minDateOpt.get();
             LocalDate maxDate = maxDateOpt.get();
 
@@ -211,10 +211,9 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         expenseVoucher.setNote(expenseVoucherDto.getNote());
         expenseVoucher.setType(expenseVoucherDto.getType());
         try {
-            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
-            return savedExpense;
-        }catch (Exception e){
-            throw  new RuntimeException("Lỗi khi cập nhật phiếu chi");
+            return expenseVoucherRepository.save(expenseVoucher);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi cập nhật phiếu chi");
         }
     }
 
@@ -237,31 +236,21 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
             throw new RuntimeException("Đã quá hạn xóa phiếu chi!");
         }
         expenseVoucher.setDeleted(true);
-        try{
-            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
-            return savedExpense;
-        }catch (Exception e){
+        try {
+            return expenseVoucherRepository.save(expenseVoucher);
+        } catch (Exception e) {
             throw new RuntimeException("Lỗi khi xóa phiếu chi");
         }
     }
 
     @Override
     public List<ExpenseReportDto> getExpenseReport(Date date, String type) {
-        List<Object[]> results;
-
-        switch (type.toLowerCase()) {
-            case "day":
-                results = expenseVoucherRepository.findDailyExpenseByMonth(date);
-                break;
-            case "week":
-                results = expenseVoucherRepository.findDailyExpenseByWeek(date);
-                break;
-            case "month":
-                results = expenseVoucherRepository.findMonthlyExpenseByYear(date);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid type: " + type);
-        }
+        List<Object[]> results = switch (type.toLowerCase()) {
+            case "day" -> expenseVoucherRepository.findDailyExpenseByMonth(date);
+            case "week" -> expenseVoucherRepository.findDailyExpenseByWeek(date);
+            case "month" -> expenseVoucherRepository.findMonthlyExpenseByYear(date);
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
 
         // Chuyển đổi kết quả thành DTO
         List<ExpenseReportDto> report = new ArrayList<>();

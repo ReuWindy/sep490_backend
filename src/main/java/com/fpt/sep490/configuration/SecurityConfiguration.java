@@ -39,48 +39,48 @@ public class SecurityConfiguration {
                                                 "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**","/ws/info",
-                                                "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**");
+                                                "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-        @Bean
-        SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-            CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-            requestHandler.setCsrfRequestAttributeName("_csrf");
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName("_csrf");
 
-            http
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
-                            .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
-                            .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER","ADMIN")
-                            .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
-                    .formLogin(Customizer.withDefaults())
-                    .httpBasic(Customizer.withDefaults())
-                    .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
-                        CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
-                        corsConfiguration.setAllowedMethods(List.of(
-                                RequestMethod.GET.name(),
-                                RequestMethod.POST.name(),
-                                RequestMethod.PUT.name(),
-                                RequestMethod.DELETE.name()
-                        ));
-                        corsConfiguration.setAllowCredentials(true);
-                        corsConfiguration.setAllowedHeaders(List.of("*"));
-                        corsConfiguration.setExposedHeaders(List.of("Authorization"));
-                        corsConfiguration.setMaxAge(Duration.of(1L, ChronoUnit.HOURS));
-                        return corsConfiguration;
-                    }))
-                    .csrf(csrf -> csrf
-                            .csrfTokenRequestHandler(requestHandler)
-                            .ignoringRequestMatchers("/**")
-                            .ignoringRequestMatchers("/ws/info")
-                            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                    .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-            return http.build();
+        http
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
+                        .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
+                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
+                .formLogin(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults())
+                .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
+                    CorsConfiguration corsConfiguration = new CorsConfiguration();
+                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
+                    corsConfiguration.setAllowedMethods(List.of(
+                            RequestMethod.GET.name(),
+                            RequestMethod.POST.name(),
+                            RequestMethod.PUT.name(),
+                            RequestMethod.DELETE.name()
+                    ));
+                    corsConfiguration.setAllowCredentials(true);
+                    corsConfiguration.setAllowedHeaders(List.of("*"));
+                    corsConfiguration.setExposedHeaders(List.of("Authorization"));
+                    corsConfiguration.setMaxAge(Duration.of(1L, ChronoUnit.HOURS));
+                    return corsConfiguration;
+                }))
+                .csrf(csrf -> csrf
+                        .csrfTokenRequestHandler(requestHandler)
+                        .ignoringRequestMatchers("/**")
+                        .ignoringRequestMatchers("/ws/info")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 }

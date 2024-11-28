@@ -60,5 +60,4 @@ public class EmployeeRoleController {
         final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-
 }

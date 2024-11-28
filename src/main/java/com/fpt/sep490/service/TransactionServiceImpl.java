@@ -17,27 +17,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class TransactionServiceImpl implements TransactionService{
+public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final ReceiptVoucherRepository receiptVoucherRepository;
 
-    public TransactionServiceImpl (TransactionRepository transactionRepository,ReceiptVoucherRepository receiptVoucherRepository){
+    public TransactionServiceImpl(TransactionRepository transactionRepository, ReceiptVoucherRepository receiptVoucherRepository) {
         this.transactionRepository = transactionRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
     }
+
     @Transactional
     @Override
     public Transaction updateTransaction(TransactionDto transactionDto) {
-        Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElseThrow(()->new RuntimeException("Transaction Not Found !"));
-        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()->new RuntimeException("ReceiptVoucher Not Found !"));
+        Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElseThrow(() -> new RuntimeException("Transaction Not Found !"));
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(() -> new RuntimeException("ReceiptVoucher Not Found !"));
         Date currentDate = new Date();
         long threeDaysAgoMillis = currentDate.getTime() - (3L * 24 * 60 * 60 * 1000);
-        if((transactionDto.getTransactionDate().getTime() > threeDaysAgoMillis)) {
-            if(transactionDto.getAmount() <= 0){
-                    throw new RuntimeException("Số tiền giao dịch phải là số dương");
+        if ((transactionDto.getTransactionDate().getTime() > threeDaysAgoMillis)) {
+            if (transactionDto.getAmount() <= 0) {
+                throw new RuntimeException("Số tiền giao dịch phải là số dương");
             }
-            if(transactionDto.getPaymentMethod() == null){
+            if (transactionDto.getPaymentMethod() == null) {
                 throw new RuntimeException("Phương thức thanh toán không được để trống");
             }
             // calculate difference of new and old amount of transaction
@@ -55,10 +56,10 @@ public class TransactionServiceImpl implements TransactionService{
                 transactionRepository.save(updatedTransaction);
                 receiptVoucherRepository.save(receiptVoucher);
                 return updatedTransaction;
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new RuntimeException("Xảy ra lỗi khi lưu giao dịch !");
             }
-        }else {
+        } else {
             throw new RuntimeException("Giao dịch đã quá hạn và không thể cập nhật.");
         }
     }
@@ -77,15 +78,15 @@ public class TransactionServiceImpl implements TransactionService{
     @Transactional
     @Override
     public Transaction createTransactionByAdmin(TransactionDto transactionDto) {
-        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()-> new RuntimeException("ReceiptVoucher Not Found !"));
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(() -> new RuntimeException("ReceiptVoucher Not Found !"));
         Transaction createdTransaction = new Transaction();
 
         // check if amount of transaction is negative
-        if(transactionDto.getAmount() <= 0){
+        if (transactionDto.getAmount() <= 0) {
             throw new RuntimeException("Số tiền giao dịch phải là số dương");
         }
         // check if amount of transaction is more than totalAmount
-        if(transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount()){
+        if (transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount()) {
             throw new RuntimeException("Số tiền thanh toán vượt quá số tiền cần thanh toán");
         }
         // set up newPaidAmount and new RemainAmount of receipt voucher
@@ -96,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService{
         createdTransaction.setReceiptVoucher(receiptVoucher);
         createdTransaction.setAmount(transactionDto.getAmount());
         createdTransaction.setTransactionDate(new Date());
-        if(transactionDto.getPaymentMethod() == null){
+        if (transactionDto.getPaymentMethod() == null) {
             throw new RuntimeException("Phương thức thanh toán không được để trống");
         }
         createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
@@ -107,8 +108,8 @@ public class TransactionServiceImpl implements TransactionService{
             transactionRepository.save(createdTransaction);
             receiptVoucherRepository.save(receiptVoucher);
             return createdTransaction;
-        }catch (Exception e){
-                throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới :" + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới :" + e.getMessage());
         }
     }
 
@@ -164,7 +165,7 @@ public class TransactionServiceImpl implements TransactionService{
                 .build();
     }
 
-    private TransactionDto convertToDto(Transaction transaction){
+    private TransactionDto convertToDto(Transaction transaction) {
         return TransactionDto.toDto(transaction);
     }
 }

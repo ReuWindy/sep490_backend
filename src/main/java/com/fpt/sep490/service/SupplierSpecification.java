@@ -6,7 +6,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
-public class SupplierSpecification  {
+
+public class SupplierSpecification {
     public static Specification<Supplier> hasEmailOrNameOrPhoneNumber(String name, String phoneNumber, String email, Boolean status) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();

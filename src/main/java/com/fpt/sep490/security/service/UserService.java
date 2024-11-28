@@ -13,15 +13,26 @@ import java.util.List;
 
 public interface UserService {
     User findByUsername(String username);
+
     List<User> listAllUser();
+
     boolean deleteUserByUserName(String username);
+
     User updateUserByUserName(String username, UserDto userDto);
+
     User updateUserProfile(String token, UserDto userDto);
+
     User changePassword(String token, PasswordRequest request);
+
     RegistrationResponse registration(RegistrationRequest registrationRequest);
+
     RegistrationResponse createUserByAdmin(RegistrationRequest registrationRequest, UserType userType, CreateUserRequest createUserRequest);
+
     AuthenticatedUserDto findAuthenticatedUserByUsername(String username);
+
     boolean sendPasswordToEmail(String email);
+
     User findByPhoneNumber(String phoneNumber);
+
     User findByEmail(String email);
 }
