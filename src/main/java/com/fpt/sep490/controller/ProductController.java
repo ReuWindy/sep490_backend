@@ -16,6 +16,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +32,13 @@ public class ProductController {
 
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public ProductController(ProductService productService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
+    public ProductController(ProductService productService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.productService = productService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/")
@@ -87,6 +90,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Tạo lô hàng nhập kho bởi :" + username);
+            messagingTemplate.convertAndSend("/topic/products", "Bản xem trước cho 1 lô hàng nhập kho mới vừa được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -103,7 +107,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_WAREHOUSE", "Xác nhận thêm lô hàng vào kho bởi :" + username);
-
+            messagingTemplate.convertAndSend("/topic/products", "Lô hàng " + message + " đã được xác nhận thêm vào kho bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(message);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -118,7 +122,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Tạo lô hàng xuất kho bởi " + username);
-
+            messagingTemplate.convertAndSend("/topic/products", "Bản xem trước cho 1 lô hàng xuất kho mới vừa được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(message);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -134,7 +138,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_EXPORT_PRODUCT", "Xác nhận xuất kho lô hàng bởi: " + username);
-
+            messagingTemplate.convertAndSend("/topic/products", "Lô hàng " + message + " đã được xác nhận xuất kho kho bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(message);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -217,23 +221,33 @@ public class ProductController {
     }
 
     @PostMapping("/admin/createProduct")
-    public ResponseEntity<?> createCustomerProduct(@RequestBody ProductDto productDto) {
-        Product createdProduct = productService.createCustomerProduct(productDto);
-        if (createdProduct != null) {
+    public ResponseEntity<?> createCustomerProduct(HttpServletRequest request, @RequestBody ProductDto productDto) {
+        try {
+            Product createdProduct = productService.createCustomerProduct(productDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCT_ADMIN", "Tạo sản phẩm " + createdProduct.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Sản phẩm " + createdProduct.getName() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @PostMapping("/admin/updateProduct")
-    public ResponseEntity<?> updateCustomerProduct(@Valid @RequestBody ProductDto productDto) {
-        Product updatedProduct = productService.updateProduct(productDto);
-        if (updatedProduct != null) {
+    public ResponseEntity<?> updateCustomerProduct(HttpServletRequest request, @Valid @RequestBody ProductDto productDto) {
+        try {
+            Product updatedProduct = productService.updateProduct(productDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_PRODUCT_CUSTOMER", "Cập nhật sản phẩm " + updatedProduct.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Sản phẩm " + updatedProduct.getName() + " đã được Cập nhậ bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -243,6 +257,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_PRODUCT", "Ẩn sản phẩm " + product.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Sản phẩm " + product.getName() + " đã được ẩn bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(product);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -257,6 +272,7 @@ public class ProductController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_PRODUCT", "Kích hoạt sản phẩm " + product.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Sản phẩm " + product.getName() + " đã được kích hoạt bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(product);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());

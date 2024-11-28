@@ -298,7 +298,7 @@ public class ProductServiceImpl implements ProductService {
         batch.setBatchStatus("Đã xác nhận");
         batchRepository.save(batch);
 
-        return "Đã thêm những sản phẩm đã chọn vào kho.";
+        return batch.getBatchCode();
     }
 
 
@@ -373,7 +373,7 @@ public class ProductServiceImpl implements ProductService {
         batch.setBatchStatus("Đã xác nhận");
         batchRepository.save(batch);
 
-        return "Xuất kho thành công.";
+        return batch.getBatchCode();
     }
 
     private static BatchProduct getBatchProduct(ExportProductDto dto, ProductWarehouse productWarehouse, Batch batch) {
