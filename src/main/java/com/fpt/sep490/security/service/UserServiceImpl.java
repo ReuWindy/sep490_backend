@@ -247,4 +247,14 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException(e.getMessage());
         }
     }
+
+    @Override
+    public User findByPhoneNumber(String phoneNumber) {
+        return userRepository.findUserByPhone(phoneNumber);
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findUserByEmail(email);
+    }
 }

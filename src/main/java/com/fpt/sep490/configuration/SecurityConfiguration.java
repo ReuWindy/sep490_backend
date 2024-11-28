@@ -31,15 +31,15 @@ public class SecurityConfiguration {
     }
 
     List<String> publicEndpoints = Arrays.asList("/register", "/login/loginRequest",
-            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-            "/user/**", "/employees/**", "/actuator/**", "/logout/**"
-    );
-    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**", "/order/customer/CreateOrder", "/order/details/**", "/categories/all");
-    List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**", "/products/**",
-            "/WarehouseReceipt/**", "/employeerole/**", "/ReceiptVoucher/**", "/ExpenseVoucher/**",
-            "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
-            "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**", "/ws/info",
-            "/transaction/**", "/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
+                                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/order/customer/**",
+                                                 "/user/**", "/employees/**", "/actuator/**", "/categories/all", "/products/customer/products", "/logout/**"
+                                                 );
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/**");
+    List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
+                                                "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
+                                                "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
+                                                "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**","/ws/info",
+                                                "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {

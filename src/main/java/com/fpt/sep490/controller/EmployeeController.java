@@ -5,7 +5,11 @@ import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
+import com.fpt.sep490.model.User;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.EmployeeService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -23,9 +27,13 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final UserActivityService userActivityService;
+    private final JwtTokenManager jwtTokenManager;
 
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(EmployeeService employeeService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager) {
         this.employeeService = employeeService;
+        this.userActivityService = userActivityService;
+        this.jwtTokenManager = jwtTokenManager;
     }
 
     @GetMapping("/all")
@@ -131,5 +139,33 @@ public class EmployeeController {
     public ResponseEntity<List<MonthlyEmployeePayrollResponseDTO>> getDriverPayroll(@RequestParam int month, @RequestParam int year) {
         List<MonthlyEmployeePayrollResponseDTO> monthlyEmployeePayroll = employeeService.getMonthlyEmployeePayroll(month, year);
         return new ResponseEntity<>(monthlyEmployeePayroll, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> disableEmployee(HttpServletRequest request, @PathVariable long id) {
+        try {
+            User employee = employeeService.deleteEmployee(id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "DISABLE_EMPLOYEE", "Ẩn nhân viên " + employee.getFullName() + " bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(employee);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/enable/{id}")
+    public ResponseEntity<?> enableCustomer(HttpServletRequest request, @PathVariable long id) {
+        try {
+            User employee = employeeService.enableEmployee(id);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "ENABLE_EMPLOYEE", "Khôi phục nhân viên " + employee.getFullName() + " bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(employee);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 }

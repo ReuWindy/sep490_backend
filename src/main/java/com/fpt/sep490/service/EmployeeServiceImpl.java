@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -28,11 +29,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeRoleRepository employeeRoleRepository;
     private final EmployeeCustomRepository employeeCustomRepository;
+    private final UserRepository userRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, EmployeeCustomRepository employeeCustomRepository) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeRoleRepository employeeRoleRepository, EmployeeCustomRepository employeeCustomRepository, UserRepository userRepository) {
         this.employeeRepository = employeeRepository;
         this.employeeRoleRepository = employeeRoleRepository;
         this.employeeCustomRepository = employeeCustomRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -65,44 +68,91 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee updateEmployee(EmployeeDTO employee) {
         Employee existingEmployee = employeeRepository.findById(employee.getId()).orElse(null);
-        if (existingEmployee != null) {
-            EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
-            if (newEmployeeRole != null) {
-                existingEmployee.setFullName(employee.getFullName());
-                existingEmployee.setEmail(employee.getEmail());
-                existingEmployee.setPhone(employee.getPhone());
-                existingEmployee.setAddress(employee.getAddress());
-                existingEmployee.setBankName(employee.getBankName());
-                existingEmployee.setBankNumber(employee.getBankNumber());
-                existingEmployee.setDob(employee.getDob());
-                existingEmployee.setGender(employee.isGender());
-                existingEmployee.setImage(employee.getImage());
-                existingEmployee.setUpdateAt(new Date());
-                Role role = existingEmployee.getRole();
-                if (role != null) {
-                    role.setEmployeeRole(newEmployeeRole);
-                    SalaryDetail salaryDetail = role.getSalaryDetail();
-                    if (salaryDetail != null) {
-                        if (role.getEmployeeRole().getRoleName().equalsIgnoreCase("PORTER_EMPLOYEE")) {
-                            salaryDetail.setDailyWage(0);
-                        } else {
-                            salaryDetail.setDailyWage(employee.getDailyWage());
-                        }
-                    }
-                    role.setSalaryDetail(salaryDetail);
-                }
-                existingEmployee.setRole(role);
-                employeeRepository.save(existingEmployee);
-                return existingEmployee;
-            }
+        if (existingEmployee == null) {
+            throw new RuntimeException("Không tìm thấy nhân viên");
         }
-        return null;
+
+        User existingPhone = userRepository.findUserByPhone(employee.getPhone());
+        User existingEmail = userRepository.findUserByEmail(employee.getEmail());
+
+        EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
+        if (existingEmployee == null) {
+            throw new RuntimeException("Không tìm thấy chức vụ");
+        }
+        if (existingEmail.getId() != employee.getId()){
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng địa chỉ email này");
+        }
+        if (existingPhone.getId() != employee.getId()){
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng số điện thoại này");
+        }
+        if (employee.getFullName().isBlank()) {
+            throw new RuntimeException("Tên nhân viên không được bỏ trống");
+        }
+        if (employee.getEmail().isBlank()) {
+            throw new RuntimeException("Địa chỉ email không được bỏ trống");
+        }
+        String email = employee.getEmail();
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+        Pattern pattern = Pattern.compile(emailRegex);
+        if (!pattern.matcher(email).matches()) {
+            throw new RuntimeException("Địa chỉ email không hợp lệ");
+        }
+        if (employee.getPhone().isBlank()) {
+            throw new RuntimeException("Số điện thoại không được để trống");
+        }
+        String phoneNumber = employee.getPhone();
+        String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+
+        Pattern phonePattern = Pattern.compile(phoneNumberRegex);
+        if (!phonePattern.matcher(phoneNumber).matches()) {
+            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
+        }
+        existingEmployee.setFullName(employee.getFullName());
+        existingEmployee.setEmail(employee.getEmail());
+        existingEmployee.setPhone(employee.getPhone());
+        existingEmployee.setAddress(employee.getAddress());
+        existingEmployee.setBankName(employee.getBankName());
+        existingEmployee.setBankNumber(employee.getBankNumber());
+        existingEmployee.setDob(employee.getDob());
+        existingEmployee.setGender(employee.isGender());
+        existingEmployee.setImage(employee.getImage());
+        existingEmployee.setUpdateAt(new Date());
+        Role role = existingEmployee.getRole();
+        if (role != null) {
+            role.setEmployeeRole(newEmployeeRole);
+            SalaryDetail salaryDetail = role.getSalaryDetail();
+            if (salaryDetail != null) {
+                if (role.getEmployeeRole().getRoleName().equalsIgnoreCase("PORTER_EMPLOYEE")) {
+                    salaryDetail.setDailyWage(0);
+                } else {
+                    salaryDetail.setDailyWage(employee.getDailyWage());
+                }
+            }
+            role.setSalaryDetail(salaryDetail);
+        }
+        existingEmployee.setRole(role);
+        employeeRepository.save(existingEmployee);
+        return existingEmployee;
     }
 
-//    @Override
-//    public Employee deleteEmployee(int id) {
-//        return null;
-//    }
+    @Override
+    public User deleteEmployee(Long id) {
+        User employeeToDisable = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        employeeToDisable.setActive(false);
+        userRepository.save(employeeToDisable);
+        return employeeToDisable;
+    }
+
+    @Override
+    public User enableEmployee(Long id) {
+        User employeeToDisable = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        employeeToDisable.setActive(true);
+        userRepository.save(employeeToDisable);
+        return employeeToDisable;
+    }
 
     @Override
     public List<EmployeeWithDayActiveDTO> getEmployees(String role) {

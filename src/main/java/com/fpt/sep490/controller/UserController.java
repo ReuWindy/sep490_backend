@@ -131,6 +131,16 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<RegistrationResponse> registrationRequest(@Valid @RequestBody CreateUserRequest createUserRequest) {
+        User existPhone = userService.findByPhoneNumber(createUserRequest.getPhone());
+        User existEmail = userService.findByEmail(createUserRequest.getEmail());
+
+        if (existPhone != null) {
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng số điện thoại này");
+        }
+
+        if (existEmail != null) {
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng địa chỉ email này");
+        }
         RegistrationRequest request = new RegistrationRequest();
         request.setName(createUserRequest.getName());
         request.setEmail(createUserRequest.getEmail());

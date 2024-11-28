@@ -7,8 +7,8 @@ import com.fpt.sep490.dto.EmployeeWithDayActiveDTO;
 import com.fpt.sep490.dto.MonthlyEmployeePayrollResponseDTO;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
+import com.fpt.sep490.model.User;
 import org.springframework.data.domain.Page;
-
 import java.util.List;
 
 public interface EmployeeService {
@@ -23,7 +23,9 @@ public interface EmployeeService {
 
     Employee updateEmployee(EmployeeDTO employee);
 
-    //Employee deleteEmployee(int id);
+    User deleteEmployee(Long id);
+
+    User enableEmployee(Long id);
 
     List<EmployeeWithDayActiveDTO> getEmployees(String role);
 

@@ -3,7 +3,7 @@ package com.fpt.sep490.utils;
 import java.util.Random;
 
 public class RandomIncomeCodeGenerator {
-    private static final String INCOME_PREFIX = "INCOME";
+    private static final String INCOME_PREFIX = "INC";
 
     public static String generateIncomeCode() {
         Random random = new Random();
