@@ -34,7 +34,7 @@ public class SecurityConfiguration {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
             "/user/**", "/employees/**", "/actuator/**", "/logout/**"
     );
-    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**", "/order/customer/CreateOrder", "/order/details/**");
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**", "/order/customer/CreateOrder", "/order/details/**", "/categories/all");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**", "/products/**",
             "/WarehouseReceipt/**", "/employeerole/**", "/ReceiptVoucher/**", "/ExpenseVoucher/**",
             "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
