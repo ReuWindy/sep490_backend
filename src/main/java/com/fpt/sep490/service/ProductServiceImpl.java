@@ -155,9 +155,13 @@ public class ProductServiceImpl implements ProductService {
         ProductSpecification productSpecification = new ProductSpecification();
         Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-        return products.map(product -> toProductDto(product, customer));
+        if (id != null) {
+            Customer customer = customerRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+            return products.map(product -> toProductDto(product, customer));
+        } else {
+            return products.map(this::toProductDto);
+        }
     }
 
     @Override
@@ -174,8 +178,16 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
+        if (!category.getActive()) {
+            throw new RuntimeException("Danh mục đã bị vô hiệu hóa, Vui lòng chọn danh mục khác");
+        }
+
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+        if (!supplier.isActive()) {
+            throw new RuntimeException("Nhà cung cấp đã bị vô hiệu hóa, Vui lòng chọn nhà cung cấp khác");
+        }
 
         createdProduct.setSupplier(supplier);
         createdProduct.setCategory(category);
@@ -200,9 +212,14 @@ public class ProductServiceImpl implements ProductService {
 
         Category category = categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục"));
+        if (!category.getActive()) {
+            throw new RuntimeException("Danh mục đã bị vô hiệu hóa, Vui lòng chọn danh mục khác");
+        }
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp"));
-
+        if (!supplier.isActive()) {
+            throw new RuntimeException("Nhà cung cấp đã bị vô hiệu hóa, Vui lòng chọn nhà cung cấp khác");
+        }
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUpdateAt(new Date());
@@ -491,7 +508,7 @@ public class ProductServiceImpl implements ProductService {
             dto.setCategoryName(product.getCategory().getName());
         }
         List<ProductWarehouseDto> productWarehouseDtos = new ArrayList<>();
-        for (ProductWarehouse productWarehouse: product.getProductWarehouses()) {
+        for (ProductWarehouse productWarehouse : product.getProductWarehouses()) {
             ProductWarehouseDto productWarehouseDto = new ProductWarehouseDto();
             productWarehouseDto.setQuantity(productWarehouse.getQuantity());
             productWarehouseDto.setUnit(productWarehouse.getUnit());
@@ -528,6 +545,41 @@ public class ProductServiceImpl implements ProductService {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
         ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+        if (productPrice != null) {
+            productDto.setCustomerPrice(productPrice.getUnit_price());
+        } else {
+            productDto.setCustomerPrice(product.getPrice());
+        }
+        productDto.setUnitWeightPairsList(unitWeightPairs);
+        return productDto;
+    }
+
+    private ProductDto toProductDto(Product product) {
+        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+                .map(pw -> new UnitWeightPairs(
+                        pw.getUnit(),
+                        pw.getWeightPerUnit(),
+                        pw.getQuantity()
+                )).collect(Collectors.toSet());
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setProductCode(product.getProductCode());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        productDto.setImage(product.getImage());
+
+        if (product.getCategory() != null) {
+            productDto.setCategoryId(product.getCategory().getId());
+            productDto.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getSupplier() != null) {
+            productDto.setSupplierId(product.getSupplier().getId());
+        }
+        if (product.getUnitOfMeasure() != null) {
+            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+        }
+        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElse(null);
         if (productPrice != null) {
             productDto.setCustomerPrice(productPrice.getUnit_price());
         } else {

@@ -57,6 +57,9 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     @Override
     public ExpenseVoucher createExpense(ExpenseVoucherDto expenseVoucherDto) {
         ExpenseVoucher newExpenseVoucher = new ExpenseVoucher();
+        if (expenseVoucherDto.getTotalAmount() <= 0) {
+            throw new RuntimeException("Không thể xuất phiếu chi có giá trị bằng 0");
+        }
         newExpenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
         newExpenseVoucher.setExpenseDate(new Date());
         newExpenseVoucher.setTotalAmount(expenseVoucherDto.getTotalAmount());
@@ -117,7 +120,7 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     public ExpenseVoucher createEmployeeExpense(Long employeeId) {
         YearMonth currentMonth = YearMonth.now();
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Nhân viên không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         double totalAmount = employee.getDayActives().stream()
                 .filter(dayActive -> {
@@ -130,21 +133,32 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
                 .mapToDouble(dayActive -> employee.getRole().getSalaryDetail().getDailyWage())
                 .sum();
 
-        List<LocalDate> filteredDates = employee.getDayActives().stream()
+        List<DayActive> filteredDayActives = employee.getDayActives().stream()
                 .filter(dayActive -> {
                     LocalDate localDate = dayActive.getDayActive().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
-
                     return !dayActive.isSpend() && YearMonth.from(localDate).equals(currentMonth);
                 })
+                .toList();
+
+        if (filteredDayActives.isEmpty()) {
+            throw new RuntimeException("Nhân viên đã được thanh toán toàn bộ lương");
+        }
+
+        if (totalAmount <= 0) {
+            throw new RuntimeException("Không thể xuất phiếu chi có giá trị bằng 0");
+        }
+        Optional<LocalDate> minDateOpt = filteredDayActives.stream()
                 .map(dayActive -> dayActive.getDayActive().toInstant()
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate())
-                .toList();
-
-        Optional<LocalDate> minDateOpt = filteredDates.stream().min(Comparator.naturalOrder());
-        Optional<LocalDate> maxDateOpt = filteredDates.stream().max(Comparator.naturalOrder());
+                .min(Comparator.naturalOrder());
+        Optional<LocalDate> maxDateOpt = filteredDayActives.stream()
+                .map(dayActive -> dayActive.getDayActive().toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate())
+                .max(Comparator.naturalOrder());
 
         ExpenseVoucher newExpenseVoucher = new ExpenseVoucher();
         newExpenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
@@ -164,7 +178,15 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
             newExpenseVoucher.setNote(note);
         }
         newExpenseVoucher.setType("Thanh toán lương nhân viên");
-        return expenseVoucherRepository.save(newExpenseVoucher);
+
+        ExpenseVoucher savedExpenseVoucher = expenseVoucherRepository.save(newExpenseVoucher);
+
+        filteredDayActives.forEach(dayActive -> {
+            dayActive.setSpend(true);
+            dayActiveRepository.save(dayActive);
+        });
+
+        return savedExpenseVoucher;
     }
 
     @Override

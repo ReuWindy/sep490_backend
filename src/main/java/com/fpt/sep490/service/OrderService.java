@@ -21,7 +21,7 @@ public interface OrderService {
 
     Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize);
 
-    Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto);
+    Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto, String username);
 
     Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto);
 

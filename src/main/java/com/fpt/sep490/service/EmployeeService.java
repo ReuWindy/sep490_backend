@@ -8,6 +8,8 @@ import com.fpt.sep490.dto.MonthlyEmployeePayrollResponseDTO;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
 import java.util.List;
+
+import com.fpt.sep490.model.User;
 import org.springframework.data.domain.Page;
 
 public interface EmployeeService {
@@ -17,7 +19,8 @@ public interface EmployeeService {
     Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, int pageNumber, int pageSize);
     Employee createEmployee(EmployeeDTO employeeDTO);
     Employee updateEmployee(EmployeeDTO employee);
-    Employee deleteEmployee(int id);
+    User deleteEmployee(Long id);
+    User enableEmployee(Long id);
     List<EmployeeWithDayActiveDTO> getEmployees(String role);
     Employee createDayActive(long id, String date, int mass, String note);
     void deleteDayActive(long id, String date);

@@ -3,7 +3,9 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,9 +24,11 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtTokenManager jwtTokenManager;
 
-    public OrderController(OrderService orderService){
+    public OrderController(OrderService orderService, JwtTokenManager jwtTokenManager){
         this.orderService = orderService;
+        this.jwtTokenManager = jwtTokenManager;
     }
 
     @GetMapping("/history/{customerId}")
@@ -125,8 +129,10 @@ public class OrderController {
     }
 
     @PostMapping("/admin/UpdateOrder/{orderId}")
-    public ResponseEntity<?> updateOrderByAdmin(@PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto){
-        Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto);
+    public ResponseEntity<?> updateOrderByAdmin(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto){
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
+        String username = jwtTokenManager.getUsernameFromToken(token);
+        Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto, username);
         if(updatedOrder != null){
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }

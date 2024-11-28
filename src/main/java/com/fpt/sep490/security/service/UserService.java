@@ -23,5 +23,5 @@ public interface UserService {
     AuthenticatedUserDto findAuthenticatedUserByUsername(String username);
     boolean sendPasswordToEmail(String email);
     User findByPhoneNumber(String phoneNumber);
-
+    User findByEmail(String email);
 }
