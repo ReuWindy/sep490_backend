@@ -60,6 +60,7 @@ public class NewController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_NEWS", "Tạo danh mục tin " + news.getName() + " bởi người dùng: " + username);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(createdNew);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());

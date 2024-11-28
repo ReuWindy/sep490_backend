@@ -3,7 +3,10 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
+import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.OrderService;
+import com.fpt.sep490.service.UserActivityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,6 +14,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -22,9 +26,15 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtTokenManager jwtTokenManager;
+    private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.orderService = orderService;
+        this.jwtTokenManager = jwtTokenManager;
+        this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/history/{customerId}")
@@ -106,43 +116,62 @@ public class OrderController {
     }
 
     @PostMapping("/admin/CreateOrder")
-    public ResponseEntity<?> createAdminOrder(@RequestBody AdminOrderDto adminOrderDto) {
-        Order createdAdminOrder = orderService.createAdminOrder(adminOrderDto);
-        if (createdAdminOrder != null) {
+    public ResponseEntity<?> createAdminOrder(HttpServletRequest request, @RequestBody AdminOrderDto adminOrderDto) {
+        try{
+            Order createdAdminOrder = orderService.createAdminOrder(adminOrderDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_ADMIN_ORDER", "Tạo danh mục: " + createdAdminOrder.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdAdminOrder.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(createdAdminOrder);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @PostMapping("/customer/CreateOrder")
-    public ResponseEntity<?> createCustomerOrder(@RequestBody CustomerOrderDto customerOrderDto) {
-        Order createdCustomerOrder = orderService.createCustomerOrder(customerOrderDto);
-        if (createdCustomerOrder != null) {
+    public ResponseEntity<?> createCustomerOrder(HttpServletRequest request, @RequestBody CustomerOrderDto customerOrderDto) {
+        try {
+            Order createdCustomerOrder = orderService.createCustomerOrder(customerOrderDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_CUSTOMER_ORDER", "Tạo đơn hàng: " + createdCustomerOrder.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdCustomerOrder.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(createdCustomerOrder);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
     }
 
     @PostMapping("/admin/UpdateOrder/{orderId}")
-    public ResponseEntity<?> updateOrderByAdmin(@PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto);
-        if (updatedOrder != null) {
+    public ResponseEntity<?> updateOrderByAdmin(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
+        try{
+            Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_ADMIN_ORDER", "Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Updated Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @PostMapping("/admin/UpdateOrderDetail/{orderId}")
-    public ResponseEntity<?> updateOrderDetailByAdmin(@PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderService.updateOrderDetailByAdmin(orderId, adminOrderDto);
-        if (updatedOrder != null) {
+    public ResponseEntity<?> updateOrderDetailByAdmin(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
+        try {
+            Order updatedOrder = orderService.updateOrderDetailByAdmin(orderId, adminOrderDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_ADMIN_ORDER-DETAILS", "Cập nhật chi tiết đơn hàng: " + updatedOrder.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/orders", "Chi tiết đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Updated Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Updated Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

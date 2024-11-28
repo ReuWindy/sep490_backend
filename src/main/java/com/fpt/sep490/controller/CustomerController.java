@@ -14,6 +14,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -27,11 +28,14 @@ public class CustomerController {
     private final CustomerService customerService;
     private final UserActivityService userActivityService;
     private final JwtTokenManager jwtTokenManager;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public CustomerController(CustomerService customerService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager) {
+
+    public CustomerController(CustomerService customerService, UserActivityService userActivityService, JwtTokenManager jwtTokenManager, SimpMessagingTemplate messagingTemplate) {
         this.customerService = customerService;
         this.userActivityService = userActivityService;
         this.jwtTokenManager = jwtTokenManager;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
@@ -73,13 +77,18 @@ public class CustomerController {
     }
 
     @PostMapping("/updateCustomer")
-    public ResponseEntity<?> updateCustomer(@RequestBody User user) {
-        User existingCustomer = customerService.updateCustomer(user);
-        if (existingCustomer != null) {
+    public ResponseEntity<?> updateCustomer(HttpServletRequest request, @RequestBody User user) {
+        try{
+            User existingCustomer = customerService.updateCustomer(user);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_CUSTOMER", "Cập nhật khách hàng " + existingCustomer.getFullName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/customers", "Khách hàng với tên " + existingCustomer.getFullName() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
+        }catch( Exception e ) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -89,6 +98,7 @@ public class CustomerController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_CUSTOMER", "Ẩn khách hàng " + customer.getFullName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/customers", "Khách hàng với tên " + customer.getFullName() + " đã được ẩn bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(customer);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -103,6 +113,7 @@ public class CustomerController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_CUSTOMER", "Khôi phục khách hàng " + customer.getFullName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/customers", "Khách hàng với tên " + customer.getFullName() + " đã được ẩn bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(customer);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());

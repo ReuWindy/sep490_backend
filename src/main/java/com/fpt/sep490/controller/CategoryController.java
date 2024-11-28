@@ -13,6 +13,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,11 +26,13 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
+    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.categoryService = categoryService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
@@ -88,6 +91,7 @@ public class CategoryController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", "Tạo danh mục: " + createdCategory.getName() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -102,6 +106,7 @@ public class CategoryController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: " + updatedCategory.getName() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -129,6 +134,7 @@ public class CategoryController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_CATEGORY", "Ẩn danh mục " + category.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được ẩn bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -143,6 +149,7 @@ public class CategoryController {
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_CATEGORY", "Kích hoạt danh mục " + category.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được kích hoạt bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
