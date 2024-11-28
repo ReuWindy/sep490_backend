@@ -205,16 +205,18 @@ public class ProductController {
         return ResponseEntity.ok(pagedModel);
     }
 
-    @GetMapping("/admin/products/customer")
+    @GetMapping("/admin/order/products")
     public ResponseEntity<PagedModel<EntityModel<ProductDto>>> customerProductPage(
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String supplierName,
-            @RequestParam Long id,
+            @RequestParam(required = false) Long id,
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<ProductDto> pagedResourcesAssembler) {
 
+//        String token = jwtTokenManager.resolveTokenFromCookie(request);
+//        String username = jwtTokenManager.getUsernameFromToken(token);
         Page<ProductDto> productPage = productService.getProductByFilterForCustomer(productCode, categoryName, supplierName, id, pageNumber, pageSize);
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);

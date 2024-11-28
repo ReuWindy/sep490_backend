@@ -46,6 +46,7 @@ public class ProductSpecification {
     public Specification<Product> hasProductCodeOrCategoryNameOrSupplierName(String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
             if (productCode != null && !productCode.isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("productCode"), productCode));
             }
@@ -55,10 +56,17 @@ public class ProductSpecification {
             if (supplierName != null && !supplierName.isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("supplier").get("name"), supplierName));
             }
+            predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
+
+            Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
+            Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán hàng");
+
+            predicates.add(warehouseNamePredicate);
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
+
 
     private static List<Order> getSortByField(Root<Product> root, CriteriaBuilder criteriaBuilder, String priceOrder, String sortDirection) {
         List<Order> orders = new ArrayList<>();

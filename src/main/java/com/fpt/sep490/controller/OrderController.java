@@ -148,9 +148,9 @@ public class OrderController {
     @PostMapping("/admin/UpdateOrder/{orderId}")
     public ResponseEntity<?> updateOrderByAdmin(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
         try{
-            Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
+            Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto, username);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_ADMIN_ORDER", "Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);

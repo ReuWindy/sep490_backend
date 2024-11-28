@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
@@ -33,8 +34,10 @@ public class OrderServiceImpl implements OrderService {
     private final DiscountRepository discountRepository;
     private final ReceiptVoucherRepository receiptVoucherRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
+    private final WarehouseReceiptRepository warehouseReceiptRepository;
+    private final UserRepository userRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository, ProductWareHouseRepository productWareHouseRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptRepository warehouseReceiptRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
@@ -45,6 +48,8 @@ public class OrderServiceImpl implements OrderService {
         this.discountRepository = discountRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+        this.warehouseReceiptRepository = warehouseReceiptRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -210,7 +215,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
+    public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto, String username) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         StatusEnum status = adminOrderDto.getStatus();
         if (status != null) {
@@ -253,6 +258,27 @@ public class OrderServiceImpl implements OrderService {
                         throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
                     }
                 }
+                User user = userRepository.findByUsername(username);
+                if (user == null) {
+                    throw new RuntimeException("Không tìm thấy người dùng");
+                }
+                WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
+                warehouseReceipt.setOrder(updatedOrder);
+                warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
+                warehouseReceipt.setReceiptDate(new Date());
+                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+                receiptVoucher.setOrder(updatedOrder);
+                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setPaidAmount(0);
+                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setReceiptDate(new Date());
+                LocalDate currentDate = LocalDate.now();
+                LocalDate dueDateLocal = currentDate.plusMonths(1);
+                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                receiptVoucher.setDueDate(dueDate);
+                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+                warehouseReceiptRepository.save(warehouseReceipt);
+                receiptVoucherRepository.save(receiptVoucher);
             }
         } else {
             throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");

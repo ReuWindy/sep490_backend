@@ -14,13 +14,16 @@ import java.util.Set;
 @Entity
 @Builder
 @NoArgsConstructor
-@Table(name = "product_prices")
+@Table(
+        name = "product_prices",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"product_id", "price_id"})}
+)
 public class ProductPrice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double unit_price;
+    private Double unit_price;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

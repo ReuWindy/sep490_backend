@@ -32,4 +32,7 @@ public interface UserService {
 
     boolean sendPasswordToEmail(String email);
 
+    User findByPhoneNumber(String phoneNumber);
+
+    User findByEmail(String email);
 }
