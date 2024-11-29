@@ -15,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class ProductDto {
     private long id;
-    @NotBlank(message = "Tên sản phẩm không được để trông")
+    @NotBlank(message = "Tên sản phẩm không được để trống! ")
     private String name;
     private String productCode;
     private String description;

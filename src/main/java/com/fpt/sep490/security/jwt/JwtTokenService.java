@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
@@ -26,12 +29,23 @@ public class JwtTokenService {
 
         final String username = loginRequest.getUsername();
         final String password = loginRequest.getPassword();
+        try {
+            final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
 
-        final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+            authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        }catch (AuthenticationException e){
+            log.error("Xác thực thất bại cho người dùng: {}", username, e);
+            throw new RuntimeException("Lỗi: tên đăng nhập hoặc mật khẩu không đúng! ", e);
+        }
 
-        authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        final AuthenticatedUserDto authenticatedUserDto;
+        try{
+            authenticatedUserDto= userService.findAuthenticatedUserByUsername(username);
+        }catch(NoSuchElementException e){
+            log.error("Không tìm thấy người dùng: {}", username, e);
+            throw new RuntimeException("Lỗi: Không tìm thấy người dùng! ", e);
+        }
 
-        final AuthenticatedUserDto authenticatedUserDto = userService.findAuthenticatedUserByUsername(username);
 
         final User user = UserMapper.INSTANCE.convertToUser(authenticatedUserDto);
         final String token = jwtTokenManager.generateToken(user);

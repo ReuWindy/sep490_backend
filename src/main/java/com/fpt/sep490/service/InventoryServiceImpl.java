@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -105,6 +106,7 @@ public class InventoryServiceImpl implements InventoryService{
         return inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Inventory Not Found"));
     }
 
+    @Transactional
     @Override
     public String confirmAndAddSelectedProductToInventory(Long inventoryId, InventoryDto inventoryDto) {
         Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(()-> new RuntimeException("Không tìm thấy phiếu kiểm kho phù hợp!"));

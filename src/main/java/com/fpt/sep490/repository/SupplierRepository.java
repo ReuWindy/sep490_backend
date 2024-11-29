@@ -15,4 +15,5 @@ import java.util.Optional;
 public interface SupplierRepository extends JpaRepository<Supplier, Long>, JpaSpecificationExecutor<Supplier> {
     Optional<Supplier> findByName(String name);
     Page<Supplier> findAll(Specification<Supplier> specification, Pageable pageable);
+    Optional<Supplier> findByEmail(String email);
 }

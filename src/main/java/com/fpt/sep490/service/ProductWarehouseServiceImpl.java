@@ -99,7 +99,11 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
             productWarehouse.setQuantity(productWarehouse.getQuantity() + dto.getQuantity());
             productWarehouse.setWeight(productWarehouse.getQuantity() * productWarehouse.getWeightPerUnit());
-            productWareHouseRepository.save(productWarehouse);
+            try {
+                productWareHouseRepository.save(productWarehouse);
+            }catch (Exception e){
+                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình lưu! "+e.getMessage());
+            }
         }
     }
 

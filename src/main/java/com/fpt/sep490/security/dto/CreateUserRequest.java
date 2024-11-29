@@ -17,14 +17,14 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class CreateUserRequest {
-    @NotEmpty(message = "{registration_name_not_empty}")
+    @NotEmpty(message = "Tên đăng ký không được để trống!")
     private String name;
-    @Email(message = "{registration_email_is_not_valid}")
-    @NotEmpty(message = "{registration_email_not_empty}")
+    @Email(message = "Email đăng ký không hợp lệ!")
+    @NotEmpty(message = "Email đăng ký không được để trống!")
     private String email;
-    @NotEmpty(message = "{registration_username_not_empty}")
+    @NotEmpty(message = "Tên đăng nhập không được để trống!")
     private String username;
-    @NotEmpty(message = "{registration_password_not_empty}")
+    @NotEmpty(message = "Mật khẩu đăng ký không được để trống!")
     private String password;
     private boolean active = true;
     private String phone;

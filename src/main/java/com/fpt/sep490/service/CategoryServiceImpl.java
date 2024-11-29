@@ -40,6 +40,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category createCategory(Category category) {
         Category newCategory = new Category();
+        if(category.getName().isEmpty()){
+            throw new RuntimeException("Tên danh mục không được để trống");
+        }
         newCategory.setName(category.getName());
         newCategory.setDescription(category.getDescription());
         newCategory.setActive(true);

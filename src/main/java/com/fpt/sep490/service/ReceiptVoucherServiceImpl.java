@@ -63,7 +63,11 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         }
         extendDate = calendar.getTime();
         receiptVoucher.setDueDate(extendDate);
-        ReceiptVoucher savedVoucher = receiptVoucherRepository.save(receiptVoucher);
-        return savedVoucher;
+        try {
+            ReceiptVoucher savedVoucher = receiptVoucherRepository.save(receiptVoucher);
+            return savedVoucher;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình gia hạn phiếu! "+e.getMessage());
+        }
     }
 }

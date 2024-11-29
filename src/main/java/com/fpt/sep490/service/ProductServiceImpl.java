@@ -195,6 +195,9 @@ public class ProductServiceImpl implements ProductService {
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
+        if(productDto.getPrice() < 0){
+            throw new RuntimeException("Lỗi: Giá của sản phẩm phải là số dương");
+        }
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
 
@@ -206,8 +209,11 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUpdateAt(new Date());
-
-        return productRepository.save(product);
+        try {
+            return productRepository.save(product);
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: "+ e.getMessage());
+        }
     }
 
     @Override
@@ -250,9 +256,16 @@ public class ProductServiceImpl implements ProductService {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
+        if(user == null){
+            throw new RuntimeException("Lỗi : không tìm thấy thông tin người dùng!");
+        }
         batch.setBatchCreator(user);
-        batch = batchRepository.save(batch);
-        return batch;
+        try {
+            batch = batchRepository.save(batch);
+            return batch;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!"+ e.getMessage());
+        }
     }
 
     @Override

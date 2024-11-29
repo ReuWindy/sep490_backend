@@ -88,28 +88,45 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUserProfile(String token, UserDto userDto) {
-        String username = jwtTokenManager.getUsernameFromToken(token);
-        User u = userRepository.findByUsername(userDto.getUsername());
-        if (username.equals(u.getUsername())) {
-            u.setImage(userDto.getImage());
-            u.setAddress(userDto.getAddress());
-            userRepository.save(u);
-            return u;
+        try {
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            User u = userRepository.findByUsername(userDto.getUsername());
+            if (username.equals(u.getUsername())) {
+                if (userDto.getImage() != null) {
+                    u.setImage(userDto.getImage());
+                }
+                if (userDto.getAddress() != null) {
+                    u.setAddress(userDto.getAddress());
+                }
+                userRepository.save(u);
+                return u;
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật hồ sơ người dùng!");
         }
         return null;
     }
 
     @Override
     public User changePassword(String token, PasswordRequest request) {
-        String username = jwtTokenManager.getUsernameFromToken(token);
+        try {
+            String username = jwtTokenManager.getUsernameFromToken(token);
 
-        User u = userRepository.findByUsername(username);
-        if (u != null) {
+            User u = userRepository.findByUsername(username);
+            if (u == null) {
+                throw new RuntimeException("Lỗi: Không tìm thấy người dùng!");
+            }
+            String newPassword = request.getNewpass();
+            if (!UserValidationService.isStrongPassword(newPassword)) {
+                throw new RuntimeException("Lỗi: Mật khẩu mới không tạo đúng theo format!");
+            }
             u.setPassword(bCryptPasswordEncoder.encode(request.getNewpass()));
             userRepository.save(u);
             return u;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật mật khẩu mới! " + e.getMessage());
         }
-        return null;
     }
 
     @Override
@@ -131,19 +148,23 @@ public class UserServiceImpl implements UserService {
             user.setCreateAt(new Date());
             user.setUserType(UserType.ROLE_CUSTOMER);
             user.setActive(true);
-
+            if (!user.getPhone().matches("^[0-9]+$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại chỉ bao gồm số từ 0 đến 9!");
+            }
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
-                throw new IllegalArgumentException("Password cannot be null or empty");
+                throw new IllegalArgumentException("Lỗi: Mật khẩu không thể để trống!");
             }
 
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy bảng giá cơ bản!"));
             user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
             user.setPrice(standardPrice);
-
-            customerRepository.save(user);
-
+            try {
+                customerRepository.save(user);
+            }catch (Exception e){
+                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình đăng ký! " + e.getMessage());
+            }
             final String username = registrationRequest.getUsername();
             final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
 
@@ -159,7 +180,7 @@ public class UserServiceImpl implements UserService {
         if (userType == UserType.ROLE_EMPLOYEE) {
 
             // find employee role by id
-            EmployeeRole employeeRole = employeeRoleRepository.findById(createUserRequest.getEmployeeRoleId()).orElseThrow(() -> new RuntimeException("Employee Role not found"));
+            EmployeeRole employeeRole = employeeRoleRepository.findById(createUserRequest.getEmployeeRoleId()).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy chức vụ phù hợp của nhân viên!"));
 
             // set attributes of salary detail
             SalaryDetail salaryDetail = new SalaryDetail();
@@ -168,6 +189,9 @@ public class UserServiceImpl implements UserService {
                 salaryDetail.setDailyWage(0);
             } else {
                 salaryDetail.setSalaryType(SalaryType.MONTHLY);
+                if(createUserRequest.getDailyWage()<0){
+                    throw new RuntimeException("Lỗi : Lương của nhân viên phải là số dương!");
+                }
                 salaryDetail.setDailyWage(createUserRequest.getDailyWage());
             }
             // set attributes of role
@@ -181,6 +205,9 @@ public class UserServiceImpl implements UserService {
             employee.setFullName(registrationRequest.getName());
             employee.setUsername(registrationRequest.getUsername());
             employee.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
+            if (!employee.getPhone().matches("^[0-9]+$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại chỉ bao gồm số từ 0 đến 9!");
+            }
             employee.setPhone(registrationRequest.getPhone());
             employee.setEmail(registrationRequest.getEmail());
             employee.setAddress(registrationRequest.getAddress());
@@ -193,36 +220,54 @@ public class UserServiceImpl implements UserService {
             // set attributes of Employee
             employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
             employee.setJoinDate(new Date());
+            if(employee.getBankName().trim().isEmpty() || employee.getBankName() ==null){
+                throw new RuntimeException("Lỗi: Tên ngân hàng  của nhân viên không được để trống!");
+            }
             employee.setBankName(createUserRequest.getBankName());
+            if (!employee.getBankNumber().matches("^[0-9]+$")) {
+                throw new RuntimeException("Lỗi: Số tài khoản của nhân viên chỉ bao gồm số từ 0 đến 9!");
+            }
             employee.setBankNumber(createUserRequest.getBankNumber());
             employee.setRole(role);
-
-            salaryDetailRepository.save(salaryDetail);
-            roleRepository.save(role);
-            employeeRepository.save(employee);
+            try {
+                salaryDetailRepository.save(salaryDetail);
+                roleRepository.save(role);
+                employeeRepository.save(employee);
+            }catch (Exception e){
+                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhân viên mới! "+e.getMessage());
+            }
         } else {
             final Customer user = userMapper.convertToCustomer(registrationRequest);
-            user.setUsername(createUserRequest.getUsername());
-            user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
+            user.setUsername(registrationRequest.getUsername());
+            user.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
             user.setPhone(registrationRequest.getPhone());
             user.setEmail(registrationRequest.getEmail());
             user.setAddress(registrationRequest.getAddress());
             user.setActive(registrationRequest.isActive());
             user.setDob(registrationRequest.getDob());
             user.setGender(registrationRequest.isGender());
-            user.setFullName(createUserRequest.getName());
+            user.setFullName(registrationRequest.getName());
             user.setImage(createUserRequest.getImage());
             user.setCreateAt(new Date());
-            user.setUserType(userType);
+            user.setUserType(UserType.ROLE_CUSTOMER);
             user.setActive(true);
-
-            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Standard Price Not Found!!"));
-            user.setName(createUserRequest.getName());
+            if (!user.getPhone().matches("^[0-9]+$")) {
+                throw new RuntimeException("Lỗi: Số điện thoại chỉ bao gồm số từ 0 đến 9!");
+            }
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new IllegalArgumentException("Lỗi: Mật khẩu không thể để trống!");
+            }
+            Price standardPrice = priceRepository.findById(1l).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy bảng giá cơ bản!"));
+            user.setName(registrationRequest.getName());
             user.setSupporter(false);
             user.setContracts(new HashSet<>());
             user.setPrice(standardPrice);
-            customerRepository.save(user);
-         //   userRepository.save(user);
+            try {
+                customerRepository.save(user);
+            }catch (Exception e){
+                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo khách hàng mới! " + e.getMessage());
+            }
+
         }
         final String username = registrationRequest.getUsername();
         final String registrationSuccessMessage = generalMessageAccessor.getMessage(null, REGISTRATION_SUCCESSFUL, username);
@@ -239,6 +284,9 @@ public class UserServiceImpl implements UserService {
     public boolean sendPasswordToEmail(String email) {
         try {
             User u = userRepository.findUserByEmail(email);
+            if(u==null){
+                throw new RuntimeException("Lỗi: Không tìm thấy người dùng!");
+            }
             RandomPasswordGenerator rpg = new RandomPasswordGenerator();
             String pass = rpg.generateRandomPassword();
             u.setPassword(bCryptPasswordEncoder.encode(pass));
@@ -247,7 +295,7 @@ public class UserServiceImpl implements UserService {
             sendMail.sendMailRender(u.getEmail(), "PASSWORD RECOVER", bodyEmail);
             return true;
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình gửi thư ! "+e.getMessage());
         }
     }
 

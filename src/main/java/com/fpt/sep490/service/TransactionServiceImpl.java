@@ -29,16 +29,13 @@ public class TransactionServiceImpl implements TransactionService{
     @Transactional
     @Override
     public Transaction updateTransaction(TransactionDto transactionDto) {
-        Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElseThrow(()->new RuntimeException("Transaction Not Found !"));
-        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()->new RuntimeException("ReceiptVoucher Not Found !"));
+        Transaction updatedTransaction = transactionRepository.findById(transactionDto.getId()).orElseThrow(()->new RuntimeException("Lỗi: Không tìm thấy giao dịch !"));
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()->new RuntimeException("Lỗi: Không tìm thấy biên lai phiếu thu !"));
         Date currentDate = new Date();
         long threeDaysAgoMillis = currentDate.getTime() - (3L * 24 * 60 * 60 * 1000);
         if((transactionDto.getTransactionDate().getTime() > threeDaysAgoMillis)) {
             if(transactionDto.getAmount() <= 0){
                     throw new RuntimeException("Số tiền giao dịch phải là số dương");
-            }
-            if(transactionDto.getPaymentMethod() == null){
-                throw new RuntimeException("Phương thức thanh toán không được để trống");
             }
             // calculate difference of new and old amount of transaction
             double difference = transactionDto.getAmount() - updatedTransaction.getAmount();
@@ -46,7 +43,6 @@ public class TransactionServiceImpl implements TransactionService{
             // update attribute of transaction
             updatedTransaction.setAmount(transactionDto.getAmount());
             updatedTransaction.setTransactionDate(transactionDto.getTransactionDate());
-            updatedTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
 
             // update attribute of receipt voucher
             receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + difference);
@@ -66,7 +62,11 @@ public class TransactionServiceImpl implements TransactionService{
     @Override
     public Set<TransactionDto> getTransactionByReceiptId(long receiptId) {
         Set<Transaction> transactions = transactionRepository.findByReceiptVoucher_Id(receiptId);
-        return transactions.stream().map(this::convertToDto).collect(Collectors.toSet());
+        if(transactions != null) {
+            return transactions.stream().map(this::convertToDto).collect(Collectors.toSet());
+        }else{
+            throw new RuntimeException("Lỗi : Không tìm thấy danh sách giao dịch tương ứng!");
+        }
     }
 
     @Override
@@ -77,15 +77,16 @@ public class TransactionServiceImpl implements TransactionService{
     @Transactional
     @Override
     public Transaction createTransactionByAdmin(TransactionDto transactionDto) {
-        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()-> new RuntimeException("ReceiptVoucher Not Found !"));
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy biên lai phiếu thu !"));
         Transaction createdTransaction = new Transaction();
 
         // check if amount of transaction is negative
         if(transactionDto.getAmount() <= 0){
             throw new RuntimeException("Số tiền giao dịch phải là số dương");
         }
+        boolean isExceedTotalAmount = transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount();
         // check if amount of transaction is more than totalAmount
-        if(transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount()){
+        if(isExceedTotalAmount){
             throw new RuntimeException("Số tiền thanh toán vượt quá số tiền cần thanh toán");
         }
         // set up newPaidAmount and new RemainAmount of receipt voucher
@@ -96,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService{
         createdTransaction.setReceiptVoucher(receiptVoucher);
         createdTransaction.setAmount(transactionDto.getAmount());
         createdTransaction.setTransactionDate(new Date());
-        if(transactionDto.getPaymentMethod() == null){
+        if(transactionDto.getPaymentMethod() == null || transactionDto.getPaymentMethod().isEmpty()){
             throw new RuntimeException("Phương thức thanh toán không được để trống");
         }
         createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());

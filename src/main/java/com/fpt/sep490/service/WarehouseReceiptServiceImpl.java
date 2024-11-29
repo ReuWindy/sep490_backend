@@ -69,7 +69,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     public WarehouseReceipt createImportWarehouseReceipt(String batchCode) {
         Batch batch = batchRepository.findByBatchCode(batchCode);
         if (batch == null) {
-            throw new RuntimeException("Batch Not Found!!");
+            throw new RuntimeException("Lỗi: Không tìm thấy lô hàng!");
         }
 
         WarehouseReceipt receipt = new WarehouseReceipt();

@@ -17,17 +17,17 @@ import java.util.Date;
 @Builder
 @ToString
 public class RegistrationRequest {
-    @NotEmpty(message = "{registration_name_not_empty}")
+    @NotEmpty(message = "Tên đăng ký không được để trống!")
     private String name;
-    @NotEmpty(message = "{registration_username_not_empty}")
+    @NotEmpty(message = "Tên đăng nhập không được để trống!")
     private String username;
-    @NotEmpty(message = "{registration_password_not_empty}")
+    @NotEmpty(message = "Mật khẩu đăng ký không được để trống!")
     private String password;
     private String passwordConfirmation;
     private String phone;
     private boolean active = true;
-    @Email(message = "{registration_email_is_not_valid}")
-    @NotEmpty(message = "{registration_email_not_empty}")
+    @Email(message = "Email đăng ký không hợp lệ!")
+    @NotEmpty(message = "Email đăng ký không được để trống!")
     private String email;
     private String address;
     private Date dob;

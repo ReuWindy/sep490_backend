@@ -43,36 +43,84 @@ public class SupplierServiceImpl implements SupplierService{
 
     @Override
     public Supplier getSupplierByName(String name) {
-        Optional<Supplier> warehouse = supplierRepository.findByName(name);
-        return warehouse.orElse(null);
+        if(name != null && !name.trim().isEmpty()) {
+            Optional<Supplier> supplier = supplierRepository.findByName(name);
+            return supplier.orElse(null);
+        }else{
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới!");
+        }
     }
 
     @Override
     public Supplier createSupplier(Supplier supplier) {
+        try {
         Supplier newSupplier = new Supplier();
+        if(supplier.getName().trim().isEmpty()){
+            throw new RuntimeException("Lỗi: Tên nhà cung cấp không được để trống!");
+        }
         newSupplier.setName(supplier.getName());
         newSupplier.setContactPerson(supplier.getContactPerson());
+        if(supplier.getEmail().isEmpty()){
+            throw new RuntimeException("Lỗi: Email của nhà cung cấp không được để trống!");
+        }
+        Optional<Supplier> existingSupplier = supplierRepository.findByEmail(supplier.getEmail());
+        if (existingSupplier.isPresent()) {
+                throw new RuntimeException("Lỗi: Email của nhà cung cấp đã tồn tại trong hệ thống!");
+        }
         newSupplier.setEmail(supplier.getEmail());
+        if(!supplier.getPhoneNumber().matches("^[0-9]+$")){
+            throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp chỉ bao gồm số từ 0 đến 9 !");
+        }
         newSupplier.setPhoneNumber(supplier.getPhoneNumber());
         newSupplier.setAddress(supplier.getAddress());
-        supplierRepository.save(newSupplier);
-        return newSupplier;
+
+            supplierRepository.save(newSupplier);
+            return newSupplier;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới! "+ e.getMessage());
+        }
     }
 
     @Override
     public Supplier updateSupplier(Supplier supplier) {
-        Supplier existingSupplier = supplierRepository.findById(supplier.getId()).orElse(null);
-        if(existingSupplier != null){
-            existingSupplier.setName(supplier.getName());
-            existingSupplier.setContactPerson(supplier.getContactPerson());
-            existingSupplier.setEmail(supplier.getEmail());
-            existingSupplier.setPhoneNumber(supplier.getPhoneNumber());
-            existingSupplier.setAddress(supplier.getAddress());
+        Supplier existingSupplier = supplierRepository.findById(supplier.getId())
+                .orElseThrow(() -> new RuntimeException("Lỗi: nhà cung cấp không tồn tại!"));
+
+        try {
+            if (supplier.getName() != null && !supplier.getName().trim().isEmpty()) {
+                existingSupplier.setName(supplier.getName());
+            } else if (supplier.getName() != null) {
+                throw new RuntimeException("Lỗi: Tên nhà cung cấp không được để trống!");
+            }
+
+            if (supplier.getEmail() != null && !supplier.getEmail().isEmpty()) {
+                Optional<Supplier> existingSupplierEmail = supplierRepository.findByEmail(supplier.getEmail());
+                if (existingSupplierEmail.isPresent()) {
+                    throw new RuntimeException("Lỗi: Email của nhà cung cấp đã tồn tại trong hệ thống!");
+                }
+                existingSupplier.setEmail(supplier.getEmail());
+            } else if (supplier.getEmail() != null) {
+                throw new RuntimeException("Lỗi: Email của nhà cung cấp không được để trống!");
+            }
+            if (supplier.getPhoneNumber() != null) {
+                if (!supplier.getPhoneNumber().matches("^[0-9]+$")) {
+                    throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp chỉ bao gồm số từ 0 đến 9!");
+                }
+                existingSupplier.setPhoneNumber(supplier.getPhoneNumber());
+            }
+            if (supplier.getContactPerson() != null) {
+                existingSupplier.setContactPerson(supplier.getContactPerson());
+            }
+            if (supplier.getAddress() != null) {
+                existingSupplier.setAddress(supplier.getAddress());
+            }
             supplierRepository.save(existingSupplier);
             return existingSupplier;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật nhà cung cấp! " + e.getMessage());
         }
-        return null;
     }
+
 
     @Override
     public List<Supplier> getAllActiveSupplier() {
