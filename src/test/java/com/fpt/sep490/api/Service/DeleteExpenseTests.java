@@ -54,7 +54,7 @@ public class DeleteExpenseTests {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
-            expenseVoucherService.deleteExpense(expenseVoucherDto, 1L);
+            expenseVoucherService.deleteExpense( 1L);
         });
     }
 
@@ -65,7 +65,7 @@ public class DeleteExpenseTests {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
 
         assertThrows(RuntimeException.class, () -> {
-            expenseVoucherService.deleteExpense(expenseVoucherDto, 1L);
+            expenseVoucherService.deleteExpense( 1L);
         });
     }
 
@@ -75,11 +75,11 @@ public class DeleteExpenseTests {
 
         // Giả lập ngày phiếu chi đã quá 3 ngày
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH, 4); // Phiếu chi đã quá hạn
+        calendar.add(Calendar.DAY_OF_MONTH, -3); // Phiếu chi đã quá hạn
         expenseVoucher.setExpenseDate(calendar.getTime());
 
         assertThrows(RuntimeException.class, () -> {
-            expenseVoucherService.deleteExpense(expenseVoucherDto, 1L);
+            expenseVoucherService.deleteExpense( 1L);
         });
     }
 
@@ -88,7 +88,7 @@ public class DeleteExpenseTests {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
         when(expenseVoucherRepository.save(any())).thenReturn(expenseVoucher);
 
-        ExpenseVoucher deletedExpense = expenseVoucherService.deleteExpense(expenseVoucherDto, 1L);
+        ExpenseVoucher deletedExpense = expenseVoucherService.deleteExpense( 1L);
 
         assertNotNull(deletedExpense);
         assertTrue(deletedExpense.isDeleted());
@@ -100,9 +100,9 @@ public class DeleteExpenseTests {
         when(expenseVoucherRepository.save(any())).thenThrow(new RuntimeException("Lỗi khi lưu phiếu chi"));
 
         RuntimeException e = assertThrows(RuntimeException.class, () -> {
-            expenseVoucherService.deleteExpense(expenseVoucherDto, 1L);
+            expenseVoucherService.deleteExpense( 1L);
         });
-        assertEquals("Lỗi khi lưu phiếu chi", e.getMessage() );
+        assertEquals("Lỗi khi xóa phiếu chi", e.getMessage() );
     }
 
 }

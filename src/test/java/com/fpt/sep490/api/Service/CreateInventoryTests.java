@@ -93,7 +93,7 @@ public class CreateInventoryTests {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             inventoryService.createInventory(inventoryDto);
         });
-        assertEquals("Warehouse Not Found!", exception.getMessage());
+        assertEquals("Không tìm thấy kho", exception.getMessage());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class CreateInventoryTests {
             inventoryService.createInventory(inventoryDto);
         });
 
-        assertEquals("User Not Found!",exception.getMessage());
+        assertEquals("Không tìm thấy người dùng",exception.getMessage());
     }
 
     @Test

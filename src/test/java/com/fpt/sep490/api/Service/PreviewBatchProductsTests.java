@@ -14,9 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
@@ -49,20 +49,20 @@ public class PreviewBatchProductsTests {
 
     @BeforeEach
     public void setUp() {
-        // Tạo đối tượng Authentication giả lập
-        UserDetails userDetails = User.builder()
-                .username("testUser")
-                .password("password")
-                .roles("USER")
-                .build();
+        UserDetails mockUserDetails = mock(UserDetails.class);
+        lenient().when(mockUserDetails.getUsername()).thenReturn("test_user");
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+        Authentication mockAuthentication = mock(Authentication.class);
+        lenient().when(mockAuthentication.getPrincipal()).thenReturn(mockUserDetails);
 
-        // Cung cấp đối tượng Authentication vào SecurityContext
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authenticationToken);
-        SecurityContextHolder.setContext(context);
+        SecurityContext mockSecurityContext = mock(SecurityContext.class);
+        lenient().when(mockSecurityContext.getAuthentication()).thenReturn(mockAuthentication);
+
+        SecurityContextHolder.setContext(mockSecurityContext);
+
+        com.fpt.sep490.model.User mockUser = new User();
+        mockUser.setUsername("testUser");
+        lenient().when(userService.findByUsername(anyString())).thenReturn(mockUser);
     }
 
     @Test

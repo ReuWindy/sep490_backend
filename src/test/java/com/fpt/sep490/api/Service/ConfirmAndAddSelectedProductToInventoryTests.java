@@ -93,7 +93,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
         String result = inventoryService.confirmAndAddSelectedProductToInventory(1L, inventoryDto);
 
         // Kiểm tra kết quả
-        assertEquals("Done!", result);
+        assertEquals("Xác nhận phiếu kiểm kho thành công !", result);
         assertEquals(StatusEnum.COMPLETED, inventory.getStatus());
         assertEquals(50, productWarehouse.getQuantity());
         verify(inventoryRepository).save(inventory);
@@ -137,7 +137,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
                 inventoryService.confirmAndAddSelectedProductToInventory(1L, inventoryDto)
         );
 
-        assertEquals("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho", exception.getMessage());
+        assertEquals("Không tìm thấy phiếu kiểm kho phù hợp!", exception.getMessage());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
                 inventoryService.confirmAndAddSelectedProductToInventory(1L, inventoryDto)
         );
 
-        assertEquals("Save failed", exception.getMessage());
+        assertEquals("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !", exception.getMessage());
     }
 }
 

@@ -67,7 +67,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Set<TransactionDto> getTransactionByReceiptId(long receiptId) {
         Set<Transaction> transactions = transactionRepository.findByReceiptVoucher_Id(receiptId);
-        return transactions.stream().map(this::convertToDto).collect(Collectors.toSet());
+        if(transactions != null) {
+            return transactions.stream().map(this::convertToDto).collect(Collectors.toSet());
+        }else{
+            throw new RuntimeException("Lỗi : Không tìm thấy danh sách giao dịch tương ứng!");
+        }
     }
 
     @Override
@@ -78,15 +82,16 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     @Override
     public Transaction createTransactionByAdmin(TransactionDto transactionDto) {
-        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(() -> new RuntimeException("ReceiptVoucher Not Found !"));
+        ReceiptVoucher receiptVoucher = receiptVoucherRepository.findById(transactionDto.getReceiptVoucherId()).orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy biên lai phiếu thu !"));
         Transaction createdTransaction = new Transaction();
 
         // check if amount of transaction is negative
         if (transactionDto.getAmount() <= 0) {
             throw new RuntimeException("Số tiền giao dịch phải là số dương");
         }
+        boolean isExceedTotalAmount = transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount();
         // check if amount of transaction is more than totalAmount
-        if (transactionDto.getAmount() + receiptVoucher.getPaidAmount() > receiptVoucher.getTotalAmount()) {
+        if(isExceedTotalAmount){
             throw new RuntimeException("Số tiền thanh toán vượt quá số tiền cần thanh toán");
         }
         // set up newPaidAmount and new RemainAmount of receipt voucher
@@ -97,7 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
         createdTransaction.setReceiptVoucher(receiptVoucher);
         createdTransaction.setAmount(transactionDto.getAmount());
         createdTransaction.setTransactionDate(new Date());
-        if (transactionDto.getPaymentMethod() == null) {
+        if(transactionDto.getPaymentMethod() == null || transactionDto.getPaymentMethod().isEmpty()){
             throw new RuntimeException("Phương thức thanh toán không được để trống");
         }
         createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
@@ -109,7 +114,7 @@ public class TransactionServiceImpl implements TransactionService {
             receiptVoucherRepository.save(receiptVoucher);
             return createdTransaction;
         } catch (Exception e) {
-            throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới :" + e.getMessage());
+            throw new RuntimeException("Lỗi: " + e.getMessage());
         }
     }
 

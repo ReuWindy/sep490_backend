@@ -76,7 +76,7 @@ public class CreateProductTests {
             productService.createProduct(productDto);
         });
 
-        assertEquals("Category not found", exception.getMessage());
+        assertEquals("Không tìm thấy danh mục", exception.getMessage());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class CreateProductTests {
             productService.createProduct(productDto);
         });
 
-        assertEquals("Supplier not found", exception.getMessage());
+        assertEquals("Không tìm thấy nhà cung cấp", exception.getMessage());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class CreateProductTests {
             productService.createProduct(productDto);
         });
 
-        assertEquals("Unit of Measure not found", exception.getMessage());
+        assertEquals("Không tìm thấy đơn vị", exception.getMessage());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class CreateProductTests {
             productService.createProduct(productDto);
         });
 
-        assertEquals("Warehouse not found", exception.getMessage());
+        assertEquals("Không tìm thấy kho", exception.getMessage());
     }
 
 

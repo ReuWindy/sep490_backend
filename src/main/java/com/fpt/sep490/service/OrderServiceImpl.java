@@ -290,29 +290,58 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         double newDeposit = adminOrderDto.getDeposit();
-        if (newDeposit != 0.0) {
-            updatedOrder.setDeposit(adminOrderDto.getDeposit());
+        if(newDeposit < 0 ){
+            throw new RuntimeException("Số tiền cọc không được âm!");
         }
         double updatedTotalAmount = 0.0;
-        for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
-            for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
-                if (detailDto.getProductId().equals(updatedDetail.getId())) {
-                    updatedDetail.setQuantity(detailDto.getQuantity());
-                    double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
-                    updatedDetail.setTotalPrice(updatedPrice);
-                    updatedTotalAmount += updatedPrice;
-                    break;
+            for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
+                boolean found = false;
+                for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
+                    if (detailDto.getProductId().equals(updatedDetail.getProduct().getId())) {
+                        found = true;
+                        if(detailDto.getQuantity() < 0){
+                            throw new RuntimeException("Số lượng sản phẩm không được âm: Product ID " + detailDto.getProductId());
+                        }
+                        updatedDetail.setQuantity(detailDto.getQuantity());
+                        double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
+                        updatedDetail.setTotalPrice(updatedPrice);
+                        updatedTotalAmount += updatedPrice;
+                        if(detailDto.getQuantity() == 0){
+                            updatedOrder.getOrderDetails().remove(updatedDetail);
+                        }
+                        break;
+                    }
+                }
+                if(!found){
+                    Product product = productRepository.findById(detailDto.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + detailDto.getProductId()));
+
+                    if (detailDto.getQuantity() <= 0) {
+                        throw new RuntimeException("Số lượng sản phẩm không được âm hoặc bằng 0 khi thêm mới: Product ID " + detailDto.getProductId());
+                    }
+
+                    OrderDetail newDetail = new OrderDetail();
+                    newDetail.setOrder(updatedOrder);
+                    newDetail.setProduct(product);
+                    newDetail.setQuantity(detailDto.getQuantity());
+                    newDetail.setUnitPrice(product.getPrice());
+                    double totalPrice = product.getPrice() * detailDto.getQuantity();
+                    newDetail.setTotalPrice(totalPrice);
+                    updatedOrder.getOrderDetails().add(newDetail);
+                    updatedTotalAmount += totalPrice;
                 }
             }
-        }
         updatedOrder.setTotalAmount(updatedTotalAmount);
-        double remainAmount = updatedTotalAmount - newDeposit;
-        updatedOrder.setRemainingAmount(remainAmount);
-        try {
+        if (newDeposit > updatedTotalAmount) {
+            throw new RuntimeException("Số tiền cọc không được lớn hơn tổng giá trị đơn hàng!");
+        }
+        updatedOrder.setDeposit(newDeposit);
+        updatedOrder.setRemainingAmount(updatedTotalAmount - newDeposit);
+        try{
             orderRepository.save(updatedOrder);
             return updatedOrder;
-        } catch (Exception e) {
-            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng!");
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" + e.getMessage());
         }
     }
 
