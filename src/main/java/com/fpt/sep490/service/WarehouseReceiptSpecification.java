@@ -31,6 +31,26 @@ public class WarehouseReceiptSpecification {
         };
     }
 
+    public static Specification<WarehouseReceipt> hasBatchCode(String batchCode) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (batchCode != null) {
+                predicates.add(cb.like(root.get("batch").get("batchCode"), "%" + batchCode + "%"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<WarehouseReceipt> hasOrderCode(String orderCode) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (orderCode != null) {
+                predicates.add(cb.like(root.get("order").get("orderCode"), "%" + orderCode + "%"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     public static Specification<WarehouseReceipt> isReceiptDateBetween(Date startDate, Date endDate) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

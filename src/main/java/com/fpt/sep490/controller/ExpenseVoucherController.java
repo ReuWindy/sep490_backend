@@ -42,12 +42,13 @@ public class ExpenseVoucherController {
     public ResponseEntity<PagedModel<EntityModel<ExpenseVoucherDto>>> getExpenseVoucherByFilter(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate,
+            @RequestParam(required = false) String expenseCode,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<ExpenseVoucherDto> pagedResourcesAssembler) {
 
         Page<ExpenseVoucherDto> expenseVoucherDtos = expenseVoucherService
-                .getExpenseVoucherPagination(startDate, endDate, pageNumber, pageSize)
+                .getExpenseVoucherPagination(startDate, endDate, pageNumber, pageSize, expenseCode)
                 .map(expenseVoucher -> modelMapper.map(expenseVoucher, ExpenseVoucherDto.class));
 
         PagedModel<EntityModel<ExpenseVoucherDto>> entityModels = pagedResourcesAssembler
@@ -84,6 +85,16 @@ public class ExpenseVoucherController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @PostMapping("/paySupplier/{id}")
+    public ResponseEntity<?> paySupplier(@PathVariable long id) {
+        ExpenseVoucher expenseVoucher = expenseVoucherService.createSupplierExpense(id);
+        if (expenseVoucher != null) {
+            return ResponseEntity.ok(expenseVoucher);
+        }
+        final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     @PostMapping("/payEmployeeSalaryByMonth")
     public ResponseEntity<?> payEmployeeSalaryByMonth(@RequestBody EmployeeIdDto request) {
         ExpenseVoucher expenseVoucher = expenseVoucherService.createEmployeeExpense(request.getEmployeeId());
@@ -106,8 +117,8 @@ public class ExpenseVoucherController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteExpenseVoucher(@RequestBody ExpenseVoucherDto request, @PathVariable long id) {
-        ExpenseVoucher expenseVoucher = expenseVoucherService.deleteExpense(request, id);
+    public ResponseEntity<?> deleteExpenseVoucher(@PathVariable long id) {
+        ExpenseVoucher expenseVoucher = expenseVoucherService.deleteExpense(id);
         if (expenseVoucher != null) {
             return ResponseEntity.ok(expenseVoucher);
         }

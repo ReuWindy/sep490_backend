@@ -33,6 +33,8 @@ public interface ProductService {
 
     List<BatchProduct> previewBatchProducts(List<importProductDto> ImportProductDtoList);
 
+    List<BatchProduct> previewBatchProductsFromProduction(List<importProductFromProductionDto> ImportProductDtoList);
+
     String confirmAndAddSelectedProductToWarehouse(long batchId, List<BatchProductSelection> batchProductSelections);
 
     String confirmAndExportProducts(Long batchId, List<ExportProductDto> exportProductDtos);

@@ -33,12 +33,13 @@ public class ReceiptVoucherController {
     public ResponseEntity<PagedModel<EntityModel<ReceiptVoucherDto>>> getReceiptVoucherByFilter(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate,
+            @RequestParam(required = false) String incomeCode,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<ReceiptVoucherDto> pagedResourcesAssembler) {
 
         Page<ReceiptVoucherDto> receiptVoucherDtos = receiptVoucherService
-                .getReceiptVoucherPagination(startDate, endDate, pageNumber, pageSize)
+                .getReceiptVoucherPagination(startDate, endDate, pageNumber, pageSize, incomeCode)
                 .map(receiptVoucher -> modelMapper.map(receiptVoucher, ReceiptVoucherDto.class));
 
         PagedModel<EntityModel<ReceiptVoucherDto>> entityModels = pagedResourcesAssembler

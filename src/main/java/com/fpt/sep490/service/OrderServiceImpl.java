@@ -251,7 +251,6 @@ public class OrderServiceImpl implements OrderService {
                             warehouse.setQuantity(0);
                             productWareHouseRepository.save(warehouse);
                         }
-
                     }
                     // Kiểm tra nếu không đủ hàng trong tất cả các kho
                     if (requiredQuantity > 0) {

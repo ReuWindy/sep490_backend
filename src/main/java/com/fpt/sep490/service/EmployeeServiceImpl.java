@@ -50,10 +50,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, int pageNumber, int pageSize) {
+    public Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, String email, int pageNumber, int pageSize) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrFullNameOrPhoneNumber(employeeCode, fullName, phoneNumber);
+            Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrFullNameOrPhoneNumber(employeeCode, fullName, phoneNumber, email);
             return employeeRepository.findAll(specification, pageable);
         } catch (Exception e) {
             return null;
