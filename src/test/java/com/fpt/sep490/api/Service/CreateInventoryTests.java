@@ -53,7 +53,7 @@ public class CreateInventoryTests {
     public void setUp(){
         warehouse = new Warehouse(1L, "Main Warehouse", "123 Street");
         product = new Product(1L, "Sample Product", "Description", 100.0, "image.png", "PROD123", null, null, null, new Date(), new Date(), true, Set.of(), Set.of(), 90.0);
-        productWarehouse = new ProductWarehouse(1L, 10,"BATCH123", 100.0, 1.0, 50,10.0,"Kg",product,warehouse);
+        productWarehouse = new ProductWarehouse(1L, 10,"BATCH123", 100.0, 1.0, 50.0,10.0,"Kg",product,warehouse);
         user = new User();
         user.setUsername("username");
 

@@ -18,19 +18,13 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductionOrderServiceImpl implements ProductionOrderService {
-
-    private final FinishedProductService finishedProductService;
     private final ProductWarehouseService productWarehouseService;
     private final ProductionOrderRepository productionOrderRepository;
     private final ProductRepository productRepository;
     private final FinishedProductRepository finishedProductRepository;
     private final UserRepository userRepository;
 
-    public ProductionOrderServiceImpl(
-            FinishedProductService finishedProductService,
-            ProductWarehouseService productWarehouseService,
-            ProductionOrderRepository productionOrderRepository, ProductRepository productRepository, FinishedProductRepository finishedProductRepository, UserRepository userRepository) {
-        this.finishedProductService = finishedProductService;
+    public ProductionOrderServiceImpl(ProductWarehouseService productWarehouseService, ProductionOrderRepository productionOrderRepository, ProductRepository productRepository, FinishedProductRepository finishedProductRepository, UserRepository userRepository) {
         this.productWarehouseService = productWarehouseService;
         this.productionOrderRepository = productionOrderRepository;
         this.productRepository = productRepository;
@@ -72,7 +66,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             finishedProduct.setActive(true);
             finishedProduct.setQuantity(productDto.getQuantity());
             finishedProduct.setProductionOrder(productionOrder);
-            totalRatio += productDto.getProportion();
+            totalRatio += (int) productDto.getProportion();
             finishedProducts.add(finishedProduct);
         }
 
@@ -80,9 +74,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             throw new RuntimeException("Tổng tỉ lệ không được vượt quá 100%");
         }
 
-        if (!finishedProducts.isEmpty()) {
-            productionOrder.setFinishedProducts(finishedProducts);
-        }
+        productionOrder.setFinishedProducts(finishedProducts);
 
         return productionOrderRepository.save(productionOrder);
     }
@@ -178,7 +170,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             finishedProduct.setActive(true);
             finishedProduct.setQuantity(productDto.getQuantity());
             finishedProduct.setProductionOrder(productionOrder);
-            totalRatio += productDto.getProportion();
+            totalRatio += (int) productDto.getProportion();
             finishedProducts.add(finishedProduct);
         }
 

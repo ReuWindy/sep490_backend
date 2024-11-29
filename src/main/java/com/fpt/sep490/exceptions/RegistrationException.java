@@ -8,4 +8,3 @@ import lombok.RequiredArgsConstructor;
 public class RegistrationException extends RuntimeException {
     private final String errorMessage;
 }
-

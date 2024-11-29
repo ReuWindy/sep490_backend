@@ -11,11 +11,18 @@ import java.util.List;
 
 public interface WarehouseReceiptService {
     List<WarehouseReceipt> getAllWarehouseReceipts();
+
     WarehouseReceipt createWarehouseReceipt(WarehouseReceiptDto receiptDto, String batchCode);
+
     WarehouseReceipt createImportWarehouseReceipt(String batchCode);
+
     WarehouseReceipt createImportWarehouseReceiptByBatch(Batch batch);
+
     WarehouseReceipt createExportWarehouseReceipt(String batchCode);
+
     WarehouseReceipt updateReceiptDocument(long receiptId, String document);
+
     WarehouseReceipt deleteReceiptDocument(long receiptId);
-    Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType,String username, int pageNumber, int pageSize);
+
+    Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize, String batchCode, String orderCode);
 }

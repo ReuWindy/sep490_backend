@@ -10,10 +10,14 @@ import java.util.List;
 
 public class ExpenseVoucherSpecification {
 
-    public static Specification<ExpenseVoucher> isExpenseDateBetween(Date startDate, Date endDate) {
+    public static Specification<ExpenseVoucher> isExpenseDateBetween(Date startDate, Date endDate, String expenseCode) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isFalse(root.get("isDeleted")));
+            if (expenseCode != null) {
+                predicates.add(cb.like(root.get("expenseCode"), "%" + expenseCode + "%"));
+            }
+
             if (startDate != null && endDate != null) {
                 predicates.add(cb.between(root.get("expenseDate"), startDate, endDate));
             } else if (startDate != null) {

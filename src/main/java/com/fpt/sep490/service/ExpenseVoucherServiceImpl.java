@@ -6,9 +6,11 @@ import com.fpt.sep490.dto.ExpenseVoucherDto;
 import com.fpt.sep490.model.DayActive;
 import com.fpt.sep490.model.Employee;
 import com.fpt.sep490.model.ExpenseVoucher;
+import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.repository.DayActiveRepository;
 import com.fpt.sep490.repository.EmployeeRepository;
 import com.fpt.sep490.repository.ExpenseVoucherRepository;
+import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import com.fpt.sep490.utils.RandomExpenseCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,18 +31,20 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     private final ExpenseVoucherRepository expenseVoucherRepository;
     private final DayActiveRepository dayActiveRepository;
     private final EmployeeRepository employeeRepository;
+    private final WarehouseReceiptRepository warehouseReceiptRepository;
 
-    public ExpenseVoucherServiceImpl(ExpenseVoucherRepository expenseVoucherRepository, DayActiveRepository dayActiveRepository, EmployeeRepository employeeRepository) {
+    public ExpenseVoucherServiceImpl(ExpenseVoucherRepository expenseVoucherRepository, DayActiveRepository dayActiveRepository, EmployeeRepository employeeRepository, WarehouseReceiptRepository warehouseReceiptRepository) {
         this.expenseVoucherRepository = expenseVoucherRepository;
         this.dayActiveRepository = dayActiveRepository;
         this.employeeRepository = employeeRepository;
+        this.warehouseReceiptRepository = warehouseReceiptRepository;
     }
 
     @Override
-    public Page<ExpenseVoucherDto> getExpenseVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize) {
+    public Page<ExpenseVoucherDto> getExpenseVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String expenseCode) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<ExpenseVoucher> specification = ExpenseVoucherSpecification.isExpenseDateBetween(startDate, endDate);
+            Specification<ExpenseVoucher> specification = ExpenseVoucherSpecification.isExpenseDateBetween(startDate, endDate, expenseCode);
 
             Page<ExpenseVoucher> expenseVoucherPage = expenseVoucherRepository.findAll(specification, pageable);
 
@@ -57,6 +61,9 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     @Override
     public ExpenseVoucher createExpense(ExpenseVoucherDto expenseVoucherDto) {
         ExpenseVoucher newExpenseVoucher = new ExpenseVoucher();
+        if (expenseVoucherDto.getTotalAmount() <= 0) {
+            throw new RuntimeException("Không thể xuất phiếu chi có giá trị bằng 0");
+        }
         newExpenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
         newExpenseVoucher.setExpenseDate(new Date());
         newExpenseVoucher.setTotalAmount(expenseVoucherDto.getTotalAmount());
@@ -117,7 +124,7 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     public ExpenseVoucher createEmployeeExpense(Long employeeId) {
         YearMonth currentMonth = YearMonth.now();
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Nhân viên không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         double totalAmount = employee.getDayActives().stream()
                 .filter(dayActive -> {
@@ -130,27 +137,38 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
                 .mapToDouble(dayActive -> employee.getRole().getSalaryDetail().getDailyWage())
                 .sum();
 
-        List<LocalDate> filteredDates = employee.getDayActives().stream()
+        List<DayActive> filteredDayActives = employee.getDayActives().stream()
                 .filter(dayActive -> {
                     LocalDate localDate = dayActive.getDayActive().toInstant()
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate();
-
                     return !dayActive.isSpend() && YearMonth.from(localDate).equals(currentMonth);
                 })
+                .toList();
+
+        if (filteredDayActives.isEmpty()) {
+            throw new RuntimeException("Nhân viên đã được thanh toán toàn bộ lương");
+        }
+
+        if (totalAmount <= 0) {
+            throw new RuntimeException("Không thể xuất phiếu chi có giá trị bằng 0");
+        }
+        Optional<LocalDate> minDateOpt = filteredDayActives.stream()
                 .map(dayActive -> dayActive.getDayActive().toInstant()
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate())
-                .toList();
-
-        Optional<LocalDate> minDateOpt = filteredDates.stream().min(Comparator.naturalOrder());
-        Optional<LocalDate> maxDateOpt = filteredDates.stream().max(Comparator.naturalOrder());
+                .min(Comparator.naturalOrder());
+        Optional<LocalDate> maxDateOpt = filteredDayActives.stream()
+                .map(dayActive -> dayActive.getDayActive().toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate())
+                .max(Comparator.naturalOrder());
 
         ExpenseVoucher newExpenseVoucher = new ExpenseVoucher();
         newExpenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
         newExpenseVoucher.setExpenseDate(new Date());
         newExpenseVoucher.setTotalAmount(totalAmount);
-        if (minDateOpt.isPresent() && maxDateOpt.isPresent()) {
+        if (minDateOpt.isPresent()) {
             LocalDate minDate = minDateOpt.get();
             LocalDate maxDate = maxDateOpt.get();
 
@@ -164,7 +182,50 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
             newExpenseVoucher.setNote(note);
         }
         newExpenseVoucher.setType("Thanh toán lương nhân viên");
-        return expenseVoucherRepository.save(newExpenseVoucher);
+
+        ExpenseVoucher savedExpenseVoucher = expenseVoucherRepository.save(newExpenseVoucher);
+
+        filteredDayActives.forEach(dayActive -> {
+            dayActive.setSpend(true);
+            dayActiveRepository.save(dayActive);
+        });
+
+        return savedExpenseVoucher;
+    }
+
+    @Override
+    public ExpenseVoucher createSupplierExpense(Long id) {
+        WarehouseReceipt warehouseReceipt = warehouseReceiptRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập kho"));
+
+        if (warehouseReceipt.getBatch().getBatchProducts().stream()
+                .anyMatch(batchProduct -> batchProduct.isAdded() == false)) {
+            throw new RuntimeException("Vui lòng xác nhận toàn bộ");
+        }
+
+        if (Boolean.TRUE.equals(warehouseReceipt.getIsPay())){
+            throw new RuntimeException("Lô hàng này đã được thanh toán trước đó rồi");
+        }
+
+        double totalValue = warehouseReceipt.getBatch().getBatchProducts().stream()
+                .filter(batchProduct -> batchProduct.isAdded() == true)
+                .mapToDouble(batchProduct ->
+                        batchProduct.getQuantity() *
+                                batchProduct.getWeightPerUnit() *
+                                batchProduct.getPrice()
+                ).sum();
+
+        ExpenseVoucher expenseVoucher = new ExpenseVoucher();
+        expenseVoucher.setExpenseCode(RandomExpenseCodeGenerator.generateExpenseCode());
+        expenseVoucher.setExpenseDate(new Date());
+        expenseVoucher.setDeleted(false);
+        expenseVoucher.setTotalAmount(totalValue);
+        expenseVoucher.setType("Thanh toán tiền nhập hàng");
+        expenseVoucher.setNote("Thanh toán tiền nhập lô hàng " + warehouseReceipt.getBatch().getBatchCode());
+
+        warehouseReceipt.setIsPay(true);
+        warehouseReceiptRepository.save(warehouseReceipt);
+        return expenseVoucherRepository.save(expenseVoucher);
     }
 
     @Override
@@ -189,15 +250,14 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         expenseVoucher.setNote(expenseVoucherDto.getNote());
         expenseVoucher.setType(expenseVoucherDto.getType());
         try {
-            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
-            return savedExpense;
-        }catch (Exception e){
-            throw  new RuntimeException("Lỗi khi cập nhật phiếu chi");
+            return expenseVoucherRepository.save(expenseVoucher);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi cập nhật phiếu chi");
         }
     }
 
     @Override
-    public ExpenseVoucher deleteExpense(ExpenseVoucherDto expenseVoucherDto, Long id) {
+    public ExpenseVoucher deleteExpense(Long id) {
         ExpenseVoucher expenseVoucher = expenseVoucherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu chi"));
 
@@ -206,40 +266,26 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
         }
 
         Date currentDate = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 3);
-        Date datePlusThreeDays = calendar.getTime();
-
-        if (expenseVoucher.getExpenseDate().after(datePlusThreeDays)) {
+        long threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+        if (expenseVoucher.getExpenseDate().before(new Date(currentDate.getTime() - threeDaysInMillis))) {
             throw new RuntimeException("Đã quá hạn xóa phiếu chi!");
         }
         expenseVoucher.setDeleted(true);
-        try{
-            ExpenseVoucher savedExpense = expenseVoucherRepository.save(expenseVoucher);
-            return savedExpense;
-        }catch (Exception e){
+        try {
+            return expenseVoucherRepository.save(expenseVoucher);
+        } catch (Exception e) {
             throw new RuntimeException("Lỗi khi xóa phiếu chi");
         }
     }
 
     @Override
     public List<ExpenseReportDto> getExpenseReport(Date date, String type) {
-        List<Object[]> results;
-
-        switch (type.toLowerCase()) {
-            case "day":
-                results = expenseVoucherRepository.findDailyExpenseByMonth(date);
-                break;
-            case "week":
-                results = expenseVoucherRepository.findDailyExpenseByWeek(date);
-                break;
-            case "month":
-                results = expenseVoucherRepository.findMonthlyExpenseByYear(date);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid type: " + type);
-        }
+        List<Object[]> results = switch (type.toLowerCase()) {
+            case "day" -> expenseVoucherRepository.findDailyExpenseByMonth(date);
+            case "week" -> expenseVoucherRepository.findDailyExpenseByWeek(date);
+            case "month" -> expenseVoucherRepository.findMonthlyExpenseByYear(date);
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
 
         // Chuyển đổi kết quả thành DTO
         List<ExpenseReportDto> report = new ArrayList<>();

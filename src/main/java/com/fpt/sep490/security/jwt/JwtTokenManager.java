@@ -1,5 +1,6 @@
 package com.fpt.sep490.security.jwt;
 
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -13,13 +14,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import com.auth0.jwt.JWT;
+
 import java.util.Date;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenManager {
     private final JwtProperties jwtProperties;
+
     public String generateToken(User user) {
         final String username = user.getUsername();
         final UserType userType = user.getUserType();
@@ -31,6 +34,7 @@ public class JwtTokenManager {
                 .withExpiresAt(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
                 .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
     }
+
     public String getUsernameFromToken(String token) {
         final DecodedJWT jwt = JWT.decode(token);
         return jwt.getSubject();

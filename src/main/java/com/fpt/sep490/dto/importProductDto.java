@@ -14,26 +14,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class importProductDto {
-    @NotBlank(message = "Tên không được để trống")
+    @NotBlank(message = "Vui lòng điền tên sản phẩm")
     @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
-
     private String name;
 
-//    @NotBlank(message = "Mô tả không được để trống")
-//    @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Mô tả chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String description;
 
-    @NotNull(message = "Giá nhập không được null")
+    @NotNull(message = "Vui lòng điền giá nhập")
     @DecimalMin(value = "0", message = "Giá nhập phải là số dương.")
     private double importPrice;
 
     private String image;
 
-    @NotNull(message = "Số lượng không được null")
+    @NotNull(message = "Vui lòng điền số lượng")
     @DecimalMin(value = "0", message = "Số lượng phải là số nguyên dương.")
     private int quantity;
 
-    @NotNull(message = "Trọng lượng mỗi đơn vị không được null")
+    @NotNull(message = "Vui lòng điền trọng lượng cho quy cách")
     @DecimalMin(value = "0", message = "Trọng lượng mỗi đơn vị phải là số dương.")
     private double weightPerUnit;
 
@@ -41,17 +38,14 @@ public class importProductDto {
     @Pattern(regexp = "^[a-zA-Z\\p{L} ]+$", message = "Đơn vị chỉ có thể bao gồm các ký tự chữ.")
     private String unit;
 
-    @NotBlank(message = "Id loại sản phẩm không được để trống")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]+$", message = "Id loại sản phẩm chỉ có thể bao gồm các ký tự chữ.")
+    @NotBlank(message = "Vui lòng chọn danh mục")
     private String categoryId;
 
-    @NotNull(message = "Id nhà cung cấp không được null")
+    @NotNull(message = "Vui lòng chọn nhà cung cấp")
     private Long supplierId;
 
-    @NotNull(message = "Id đơn vị đo lường không được null")
     private Long unitOfMeasureId;
 
-    @NotNull(message = "Id kho hàng không được null")
-    @DecimalMin(value = "0", message = "Id kho hàng phải là số dương.")
+    @NotNull(message = "Vui lòng chọn kho hàng")
     private Long warehouseId;
 }

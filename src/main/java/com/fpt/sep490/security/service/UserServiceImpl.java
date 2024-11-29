@@ -19,7 +19,6 @@ import com.fpt.sep490.utils.SendMail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.ErrorResponse;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -304,4 +303,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findUserByPhone(phoneNumber);
     }
 
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findUserByEmail(email);
+    }
 }

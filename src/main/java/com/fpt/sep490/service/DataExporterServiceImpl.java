@@ -1,12 +1,16 @@
 package com.fpt.sep490.service;
 
 // Importing necessary libraries
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 @Service
@@ -15,7 +19,8 @@ public class DataExporterServiceImpl implements DataExporterService {
     // Method for exporting data to Excel
     private static final
     int FLUSH_THRESHOLD = 1000;
-    public void exportToExcel(List<Map<String,Object>> dataList, OutputStream outputStream) throws IOException {
+
+    public void exportToExcel(List<Map<String, Object>> dataList, OutputStream outputStream) throws IOException {
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(FLUSH_THRESHOLD)) {
             SXSSFSheet sheet = workbook.createSheet("Data");
             Row headerRow = sheet.createRow(0);
@@ -47,7 +52,7 @@ public class DataExporterServiceImpl implements DataExporterService {
 
     // Method for importing data from Excel
     public List<Map<String, Object>> importFromExcel(String filename) throws IOException {
-        FileInputStream fis = new FileInputStream(new File(filename));
+        FileInputStream fis = new FileInputStream(filename);
         Workbook workbook = WorkbookFactory.create(fis);
 
         Sheet sheet = workbook.getSheetAt(0);
@@ -56,14 +61,14 @@ public class DataExporterServiceImpl implements DataExporterService {
         List<Map<String, Object>> dataList = new ArrayList<>();
         List<String> headers = new ArrayList<>();
         int rowNum = 0;
-        while(rows.hasNext()) {
+        while (rows.hasNext()) {
             Row currentRow = rows.next();
             Map<String, Object> data = new LinkedHashMap<>();
-            if(rowNum++ == 0) { // It's header row
+            if (rowNum++ == 0) { // It's header row
                 currentRow.forEach(cell -> headers.add(cell.getStringCellValue()));
             } else {
                 int cellNum = 0;
-                for(String header : headers) {
+                for (String header : headers) {
                     data.put(header, currentRow.getCell(cellNum++).getStringCellValue());
                 }
                 dataList.add(data);

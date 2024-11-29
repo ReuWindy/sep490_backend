@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+
 @RestControllerAdvice(basePackageClasses = LoginController.class)
 public class LoginControllerAdvice {
 
@@ -18,5 +19,4 @@ public class LoginControllerAdvice {
 
         return ResponseEntity.status(response.getStatus()).body(response);
     }
-
 }

@@ -12,7 +12,7 @@ public class EmployeeRoleServiceImpl implements EmployeeRoleService {
 
     private final EmployeeRoleRepository employeeRoleRepository;
 
-    public EmployeeRoleServiceImpl (EmployeeRoleRepository employeeRoleRepository){
+    public EmployeeRoleServiceImpl(EmployeeRoleRepository employeeRoleRepository) {
         this.employeeRoleRepository = employeeRoleRepository;
     }
 
@@ -39,10 +39,10 @@ public class EmployeeRoleServiceImpl implements EmployeeRoleService {
     @Override
     public EmployeeRole updateEmployeeRole(EmployeeRole employeeRole) {
         EmployeeRole existingEmployeeRole = employeeRoleRepository.findById(employeeRole.getId()).orElse(null);
-        if(existingEmployeeRole != null){
+        if (existingEmployeeRole != null) {
             existingEmployeeRole.setRoleName(employeeRole.getRoleName());
             employeeRoleRepository.save(existingEmployeeRole);
-            return  existingEmployeeRole;
+            return existingEmployeeRole;
         }
         return null;
     }

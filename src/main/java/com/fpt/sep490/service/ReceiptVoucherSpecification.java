@@ -1,7 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.ReceiptVoucher;
-import com.fpt.sep490.model.WarehouseReceipt;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -11,9 +10,14 @@ import java.util.List;
 
 public class ReceiptVoucherSpecification {
 
-    public static Specification<ReceiptVoucher> isReceiptDateBetween(Date startDate, Date endDate) {
+    public static Specification<ReceiptVoucher> isReceiptDateBetween(Date startDate, Date endDate, String incomeCode) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (incomeCode != null) {
+                predicates.add(cb.like(root.get("receiptCode"), "%" + incomeCode + "%"));
+            }
+
             if (startDate != null && endDate != null) {
                 predicates.add(cb.between(root.get("receiptDate"), startDate, endDate));
             } else if (startDate != null) {

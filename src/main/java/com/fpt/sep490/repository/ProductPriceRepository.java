@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long> {
-    Optional<ProductPrice> findByPriceIdAndProductId(long priceId, long productId);
+    Optional<ProductPrice> findByPriceIdAndProductId(Long priceId, Long productId);
 
     @Transactional
     @Modifying

@@ -58,12 +58,12 @@ public class NewServiceImpl implements NewService {
     }
 
     @Override
-    public Page<News> getNewsByFilter(String name, String type, String username,Boolean status, int pageNumber, int pageSize ) {
+    public Page<News> getNewsByFilter(String name, String type, String username, Boolean status, int pageNumber, int pageSize) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber -1, pageSize);
-            Specification<News> specification = NewSpecification.hasNameOrTypeOrCreatedBy(name, type, username,status);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Specification<News> specification = NewSpecification.hasNameOrTypeOrCreatedBy(name, type, username, status);
             return newRepository.findAll(specification, pageable);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }

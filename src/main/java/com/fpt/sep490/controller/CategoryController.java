@@ -1,8 +1,8 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
-import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.CategoryService;
 import com.fpt.sep490.service.UserActivityService;
@@ -13,6 +13,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,11 +26,13 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService) {
+    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.categoryService = categoryService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
@@ -61,24 +64,36 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/getAllActive")
     public ResponseEntity<?> getAllActiveSupplierNames() {
         List<String> resultList = categoryService.getAllCategoryNames();
-        if(!resultList.isEmpty()){
+        if (!resultList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(resultList);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
     }
 
+    @GetMapping("/top5")
+    public ResponseEntity<?> getTopCategoriesWithTotalAmount(@RequestParam(defaultValue = "5") int limit) {
+        try {
+            TopCategoryResponseDTO response = categoryService.getTopCategoriesWithTotalAmount(limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @PostMapping("/createCategory")
     public ResponseEntity<?> createCategory(HttpServletRequest request, @RequestBody Category category) {
-        try{
+        try {
             Category createdCategory = categoryService.createCategory(category);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", "Tạo danh mục: "+ createdCategory.getName() + " by " + username);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", "Tạo danh mục: " + createdCategory.getName() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
-        }catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -86,13 +101,14 @@ public class CategoryController {
 
     @PostMapping("/updateCategory")
     public ResponseEntity<?> updateCategory(HttpServletRequest request, @RequestBody Category category) {
-        try{
+        try {
             Category updatedCategory = categoryService.updateCategory(category);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: "+ updatedCategory.getName() + " by " + username);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: " + updatedCategory.getName() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
-        }catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -111,15 +127,16 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 
-    @PostMapping("/disable/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> disableCategory(HttpServletRequest request, @PathVariable long id) {
         try {
             Category category = categoryService.disableCategory(id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "DISABLE_CATEGORY", "Ẩn danh mục "+ category.getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "DISABLE_CATEGORY", "Ẩn danh mục " + category.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được ẩn bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);
-        } catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -131,9 +148,10 @@ public class CategoryController {
             Category category = categoryService.enableCategory(id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "ENABLE_CATEGORY", "Kích hoạt danh mục "+ category.getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "ENABLE_CATEGORY", "Kích hoạt danh mục " + category.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được kích hoạt bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(category);
-        } catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }

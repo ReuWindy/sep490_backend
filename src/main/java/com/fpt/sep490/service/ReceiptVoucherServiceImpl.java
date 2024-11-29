@@ -25,10 +25,10 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
     }
 
     @Override
-    public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize) {
+    public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String incomeCode) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate);
+            Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate, incomeCode);
 
             Page<ReceiptVoucher> receipVoucherPage = receiptVoucherRepository.findAll(specification, pageable);
 
@@ -49,8 +49,8 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         Date extendDate = receiptVoucher.getDueDate();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(extendDate);
-        if( number <= 0){
-            throw  new IllegalArgumentException("Thời gian gia hạn không được âm hoặc bằng 0");
+        if (number <= 0) {
+            throw new IllegalArgumentException("Thời gian gia hạn không được âm hoặc bằng 0");
         }
         if (type.equalsIgnoreCase("Ngày")) {
             calendar.add(Calendar.DAY_OF_MONTH, number);

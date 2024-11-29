@@ -2,11 +2,8 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.DiscountDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.Discount;
-import com.fpt.sep490.model.UserActivity;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
-import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.service.DiscountService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;

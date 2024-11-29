@@ -5,16 +5,16 @@ import lombok.Data;
 
 @Data
 public class ProductWarehouseDto {
-    private long id;
-    private double price;
-    private double weight;
-    private double weightPerUnit;
+    private Long id;
+    private Double price;
+    private Double weight;
+    private Double weightPerUnit;
     private String unit;
     private String batchCode;
     private String description;
-    private long productId;
-    private long warehouseId;
-    private int quantity;
+    private Long productId;
+    private Long warehouseId;
+    private Integer quantity;
     private ProductDto product;
 
     public static ProductWarehouseDto toDto(ProductWarehouse productWarehouse) {

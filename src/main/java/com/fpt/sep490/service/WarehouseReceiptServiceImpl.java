@@ -69,7 +69,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     public WarehouseReceipt createImportWarehouseReceipt(String batchCode) {
         Batch batch = batchRepository.findByBatchCode(batchCode);
         if (batch == null) {
-            throw new RuntimeException("Lỗi: Không tìm thấy lô hàng!");
+            throw new RuntimeException("Không tìm thấy lô hàng!!");
         }
 
         WarehouseReceipt receipt = new WarehouseReceipt();
@@ -77,6 +77,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setReceiptType(ReceiptType.IMPORT);
         receipt.setDocument("N/A");
         receipt.setBatch(batch);
+        receipt.setIsPay(false);
 
         warehouseReceiptRepository.save(receipt);
         batch.setWarehouseReceipt(receipt);
@@ -111,18 +112,22 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setDocument("N/A");
         receipt.setBatch(batch);
         receipt.setReceiptReason("Sản xuất");
+        receipt.setIsPay(false);
 
         warehouseReceiptRepository.save(receipt);
         return receipt;
     }
 
     @Override
-    public Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize) {
+    public Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize, String batchCode, String orderCode) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
             Specification<WarehouseReceipt> specification = WarehouseReceiptSpecification.hasType(receiptType)
                     .and(WarehouseReceiptSpecification.hasUsername(username))
-                    .and(WarehouseReceiptSpecification.isReceiptDateBetween(startDate, endDate));
+                    .and(WarehouseReceiptSpecification.isReceiptDateBetween(startDate, endDate)
+                            .and(WarehouseReceiptSpecification.hasBatchCode(batchCode))
+                            .and(WarehouseReceiptSpecification.hasOrderCode(orderCode))
+                    );
 
             Page<WarehouseReceipt> warehouseReceiptPage = warehouseReceiptRepository.findAll(specification, pageable);
 
@@ -131,8 +136,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
                     .collect(Collectors.toList());
 
             return new PageImpl<>(dtos, pageable, warehouseReceiptPage.getTotalElements());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }

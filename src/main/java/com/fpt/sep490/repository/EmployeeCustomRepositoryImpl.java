@@ -35,9 +35,9 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
     public List<Employee> getEmployees(String role) {
         TypedQuery<Employee> query = entityManager
                 .createQuery("SELECT e FROM Employee e " +
-                        "JOIN e.role r " +
-                        "JOIN r.salaryDetail s " +
-                        "WHERE s.salaryType = :role "
+                                "JOIN e.role r " +
+                                "JOIN r.salaryDetail s " +
+                                "WHERE s.salaryType = :role "
                         , Employee.class);
         query.setParameter("role", SalaryType.valueOf(role));
         return query.getResultList();

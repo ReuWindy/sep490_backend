@@ -29,6 +29,7 @@ public class Order {
 
     private Date orderDate;
     private double totalAmount;
+    private String createBy;
     private double deposit;  // Số tiền đặt cọc
     private double remainingAmount;  // Số tiền còn lại cần thanh toán
     @Enumerated(EnumType.STRING)

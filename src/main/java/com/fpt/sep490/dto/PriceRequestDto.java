@@ -12,4 +12,5 @@ import java.util.List;
 public class PriceRequestDto {
     private List<Long> customerIds;
     private String name;
+    private Long priceId;
 }

@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PriceRepository extends JpaRepository<Price, Long> {
     Page<Price> findAll(Specification<Price> specification, Pageable pageable);
+
+    Price findByName(String name);
 }

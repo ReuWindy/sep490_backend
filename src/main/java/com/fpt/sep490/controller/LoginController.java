@@ -1,43 +1,46 @@
 package com.fpt.sep490.controller;
 
-import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.security.dto.LoginPhoneRequest;
+import com.fpt.sep490.security.dto.LoginErrorResponse;
 import com.fpt.sep490.security.dto.LoginRequest;
 import com.fpt.sep490.security.dto.LoginResponse;
 import com.fpt.sep490.security.jwt.JwtTokenService;
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/login")
 public class LoginController {
+
     private final JwtTokenService jwtTokenService;
+    private final RateLimiter rateLimiter;
+
     @PostMapping("/loginRequest")
-    public ResponseEntity<LoginResponse> loginRequest(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<Object> loginRequest(
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpServletResponse response) {
 
-        final LoginResponse loginResponse = jwtTokenService.getLoginResponse(loginRequest, response);
-
-        return ResponseEntity.ok(loginResponse);
-    }
-
-    @PostMapping("/phone")
-    public ResponseEntity<?> loginRequest(@RequestBody LoginPhoneRequest loginPhoneRequest, HttpServletResponse response) {
-
-        final LoginResponse loginResponse = jwtTokenService.getLoginPhoneResponse(loginPhoneRequest, response);
-
-        if(loginResponse != null) {
-            return ResponseEntity.ok(loginResponse);
+        if (!rateLimiter.acquirePermission()) {
+            LoginErrorResponse errorResponse = new LoginErrorResponse("Quá nhiều yêu cầu. Vui lòng thử lại sau.");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponse);
         }
-        final ApiExceptionResponse exResponse = new ApiExceptionResponse("ERROR", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exResponse);
-    }
 
+        try {
+            final LoginResponse loginResponse = jwtTokenService.getLoginResponse(loginRequest, response);
+            return ResponseEntity.ok(loginResponse);
+        } catch (BadCredentialsException ex) {
+            LoginErrorResponse errorResponse = new LoginErrorResponse("Thông tin đăng nhập sai. Vui lòng kiểm tra lại tài khoản và mật khẩu.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        } catch (Exception ex) {
+            LoginErrorResponse errorResponse = new LoginErrorResponse("Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 }

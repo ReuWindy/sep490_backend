@@ -3,7 +3,6 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.dto.WarehouseReceiptDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
-import com.fpt.sep490.model.Category;
 import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.UserActivityService;
@@ -56,15 +55,16 @@ public class WarehouseReceiptController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate,
             @RequestParam(required = false) ReceiptType receiptType,
             @RequestParam(required = false) String username,
+            @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) String orderCode,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<WarehouseReceiptDto> pagedResourcesAssembler) {
 
         Page<WarehouseReceiptDto> warehouseReceipts = warehouseReceiptService
-                .getWarehouseReceipts(startDate, endDate, receiptType,username, pageNumber, pageSize)
+                .getWarehouseReceipts(startDate, endDate, receiptType, username, pageNumber, pageSize, batchCode, orderCode)
                 .map(warehouseReceipt -> modelMapper.map(warehouseReceipt, WarehouseReceiptDto.class));
 
-        // Convert to HATEOAS
         PagedModel<EntityModel<WarehouseReceiptDto>> entityModels = pagedResourcesAssembler
                 .toModel(warehouseReceipts);
 
@@ -72,7 +72,7 @@ public class WarehouseReceiptController {
     }
 
     @PostMapping("/createReceipt/{batchCode}")
-    public ResponseEntity<?> createReceipt(@PathVariable String batchCode , @RequestBody WarehouseReceiptDto warehouseReceiptDto) {
+    public ResponseEntity<?> createReceipt(@PathVariable String batchCode, @RequestBody WarehouseReceiptDto warehouseReceiptDto) {
         WarehouseReceipt receipt = warehouseReceiptService.createWarehouseReceipt(warehouseReceiptDto, batchCode);
         if (receipt != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(receipt);
@@ -106,7 +106,7 @@ public class WarehouseReceiptController {
         WarehouseReceipt warehouseReceipt = warehouseReceiptService.updateReceiptDocument(id, document);
         String token = jwtTokenManager.resolveToken(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
-        userActivityService.logAndNotifyAdmin(username, "UPDATE_RECEIPT_DOCUMENT", "Update document for receipt: "+ warehouseReceipt.getId() +" by "+ username);
+        userActivityService.logAndNotifyAdmin(username, "UPDATE_RECEIPT_DOCUMENT", "Update document for receipt: " + warehouseReceipt.getId() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully updated receipt");
     }
 
@@ -115,7 +115,7 @@ public class WarehouseReceiptController {
         WarehouseReceipt warehouseReceipt = warehouseReceiptService.deleteReceiptDocument(id);
         String token = jwtTokenManager.resolveToken(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
-        userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete receipt: "+ warehouseReceipt.getId() +" by "+ username);
+        userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete receipt: " + warehouseReceipt.getId() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted receipt");
     }
 }

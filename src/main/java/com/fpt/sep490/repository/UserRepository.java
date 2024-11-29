@@ -13,10 +13,16 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
+
     User findUserByEmail(String email);
-    boolean existsByEmail(String email);
-    boolean existsByUsername(String username);
+
     User findUserByPhone(String phone);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
+
     List<User> findAllByUserType(UserType userType);
+
     Page<User> findAll(Specification<User> specification, Pageable pageable);
 }

@@ -1,53 +1,51 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.CustomerDto;
-import com.fpt.sep490.model.*;
-import com.fpt.sep490.repository.CustomerRepository;
+import com.fpt.sep490.model.Customer;
+import com.fpt.sep490.model.User;
+import com.fpt.sep490.model.UserType;
 import com.fpt.sep490.repository.UserRepository;
-import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class CustomerServiceImpl implements CustomerService{
+public class CustomerServiceImpl implements CustomerService {
 
-    private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, UserRepository userRepository){
-        this.customerRepository = customerRepository;
+    public CustomerServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
+
     @Override
     public List<CustomerDto> getAllCustomers() {
         List<User> users = userRepository.findAllByUserType(UserType.ROLE_CUSTOMER);
         return users.stream().map(user -> {
-            if (user instanceof Customer) {
-                Customer customer = (Customer) user;
+            if (user instanceof Customer customer) {
                 return convertCustomerToDTO(customer);
             } else {
                 return convertUserToCustomerDTO(user);
             }
         }).collect(Collectors.toList());
     }
+
     @Override
     public User getCustomerById(int id) {
         Optional<User> customerOptional = userRepository.findById((long) id);
-        if(customerOptional.isPresent()){
+        if (customerOptional.isPresent()) {
             User user = customerOptional.get();
-            if(user instanceof Customer){
-                Customer customer = (Customer) user;
-                if(customer.getContracts() != null){
+            if (user instanceof Customer customer) {
+                if (customer.getContracts() != null) {
                     ((Customer) user).setContracts(customer.getContracts());
                 } else {
                     ((Customer) user).setContracts(new HashSet<>());
@@ -65,26 +63,72 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public User updateCustomer(User user) {
-        User existingCustomer = userRepository.findById(user.getId()).orElse(null);
-        if(existingCustomer != null){
-            existingCustomer.setPhone(user.getPhone());
-            existingCustomer.setFullName(user.getFullName());
-            existingCustomer.setAddress(user.getAddress());
-            existingCustomer.setEmail(user.getEmail());
-            existingCustomer.setDob(user.getDob());
-            existingCustomer.setGender(user.isGender());
-            existingCustomer.setImage(user.getImage());
-            existingCustomer.setUpdateAt(new Date());
-            userRepository.save(existingCustomer);
-            return existingCustomer;
+        User existingCustomer = userRepository.findById(user.getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User existingPhone = userRepository.findUserByPhone(user.getPhone());
+        User existingEmail = userRepository.findUserByEmail(user.getEmail());
+
+        if (existingCustomer == null) {
+            throw new RuntimeException("Không tìm thấy khách hàng");
         }
-        return null;
+        if (existingEmail.getId() != user.getId()){
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng địa chỉ email này");
+        }
+        if (existingPhone.getId() != user.getId()){
+            throw new RuntimeException("Đã có tài khoản được đăng ký bằng số điện thoại này");
+        }
+        if (user.getFullName().isBlank()) {
+            throw new RuntimeException("Tên khách hàng không được bỏ trống");
+        }
+        if (user.getEmail().isBlank()) {
+            throw new RuntimeException("Địa chỉ email không được bỏ trống");
+        }
+        String email = user.getEmail();
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+        Pattern pattern = Pattern.compile(emailRegex);
+        if (!pattern.matcher(email).matches()) {
+            throw new RuntimeException("Địa chỉ email không hợp lệ");
+        }
+        if (user.getPhone().isBlank()) {
+            throw new RuntimeException("Số điện thoại không được để trống");
+        }
+        String phoneNumber = user.getPhone();
+        String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+
+        Pattern phonePattern = Pattern.compile(phoneNumberRegex);
+        if (!phonePattern.matcher(phoneNumber).matches()) {
+            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
+        }
+        existingCustomer.setPhone(user.getPhone());
+        existingCustomer.setFullName(user.getFullName());
+        existingCustomer.setAddress(user.getAddress());
+        existingCustomer.setEmail(user.getEmail());
+        existingCustomer.setDob(user.getDob());
+        existingCustomer.setGender(user.isGender());
+        existingCustomer.setImage(user.getImage());
+        existingCustomer.setUpdateAt(new Date());
+        userRepository.save(existingCustomer);
+        return existingCustomer;
     }
 
     @Override
-    public Customer deleteCustomer(int id) {
-        return null;
+    public User deleteCustomer(Long id) {
+        User customerToDisable = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        customerToDisable.setActive(false);
+        userRepository.save(customerToDisable);
+        return customerToDisable;
     }
+
+    @Override
+    public User enableCustomer(Long id) {
+        User customerToEnable = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+        customerToEnable.setActive(true);
+        userRepository.save(customerToEnable);
+        return customerToEnable;
+    }
+
     @Override
     public Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
@@ -120,23 +164,4 @@ public class CustomerServiceImpl implements CustomerService{
         dto.setContracts(new HashSet<>());
         return dto;
     }
-
-//    private CustomerDto convertToDTO(Customer customer) {
-//        double totalContractValue = 0;
-//        if(customer.getContracts() != null && !customer.getContracts().isEmpty()) {
-//            totalContractValue = customer.getContracts().stream()
-//                    .mapToDouble(contract -> contract.getAmount())
-//                    .sum();
-//        }
-//
-//        return new CustomerDto(
-//                customer.getId(),
-//                customer.getName(),
-//                customer.getPhone(),
-//                customer.getEmail(),
-//                customer.getAddress(),
-//                totalContractValue
-//        );
-//    }
-
 }

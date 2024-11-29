@@ -13,14 +13,14 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerDto {
-    private long id;
+    private Long id;
     private String fullName;
     private String image;
     private Date dob;
-    private boolean gender;
+    private Boolean gender;
     private String email;
     private String phoneNumber;
     private String address;
-    private double contractPrice;
+    private Double contractPrice;
     private Set<Contract> contracts;
 }

@@ -1,6 +1,5 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
 import jakarta.persistence.criteria.Predicate;
@@ -11,7 +10,7 @@ import java.util.List;
 
 public class CustomerSpecification {
 
-    public static Specification<User> hasEmailOrNameOrPhoneNumber(String fullName, String phone, String email){
+    public static Specification<User> hasEmailOrNameOrPhoneNumber(String fullName, String phone, String email) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 

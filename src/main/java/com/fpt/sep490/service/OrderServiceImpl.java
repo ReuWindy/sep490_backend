@@ -2,7 +2,6 @@ package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.Enum.StatusEnum;
-import com.fpt.sep490.controller.BatchController;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
@@ -23,7 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderServiceImpl implements OrderService{
+public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -35,8 +34,10 @@ public class OrderServiceImpl implements OrderService{
     private final DiscountRepository discountRepository;
     private final ReceiptVoucherRepository receiptVoucherRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
+    private final WarehouseReceiptRepository warehouseReceiptRepository;
+    private final UserRepository userRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository,ProductWareHouseRepository productWareHouseRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, ContractRepository contractRepository, CustomerRepository customerRepository, ProductRepository productRepository, ProductPriceRepository productPriceRepository, OrderActivityRepository orderActivityRepository, DiscountRepository discountRepository, ReceiptVoucherRepository receiptVoucherRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptRepository warehouseReceiptRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.contractRepository = contractRepository;
@@ -47,6 +48,8 @@ public class OrderServiceImpl implements OrderService{
         this.discountRepository = discountRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+        this.warehouseReceiptRepository = warehouseReceiptRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -57,14 +60,14 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public OrderDto getOrderByOrderId(long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(()->new RuntimeException("Không tìm thấy đơn hàng này!"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng này!"));
         return convertToDTO(order);
     }
 
     @Override
     public ContractDto getContractDetailByContractId(long contractId) {
-        Contract contract = contractRepository.findById(contractId).orElseThrow(()-> new RuntimeException("Không tìm thấy hợp đồng của đơn hàng này!"));
-        if(contract != null){
+        Contract contract = contractRepository.findById(contractId).orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng của đơn hàng này!"));
+        if (contract != null) {
             return convertToContractDTO(contract);
         }
         return null;
@@ -72,22 +75,20 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
-        OrderSpecification orderSpecification = new OrderSpecification();
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
-        if(orderCode != null && !orderCode.isEmpty()){
+        if (orderCode != null && !orderCode.isEmpty()) {
             spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
         }
-        if(status != null && !status.isEmpty()){
+        if (status != null && !status.isEmpty()) {
             spec = spec.and(OrderSpecification.hasStatus(status));
         }
-        Page<Order> orders = orderRepository.findAll(spec,pageable);
-        return orders;
+        return orderRepository.findAll(spec, pageable);
     }
 
     @Override
     public Order createAdminOrder(AdminOrderDto adminOrderDto) {
-        Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Không tìm thấy khách hàng!"));
+        Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
         Order order = Order.builder()
                 .orderCode(RandomOrderCodeGenerator.generateOrderCode())
                 .customer(customer)
@@ -98,14 +99,14 @@ public class OrderServiceImpl implements OrderService{
                 .build();
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
-        for(var detailDto : adminOrderDto.getOrderDetails()){
-           // Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
+        for (var detailDto : adminOrderDto.getOrderDetails()) {
+            // Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
             ProductWarehouse product = productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
                     detailDto.getProductId(),
                     detailDto.getWeightPerUnit(),
                     detailDto.getProductUnit()
-            ).orElseThrow(()-> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
-            if(product.getQuantity() < detailDto.getQuantity()){
+            ).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
+            if (product.getQuantity() < detailDto.getQuantity()) {
                 throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
             }
             double discount = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
@@ -131,8 +132,8 @@ public class OrderServiceImpl implements OrderService{
         try {
             orderRepository.save(order);
             orderDetailRepository.saveAll(orderDetails);
-        }catch (Exception e){
-            throw  new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
         }
 
         Date currentDate = new Date();
@@ -149,13 +150,13 @@ public class OrderServiceImpl implements OrderService{
         receiptVoucher.setRemainAmount(totalAmount);
         receiptVoucher.setDueDate(calendar.getTime());
         receiptVoucherRepository.save(receiptVoucher);
-        logOrderActivity(order,"CREATED","Created Order",customer.getName());
+        logOrderActivity(order, customer.getName());
         return order;
     }
 
     @Override
     public Order createCustomerOrder(CustomerOrderDto customerOrderDto) {
-        Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(()->new RuntimeException("Không tìm thấy khách hàng!"));
+        Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
         Order order = Order.builder()
                 .orderCode(RandomOrderCodeGenerator.generateOrderCode())
                 .customer(customer)
@@ -166,19 +167,19 @@ public class OrderServiceImpl implements OrderService{
                 .build();
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
-        for(var detailDto : customerOrderDto.getOrderDetails()){
-            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
+        for (var detailDto : customerOrderDto.getOrderDetails()) {
+            Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!"));
             DiscountDto discountDto = discountRepository.getByProductId(detailDto.getProductId());
             LocalDateTime today = LocalDateTime.now();
             double discountUnit = 0.0;
-            if(discountDto != null){
-                if(!today.isBefore(discountDto.getStartDate()) && !today.isAfter(discountDto.getEndDate())){
+            if (discountDto != null) {
+                if (!today.isBefore(discountDto.getStartDate()) && !today.isAfter(discountDto.getEndDate())) {
                     discountUnit = discountDto.getAmountPerUnit();
                 }
             }
             double customUnitPrice = getCustomUnitPrice(customer, product, detailDto.getUnitPrice());
             double discountUnitPrice = customUnitPrice - discountUnit;
-            double totalPrice = discountUnitPrice * ( detailDto.getQuantity() * detailDto.getWeightPerUnit() );
+            double totalPrice = discountUnitPrice * (detailDto.getQuantity() * detailDto.getWeightPerUnit());
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(order)
@@ -198,48 +199,46 @@ public class OrderServiceImpl implements OrderService{
         try {
             orderRepository.save(order);
             orderDetailRepository.saveAll(orderDetails);
-        }catch (Exception e){
-            throw  new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
         }
-        logOrderActivity(order,"CREATED","Created Order",customer.getName());
+        logOrderActivity(order, customer.getName());
         return order;
     }
 
     @Override
     public Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber-1,pageSize);
-        OrderSpecification spec = new OrderSpecification();
-        Specification<Order> specification = spec.hasNameOrHasStatus(name,status);
-        Page<Order> orders = orderRepository.findAll(specification,pageable);
-        return orders;
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Specification<Order> specification = OrderSpecification.hasNameOrHasStatus(name, status);
+        return orderRepository.findAll(specification, pageable);
     }
 
     @Transactional
     @Override
-    public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto) {
+    public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto, String username) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         StatusEnum status = adminOrderDto.getStatus();
         if (status != null) {
             updatedOrder.setStatus(status);
-            if (status == StatusEnum.IN_PROCESS){
+            if (status == StatusEnum.IN_PROCESS) {
                 Set<OrderDetail> orderDetails = updatedOrder.getOrderDetails();
-                for(OrderDetail orderDetail : orderDetails){
+                for (OrderDetail orderDetail : orderDetails) {
                     long productId = orderDetail.getProduct().getId();
                     String unit = orderDetail.getProductUnit();
                     double weightPerUnit = orderDetail.getWeightPerUnit();
                     int requiredQuantity = orderDetail.getQuantity();
-                    if(requiredQuantity < 0){
+                    if (requiredQuantity < 0) {
                         throw new RuntimeException("Số lượng sản phẩm phải là số dương");
                     }
                     List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
-                            productId,unit,weightPerUnit
+                            productId, unit, weightPerUnit
                     );
-                    if(warehouses.isEmpty()){
+                    if (warehouses.isEmpty()) {
                         throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
                     }
-                    for(ProductWarehouse warehouse : warehouses){
+                    for (ProductWarehouse warehouse : warehouses) {
                         int availableQuantity = warehouse.getQuantity();
-                        if( requiredQuantity <=0 ) break;
+                        if (requiredQuantity <= 0) break;
 
                         if (availableQuantity >= requiredQuantity) {
                             // Trừ toàn bộ số lượng từ kho hiện tại
@@ -252,15 +251,35 @@ public class OrderServiceImpl implements OrderService{
                             warehouse.setQuantity(0);
                             productWareHouseRepository.save(warehouse);
                         }
-
                     }
                     // Kiểm tra nếu không đủ hàng trong tất cả các kho
                     if (requiredQuantity > 0) {
                         throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
                     }
                 }
+                User user = userRepository.findByUsername(username);
+                if (user == null) {
+                    throw new RuntimeException("Không tìm thấy người dùng");
+                }
+                WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
+                warehouseReceipt.setOrder(updatedOrder);
+                warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
+                warehouseReceipt.setReceiptDate(new Date());
+                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+                receiptVoucher.setOrder(updatedOrder);
+                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setPaidAmount(0);
+                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setReceiptDate(new Date());
+                LocalDate currentDate = LocalDate.now();
+                LocalDate dueDateLocal = currentDate.plusMonths(1);
+                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                receiptVoucher.setDueDate(dueDate);
+                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+                warehouseReceiptRepository.save(warehouseReceipt);
+                receiptVoucherRepository.save(receiptVoucher);
             }
-        }else {
+        } else {
             throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");
         }
         orderRepository.save(updatedOrder);
@@ -269,7 +288,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("không tìm thấy đơn hàng!"));
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         double newDeposit = adminOrderDto.getDeposit();
         if(newDeposit < 0 ){
             throw new RuntimeException("Số tiền cọc không được âm!");
@@ -327,7 +346,7 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public DailyOrderResponseDTO getDailyReport(Date date){
+    public DailyOrderResponseDTO getDailyReport(Date date) {
         LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         List<Order> orders = orderRepository.findAllByOrderDate(localDate);
         int numberOfOrders = orders.size();
@@ -444,20 +463,7 @@ public class OrderServiceImpl implements OrderService{
         return orderDTO;
     }
 
-    private OrderDetailDto convertToOrderDetailDTO(OrderDetail orderDetail) {
-        OrderDetailDto detailDTO = new OrderDetailDto();
-        detailDTO.setProductId(orderDetail.getId());
-        detailDTO.setName(orderDetail.getProduct().getName());
-        detailDTO.setDescription(orderDetail.getProduct().getDescription());
-        detailDTO.setQuantity(orderDetail.getQuantity());
-        detailDTO.setUnitPrice(orderDetail.getUnitPrice());
-        detailDTO.setProductUnit(orderDetail.getProductUnit());
-        detailDTO.setWeightPerUnit(orderDetail.getWeightPerUnit());
-        detailDTO.setTotalPrice(orderDetail.getTotalPrice());
-        return detailDTO;
-    }
-
-    private ContractDto convertToContractDTO(Contract contract){
+    private ContractDto convertToContractDTO(Contract contract) {
         ContractDto contractDto = new ContractDto();
         contractDto.setContractNumber(contract.getContractNumber());
         contractDto.setAmount(contract.getAmount());
@@ -468,20 +474,21 @@ public class OrderServiceImpl implements OrderService{
         return contractDto;
     }
 
-    private double getCustomUnitPrice(Customer customer, Product product, double defaultPrice){
-            if(customer.getPrice() != null){
-                Optional<ProductPrice> productPriceOpt = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId());
-                if(productPriceOpt.isPresent()){
-                    return productPriceOpt.get().getUnit_price();
-                }
+    private double getCustomUnitPrice(Customer customer, Product product, double defaultPrice) {
+        if (customer.getPrice() != null) {
+            Optional<ProductPrice> productPriceOpt = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId());
+            if (productPriceOpt.isPresent()) {
+                return productPriceOpt.get().getUnit_price();
             }
+        }
         return defaultPrice;
     }
-    private void logOrderActivity(Order order, String activityType, String description, String userPerform) {
+
+    private void logOrderActivity(Order order, String userPerform) {
         OrderActivity activity = OrderActivity.builder()
                 .order(order)
-                .activityType(activityType)
-                .description(description)
+                .activityType("CREATED")
+                .description("Created Order")
                 .timestamp(new Date())
                 .userPerform(userPerform)
                 .build();

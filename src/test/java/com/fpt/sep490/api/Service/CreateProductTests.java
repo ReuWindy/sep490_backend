@@ -45,7 +45,7 @@ public class CreateProductTests {
                 .price(100.0)
                 .image("image_url")
                 .productCode("P1001")
-                .categoryId("1")
+                .categoryId(Long.valueOf("1"))
                 .supplierId(1L)
                 .unitOfMeasureId(1L)
                 .warehouseId(1L)

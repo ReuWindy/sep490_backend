@@ -2,21 +2,19 @@ package com.fpt.sep490.controller;
 
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Supplier;
-import com.fpt.sep490.model.Warehouse;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.SupplierService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.hateoas.EntityModel;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -24,37 +22,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/suppliers")
 public class SupplierController {
-
-    private  final SupplierService supplierService;
+    private final SupplierService supplierService;
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public SupplierController(SupplierService supplierService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService){
+    public SupplierController(SupplierService supplierService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
         this.supplierService = supplierService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllSupplier(){
+    public ResponseEntity<?> getAllSupplier() {
         List<Supplier> suppliers = supplierService.getAllSupplier();
-        if(!suppliers.isEmpty()){
+        if (!suppliers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(suppliers);
         }
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
     @GetMapping("/all/active")
-    public ResponseEntity<?> getAllActiveSupplier(){
+    public ResponseEntity<?> getAllActiveSupplier() {
         List<Supplier> suppliers = supplierService.getAllActiveSupplier();
-        if(!suppliers.isEmpty()){
+        if (!suppliers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(suppliers);
         }
         return ResponseEntity.status((HttpStatus.BAD_REQUEST)).body(Collections.emptyList());
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<?> getSupplierById(@PathVariable int id){
+    public ResponseEntity<?> getSupplierById(@PathVariable int id) {
         Supplier supplier = supplierService.getSupplierById(id);
         if (supplier != null) {
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
@@ -75,13 +74,14 @@ public class SupplierController {
 
     @PostMapping("/createSupplier")
     public ResponseEntity<?> createSupplier(HttpServletRequest request, @RequestBody Supplier supplier) {
-        try{
+        try {
             Supplier createdSupplier = supplierService.createSupplier(supplier);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CREATE_SUPPLIER", "Tạo mới nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_SUPPLIER", "Tạo mới nhà cung cấp " + createdSupplier.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + createdSupplier.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSupplier);
-        }catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -89,13 +89,14 @@ public class SupplierController {
 
     @PostMapping("/updateSupplier")
     public ResponseEntity<?> updateSupplier(HttpServletRequest request, @RequestBody Supplier supplier) {
-        try{
+        try {
             Supplier updatedSupplier = supplierService.updateSupplier(supplier);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "UPDATE_SUPPLIER", "Cập nhật nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
-                return ResponseEntity.status(HttpStatus.OK).body(updatedSupplier);
-        } catch (Exception e){
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_SUPPLIER", "Cập nhật nhà cung cấp " + updatedSupplier.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + updatedSupplier.getId() + " đã được cập nhật bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(updatedSupplier);
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -118,55 +119,39 @@ public class SupplierController {
     @GetMapping("/getAllNameActive/names")
     public ResponseEntity<?> getAllSupplierNames() {
         List<String> resultList = supplierService.getAllSupplierNames();
-        if(!resultList.isEmpty()){
+        if (!resultList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(resultList);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
     }
 
-    @PutMapping("/disable/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> disableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.disableSupplier(id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "DISABLE_SUPPLIER", "Ẩn nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "DISABLE_SUPPLIER", "Ẩn nhà cung cấp " + supplier.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + supplier.getName() + " đã được tạo ẩn người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
-        } catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
-    @PutMapping("/enable/{id}")
+    @PostMapping("/enable/{id}")
     public ResponseEntity<?> enableSupplier(HttpServletRequest request, @PathVariable long id) {
         try {
             Supplier supplier = supplierService.enableSupplier(id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "ENABLE_SUPPLIER", "Kích hoạt nhà cung cấp "+ supplier.getName()+ " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "ENABLE_SUPPLIER", "Kích hoạt nhà cung cấp " + supplier.getName() + " bởi người dùng: " + username);
+            messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + supplier.getName() + " đã được kích hoạt bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
-        } catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
-
-//    @PostMapping("/{id}/disable")
-//    public ResponseEntity<?> disableSupplierAndReassignProducts(@PathVariable Long id, @RequestBody Long defaultSupplierId) {
-//        supplierService.disableSupplierAndReassignProducts(id, defaultSupplierId);
-//        return ResponseEntity.ok().build();
-//    }
-
-//    @PostMapping("/{id}/reinstate")
-//    public ResponseEntity<?> reinstateSupplier(@PathVariable Long id) {
-//        supplierService.reinstateSupplier(id);
-//        return ResponseEntity.ok().build();
-//    }
-
-//    @GetMapping("/export")
-//    public ResponseEntity<Void> exportSuppliers(HttpServletResponse response) throws IOException {
-//        supplierService.exportToExcel(response);
-//        return ResponseEntity.ok().build();
-//    }
 }

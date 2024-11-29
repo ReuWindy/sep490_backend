@@ -4,30 +4,24 @@ import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.model.SupplierProduct;
 import com.fpt.sep490.repository.SupplierProductRepository;
 import com.fpt.sep490.repository.SupplierRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class SupplierServiceImpl implements SupplierService{
+public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
-    private final SupplierProductRepository supplierProductRepository;
-    private final DataExporterService dataExporterService;
 
-    public SupplierServiceImpl(SupplierRepository supplierRepository, SupplierProductRepository supplierProductRepository, DataExporterService dataExporterService){
+    public SupplierServiceImpl(SupplierRepository supplierRepository) {
         this.supplierRepository = supplierRepository;
-        this.supplierProductRepository = supplierProductRepository;
-        this.dataExporterService = dataExporterService;
     }
 
     @Override
@@ -83,44 +77,44 @@ public class SupplierServiceImpl implements SupplierService{
 
     @Override
     public Supplier updateSupplier(Supplier supplier) {
-        Supplier existingSupplier = supplierRepository.findById(supplier.getId())
-                .orElseThrow(() -> new RuntimeException("Lỗi: nhà cung cấp không tồn tại!"));
+        Supplier existingSupplier = supplierRepository.findById(supplier.getId()).orElse(null);
+        if (existingSupplier != null) {
+            if (supplier.getName().isBlank()) {
+                throw new RuntimeException("Tên nhà cung cấp không được để trống");
+            }
+            if (supplier.getContactPerson().isBlank()) {
+                throw new RuntimeException("Tên người đại diện không được để trống");
+            }
+            if (supplier.getEmail().isBlank()) {
+                throw new RuntimeException("Địa chỉ email không được để trống");
+            }
+            String email = supplier.getEmail();
+            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
-        try {
-            if (supplier.getName() != null && !supplier.getName().trim().isEmpty()) {
-                existingSupplier.setName(supplier.getName());
-            } else if (supplier.getName() != null) {
-                throw new RuntimeException("Lỗi: Tên nhà cung cấp không được để trống!");
+            Pattern pattern = Pattern.compile(emailRegex);
+            if (!pattern.matcher(email).matches()) {
+                throw new RuntimeException("Địa chỉ email không hợp lệ");
             }
+            if (supplier.getPhoneNumber().isBlank()) {
+                throw new RuntimeException("Số điện thoại không được để trống");
+            }
+            String phoneNumber = supplier.getPhoneNumber();
+            String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
 
-            if (supplier.getEmail() != null && !supplier.getEmail().isEmpty()) {
-                Optional<Supplier> existingSupplierEmail = supplierRepository.findByEmail(supplier.getEmail());
-                if (existingSupplierEmail.isPresent()) {
-                    throw new RuntimeException("Lỗi: Email của nhà cung cấp đã tồn tại trong hệ thống!");
-                }
-                existingSupplier.setEmail(supplier.getEmail());
-            } else if (supplier.getEmail() != null) {
-                throw new RuntimeException("Lỗi: Email của nhà cung cấp không được để trống!");
+            Pattern phonePattern = Pattern.compile(phoneNumberRegex);
+            if (!phonePattern.matcher(phoneNumber).matches()) {
+                throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
             }
-            if (supplier.getPhoneNumber() != null) {
-                if (!supplier.getPhoneNumber().matches("^[0-9]+$")) {
-                    throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp chỉ bao gồm số từ 0 đến 9!");
-                }
-                existingSupplier.setPhoneNumber(supplier.getPhoneNumber());
-            }
-            if (supplier.getContactPerson() != null) {
-                existingSupplier.setContactPerson(supplier.getContactPerson());
-            }
-            if (supplier.getAddress() != null) {
-                existingSupplier.setAddress(supplier.getAddress());
-            }
+            existingSupplier.setName(supplier.getName());
+            existingSupplier.setContactPerson(supplier.getContactPerson());
+            existingSupplier.setEmail(supplier.getEmail());
+            existingSupplier.setPhoneNumber(supplier.getPhoneNumber());
+            existingSupplier.setAddress(supplier.getAddress());
             supplierRepository.save(existingSupplier);
             return existingSupplier;
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật nhà cung cấp! " + e.getMessage());
         }
+        return null;
     }
-
 
     @Override
     public List<Supplier> getAllActiveSupplier() {
@@ -147,27 +141,27 @@ public class SupplierServiceImpl implements SupplierService{
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void disableSupplierAndReassignProducts(Long supplierId, Long defaultSupplierId) {
-           Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                   .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
-           Supplier defaultSupplier = supplierRepository.findById(defaultSupplierId)
-                   .orElseGet(()-> {
-                       Supplier newDefaultSupplier = new Supplier();
-                       newDefaultSupplier.setName("Default Supplier");
-                       return supplierRepository.save(newDefaultSupplier);
-                   });
-           supplierProductRepository.findBySupplierId(supplierId)
-                   .stream()
-                   .peek(sp -> sp.setSupplier(defaultSupplier))
-                   .forEach(supplierProductRepository::save);
-           supplierToDisable.setActive(!supplierToDisable.isActive());
-    }
+//    @Transactional
+//    public void disableSupplierAndReassignProducts(Long supplierId, Long defaultSupplierId) {
+//           Supplier supplierToDisable = supplierRepository.findById(supplierId)
+//                   .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+//           Supplier defaultSupplier = supplierRepository.findById(defaultSupplierId)
+//                   .orElseGet(()-> {
+//                       Supplier newDefaultSupplier = new Supplier();
+//                       newDefaultSupplier.setName("Default Supplier");
+//                       return supplierRepository.save(newDefaultSupplier);
+//                   });
+//           supplierProductRepository.findBySupplierId(supplierId)
+//                   .stream()
+//                   .peek(sp -> sp.setSupplier(defaultSupplier))
+//                   .forEach(supplierProductRepository::save);
+//           supplierToDisable.setActive(!supplierToDisable.isActive());
+//    }
 
     @Override
     public Supplier disableSupplier(Long supplierId) {
         Supplier supplierToDisable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToDisable.setActive(false);
         return supplierToDisable;
     }
@@ -175,7 +169,7 @@ public class SupplierServiceImpl implements SupplierService{
     @Override
     public Supplier enableSupplier(Long supplierId) {
         Supplier supplierToEnable = supplierRepository.findById(supplierId)
-                .orElseThrow(()-> new RuntimeException("Lỗi:  Không tìm thấy nhà cung cấp"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp"));
         supplierToEnable.setActive(true);
         return supplierToEnable;
     }

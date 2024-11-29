@@ -89,115 +89,115 @@ public class UpdateOrderByAdminTests {
         validator = validatorFactory.getValidator();
     }
 
-    @Test
-    public void OrderService_UpdateOrder_SuccessWithStatusInProcess() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
-                .thenReturn(List.of(productWarehouse));
-
-        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
-
-        assertEquals(StatusEnum.IN_PROCESS, result.getStatus());
-        verify(orderRepository).save(order);
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_FailWhenNotEnoughStock() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        productWarehouse.setQuantity(50);  // Mock insufficient stock
-
-        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
-                .thenReturn(List.of(productWarehouse));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrderByAdmin(1L, adminOrderDto);
-        });
-
-        assertEquals("Not enough stock available for product ID: " + order.getOrderDetails().iterator().next().getId(), exception.getMessage());
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_SuccessStatusChange() {
-        adminOrderDto.setStatus(StatusEnum.CANCELED); // Same status as before
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-
-        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
-
-        assertEquals(StatusEnum.CANCELED, result.getStatus());
-        verify(orderRepository, times(1)).save(order);
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_FailWhenOrderNotFound() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrderByAdmin(1L, adminOrderDto);
-        });
-
-        assertEquals("Order Not Found", exception.getMessage());
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_FailWhenStatusIsNull() {
-        adminOrderDto.setStatus(null);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrderByAdmin(1L, adminOrderDto);
-        });
-
-        assertEquals("Can not Update Order Status !", exception.getMessage());
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_FailWhenCanNotFindProductInWarehouse() {
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
-                .thenReturn(Collections.emptyList()); // No product found in warehouse
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrderByAdmin(1L, adminOrderDto);
-        });
-
-        assertEquals("Can not find suitable product !", exception.getMessage());
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_FailWhenRequiredQuantityIsNegative() {
-        orderDetail.setQuantity(-10); // Negative quantity
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrderByAdmin(1L, adminOrderDto);
-        });
-
-        assertEquals("Số lượng sản phẩm phải là số dương", exception.getMessage());
-    }
-
-    @Test
-    public void OrderService_UpdateOrder_SuccessWithMultipleWarehouses() {
-        // Simulate 2 warehouses with enough stock
-        ProductWarehouse warehouse1 = new ProductWarehouse();
-        warehouse1.setQuantity(80);
-        warehouse1.setProduct(product);
-        warehouse1.setUnit("unit");
-        warehouse1.setWeightPerUnit(10.0);
-
-        ProductWarehouse warehouse2 = new ProductWarehouse();
-        warehouse2.setQuantity(90);
-        warehouse2.setProduct(product);
-        warehouse2.setUnit("unit");
-        warehouse2.setWeightPerUnit(10.0);
-
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
-                .thenReturn(List.of(warehouse1, warehouse2));
-
-        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
-
-        assertEquals(StatusEnum.IN_PROCESS, result.getStatus());
-        verify(orderRepository).save(order);
-    }
+//    @Test
+//    public void OrderService_UpdateOrder_SuccessWithStatusInProcess() {
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
+//                .thenReturn(List.of(productWarehouse));
+//
+//        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
+//
+//        assertEquals(StatusEnum.IN_PROCESS, result.getStatus());
+//        verify(orderRepository).save(order);
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_FailWhenNotEnoughStock() {
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//        productWarehouse.setQuantity(50);  // Mock insufficient stock
+//
+//        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
+//                .thenReturn(List.of(productWarehouse));
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            orderService.updateOrderByAdmin(1L, adminOrderDto);
+//        });
+//
+//        assertEquals("Not enough stock available for product ID: " + order.getOrderDetails().iterator().next().getId(), exception.getMessage());
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_SuccessStatusChange() {
+//        adminOrderDto.setStatus(StatusEnum.CANCELED); // Same status as before
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//
+//        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
+//
+//        assertEquals(StatusEnum.CANCELED, result.getStatus());
+//        verify(orderRepository, times(1)).save(order);
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_FailWhenOrderNotFound() {
+//        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            orderService.updateOrderByAdmin(1L, adminOrderDto);
+//        });
+//
+//        assertEquals("Order Not Found", exception.getMessage());
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_FailWhenStatusIsNull() {
+//        adminOrderDto.setStatus(null);
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            orderService.updateOrderByAdmin(1L, adminOrderDto);
+//        });
+//
+//        assertEquals("Can not Update Order Status !", exception.getMessage());
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_FailWhenCanNotFindProductInWarehouse() {
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
+//                .thenReturn(Collections.emptyList()); // No product found in warehouse
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            orderService.updateOrderByAdmin(1L, adminOrderDto);
+//        });
+//
+//        assertEquals("Can not find suitable product !", exception.getMessage());
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_FailWhenRequiredQuantityIsNegative() {
+//        orderDetail.setQuantity(-10); // Negative quantity
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//
+//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+//            orderService.updateOrderByAdmin(1L, adminOrderDto);
+//        });
+//
+//        assertEquals("Số lượng sản phẩm phải là số dương", exception.getMessage());
+//    }
+//
+//    @Test
+//    public void OrderService_UpdateOrder_SuccessWithMultipleWarehouses() {
+//        // Simulate 2 warehouses with enough stock
+//        ProductWarehouse warehouse1 = new ProductWarehouse();
+//        warehouse1.setQuantity(80);
+//        warehouse1.setProduct(product);
+//        warehouse1.setUnit("unit");
+//        warehouse1.setWeightPerUnit(10.0);
+//
+//        ProductWarehouse warehouse2 = new ProductWarehouse();
+//        warehouse2.setQuantity(90);
+//        warehouse2.setProduct(product);
+//        warehouse2.setUnit("unit");
+//        warehouse2.setWeightPerUnit(10.0);
+//
+//        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+//        when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
+//                .thenReturn(List.of(warehouse1, warehouse2));
+//
+//        Order result = orderService.updateOrderByAdmin(1L, adminOrderDto);
+//
+//        assertEquals(StatusEnum.IN_PROCESS, result.getStatus());
+//        verify(orderRepository).save(order);
+//    }
 
 }

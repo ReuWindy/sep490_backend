@@ -9,7 +9,7 @@ public class UserDto {
     private String image;
     private String phone;
     private String username;
-    private String password = "No password for you pussy!!!";
+    private String password;
     private String createdAt;
     private String email;
     private String userType;

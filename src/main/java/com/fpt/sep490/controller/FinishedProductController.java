@@ -121,7 +121,7 @@ public class FinishedProductController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DELETE", "Xoá sản phẩm đầu ra cho sản phẩm: " + finishedProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(finishedProduct);
-        }catch (Exception e){
+        } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }

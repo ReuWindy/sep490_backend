@@ -41,8 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authToken = null;
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
-            for(Cookie cookie : cookies) {
-                if("token".equals(cookie.getName())) {
+            for (Cookie cookie : cookies) {
+                if ("token".equals(cookie.getName())) {
                     authToken = cookie.getValue();
                     try {
                         username = jwtTokenManager.getUsernameFromToken(authToken);

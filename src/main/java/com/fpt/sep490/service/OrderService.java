@@ -14,14 +14,16 @@ public interface OrderService {
     OrderDto getOrderByOrderId(long orderId);
 
     ContractDto getContractDetailByContractId(long contractId);
-    Page<Order> getOrderHistoryByCustomerId(long customerId,String orderCode, String orderStatus, int pageNumber, int pageSize);
+
+    Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String orderStatus, int pageNumber, int pageSize);
+
     Order createAdminOrder(AdminOrderDto adminOrderDto);
 
     Order createCustomerOrder(CustomerOrderDto customerOrderDto);
 
     Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize);
 
-    Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto);
+    Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto, String username);
 
     Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto);
 

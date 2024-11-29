@@ -24,6 +24,7 @@ public class UnitOfMeasureServiceImpl implements UnitOfMeasureService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+
     @Override
     public UnitOfMeasureDto createUnitOfMeasure(UnitOfMeasureDto unitOfMeasureDto) {
         UnitOfMeasure unitOfMeasure = new UnitOfMeasure();
@@ -55,7 +56,7 @@ public class UnitOfMeasureServiceImpl implements UnitOfMeasureService {
 
         unitOfMeasure = unitOfMeasureRepository.save(unitOfMeasure);
 
-        return  toDto(unitOfMeasure);
+        return toDto(unitOfMeasure);
     }
 
     @Override
@@ -64,14 +65,6 @@ public class UnitOfMeasureServiceImpl implements UnitOfMeasureService {
             throw new NotFoundException("Unit of Measure not found");
         }
         unitOfMeasureRepository.deleteById(id);
-    }
-
-    private UnitOfMeasure toModel(UnitOfMeasureDto unitOfMeasureDto) {
-        UnitOfMeasure unitOfMeasure = new UnitOfMeasure();
-        unitOfMeasure.setId(unitOfMeasureDto.getId());
-        unitOfMeasure.setUnitName(unitOfMeasureDto.getUnitName());
-        unitOfMeasure.setConversionFactor(unitOfMeasureDto.getConversionFactor());
-        return unitOfMeasure;
     }
 
     private UnitOfMeasureDto toDto(UnitOfMeasure unitOfMeasure) {
