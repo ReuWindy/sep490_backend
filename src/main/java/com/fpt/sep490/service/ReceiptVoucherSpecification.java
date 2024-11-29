@@ -10,9 +10,14 @@ import java.util.List;
 
 public class ReceiptVoucherSpecification {
 
-    public static Specification<ReceiptVoucher> isReceiptDateBetween(Date startDate, Date endDate) {
+    public static Specification<ReceiptVoucher> isReceiptDateBetween(Date startDate, Date endDate, String incomeCode) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (incomeCode != null) {
+                predicates.add(cb.like(root.get("receiptCode"), "%" + incomeCode + "%"));
+            }
+
             if (startDate != null && endDate != null) {
                 predicates.add(cb.between(root.get("receiptDate"), startDate, endDate));
             } else if (startDate != null) {

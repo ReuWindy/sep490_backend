@@ -248,6 +248,30 @@ public class ProductServiceImpl implements ProductService {
         return new ArrayList<>(batchProducts);
     }
 
+    @Override
+    public List<BatchProduct> previewBatchProductsFromProduction(List<importProductFromProductionDto> ImportProductDtoList) {
+        Batch batch = new Batch();
+        batch.setBatchStatus("Bản xem trước");
+        Date importDate = new Date();
+        batch.setImportDate(importDate);
+        batch.setReceiptType(ReceiptType.IMPORT);
+        batch = createNewBatch(batch);
+
+        Set<BatchProduct> batchProducts = new HashSet<>();
+        for (importProductFromProductionDto dto : ImportProductDtoList) {
+            Product product = findOrCreateProduct(dto);
+            BatchProduct batchProduct = getBatchProduct(dto, product, batch);
+            batchProduct = batchProductRepository.save(batchProduct);
+            batchProducts.add(batchProduct);
+        }
+
+        batch.setBatchProducts(batchProducts);
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batchRepository.save(batch);
+
+        return new ArrayList<>(batchProducts);
+    }
+
     private static BatchProduct getBatchProduct(importProductDto dto, Product product, Batch batch) {
         BatchProduct batchProduct = new BatchProduct();
         batchProduct.setProduct(product);
@@ -258,6 +282,21 @@ public class ProductServiceImpl implements ProductService {
         batchProduct.setUnit(dto.getUnit());
         batchProduct.setDescription("Nhập: Lô hàng của sản phẩm: " + dto.getName());
         batchProduct.setWarehouseId(dto.getWarehouseId());
+        batchProduct.setAdded(false);
+        batchProduct.setBatch(batch);
+        return batchProduct;
+    }
+
+    private static BatchProduct getBatchProduct(importProductFromProductionDto dto, Product product, Batch batch) {
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(product);
+        batchProduct.setQuantity(dto.getQuantity());
+        batchProduct.setPrice(0.0);
+        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+        batchProduct.setUnit(dto.getUnit());
+        batchProduct.setDescription("Nhập: Lô hàng của sản phẩm: " + dto.getName() + " sau khi hoàn thành sản xuất");
+        batchProduct.setWarehouseId(2L);
         batchProduct.setAdded(false);
         batchProduct.setBatch(batch);
         return batchProduct;
@@ -432,6 +471,35 @@ public class ProductServiceImpl implements ProductService {
 
             UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi với id: " + dto.getUnitOfMeasureId()));
+
+            product.setCategory(category);
+            product.setUnitOfMeasure(unitOfMeasure);
+            product.setSupplier(supplier);
+            return productRepository.save(product);
+        }
+    }
+
+    private Product findOrCreateProduct(importProductFromProductionDto dto) {
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(dto.getName(),
+                Long.valueOf(dto.getCategoryId()), 1L);
+        if (existingProduct.isPresent()) {
+            return existingProduct.get();
+        } else {
+            Product product = new Product();
+            product.setName(dto.getName());
+            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+            product.setImportPrice(0.0);
+            product.setCreateAt(new Date());
+            product.setIsDeleted(false);
+
+            Supplier supplier = supplierRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp mặc định" ));
+
+            Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục với id: " + dto.getCategoryId()));
+
+            UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi mặc định"));
 
             product.setCategory(category);
             product.setUnitOfMeasure(unitOfMeasure);

@@ -13,18 +13,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class importProductDto {
+public class importProductFromProductionDto {
     @NotBlank(message = "Vui lòng điền tên sản phẩm")
     @Pattern(regexp = "^[a-zA-Z0-9\\p{L} ]+$", message = "Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.")
     private String name;
-
-    private String description;
-
-    @NotNull(message = "Vui lòng điền giá nhập")
-    @DecimalMin(value = "0", message = "Giá nhập phải là số dương.")
-    private double importPrice;
-
-    private String image;
 
     @NotNull(message = "Vui lòng điền số lượng")
     @DecimalMin(value = "0", message = "Số lượng phải là số nguyên dương.")
@@ -40,12 +32,4 @@ public class importProductDto {
 
     @NotBlank(message = "Vui lòng chọn danh mục")
     private String categoryId;
-
-    @NotNull(message = "Vui lòng chọn nhà cung cấp")
-    private Long supplierId;
-
-    private Long unitOfMeasureId;
-
-    @NotNull(message = "Vui lòng chọn kho hàng")
-    private Long warehouseId;
 }
