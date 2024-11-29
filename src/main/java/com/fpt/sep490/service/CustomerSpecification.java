@@ -23,7 +23,6 @@ public class CustomerSpecification {
             if (email != null && !email.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("email"), "%" + email + "%"));
             }
-
             predicates.add(criteriaBuilder.equal(root.get("userType"), UserType.ROLE_CUSTOMER));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

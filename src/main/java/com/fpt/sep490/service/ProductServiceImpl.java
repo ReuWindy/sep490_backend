@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
                 productDto.getCategoryId(), productDto.getSupplierId());
 
         if (existingProduct.isPresent()) {
-            throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
+            throw new RuntimeException("Sản phẩm đã tồn tại");
         }
 
         Product product = new Product();
@@ -105,6 +105,8 @@ public class ProductServiceImpl implements ProductService {
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
+            productWarehouse.setUnit("Bao");
+            productWarehouse.setWeightPerUnit(1.0);
             product.setCreateAt(new Date());
             product.setIsDeleted(true);
 

@@ -230,8 +230,6 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<ProductDto> pagedResourcesAssembler) {
 
-//        String token = jwtTokenManager.resolveTokenFromCookie(request);
-//        String username = jwtTokenManager.getUsernameFromToken(token);
         Page<ProductDto> productPage = productService.getProductByFilterForCustomer(productCode, categoryName, supplierName, id, pageNumber, pageSize);
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
