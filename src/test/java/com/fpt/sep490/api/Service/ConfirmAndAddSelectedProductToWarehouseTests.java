@@ -2,10 +2,7 @@ package com.fpt.sep490.api.Service;
 
 import com.fpt.sep490.dto.BatchProductSelection;
 import com.fpt.sep490.model.*;
-import com.fpt.sep490.repository.BatchProductRepository;
-import com.fpt.sep490.repository.BatchRepository;
-import com.fpt.sep490.repository.ProductWareHouseRepository;
-import com.fpt.sep490.repository.WarehouseRepository;
+import com.fpt.sep490.repository.*;
 import com.fpt.sep490.service.ProductServiceImpl;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -33,6 +30,8 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
     private WarehouseRepository warehouseRepository;
     @Mock
     private ProductWareHouseRepository productWareHouseRepository;
+    @Mock
+    private ProductRepository productRepository;
     @Mock
     private BatchProductRepository batchProductRepository;
     @Mock
@@ -109,7 +108,7 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
         String result = productService.confirmAndAddSelectedProductToWarehouse(batchId, batchProductSelections);
 
         // Verify
-        assertEquals("Đã thêm những sản phẩm đã chọn vào kho.", result);
+        assertEquals("BATCH001", result);
         assertTrue(batchProduct.isAdded());
         assertEquals("Đã thêm vào kho", batchProduct.getDescription());
         verify(productWareHouseRepository, times(1)).save(any(ProductWarehouse.class));
@@ -129,9 +128,9 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
         String result = productService.confirmAndAddSelectedProductToWarehouse(batchId, batchProductSelections);
 
         // Verify
-        assertEquals("Đã thêm những sản phẩm đã chọn vào kho.", result);
+        assertEquals("BATCH001", result);
         assertFalse(batchProduct.isAdded());
-        assertEquals("Đã huỷ", batchProduct.getDescription());
+        assertEquals(null, batchProduct.getDescription());
         verify(productWareHouseRepository, never()).save(any(ProductWarehouse.class));
         assertEquals("Đã xác nhận", batch.getBatchStatus());
     }

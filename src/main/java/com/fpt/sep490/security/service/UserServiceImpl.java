@@ -204,10 +204,10 @@ public class UserServiceImpl implements UserService {
             employee.setFullName(registrationRequest.getName());
             employee.setUsername(registrationRequest.getUsername());
             employee.setPassword(bCryptPasswordEncoder.encode(registrationRequest.getPassword()));
+            employee.setPhone(registrationRequest.getPhone());
             if (!employee.getPhone().matches("^[0-9]+$")) {
                 throw new RuntimeException("Lỗi: Số điện thoại chỉ bao gồm số từ 0 đến 9!");
             }
-            employee.setPhone(registrationRequest.getPhone());
             employee.setEmail(registrationRequest.getEmail());
             employee.setAddress(registrationRequest.getAddress());
             employee.setDob(createUserRequest.getDateOfBirth());
@@ -219,14 +219,14 @@ public class UserServiceImpl implements UserService {
             // set attributes of Employee
             employee.setEmployeeCode(RandomEmployeeCodeGenerator.generateEmployeeCode());
             employee.setJoinDate(new Date());
+            employee.setBankName(createUserRequest.getBankName());
             if(employee.getBankName().trim().isEmpty() || employee.getBankName() ==null){
                 throw new RuntimeException("Lỗi: Tên ngân hàng  của nhân viên không được để trống!");
             }
-            employee.setBankName(createUserRequest.getBankName());
+            employee.setBankNumber(createUserRequest.getBankNumber());
             if (!employee.getBankNumber().matches("^[0-9]+$")) {
                 throw new RuntimeException("Lỗi: Số tài khoản của nhân viên chỉ bao gồm số từ 0 đến 9!");
             }
-            employee.setBankNumber(createUserRequest.getBankNumber());
             employee.setRole(role);
             try {
                 salaryDetailRepository.save(salaryDetail);

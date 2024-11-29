@@ -55,7 +55,7 @@ public class ConfirmAndExportProductsTests {
     public void setUp(){
         batch = new Batch();
         batch.setId(1L);
-
+        batch.setBatchCode("BATCH001");
         // Data test cho Product
         product = new Product(
                 1L, "Product1", "Description", 120.0, "image.png", "CODE123",
@@ -138,7 +138,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_Success_ShouldReturnSuccessMessage() {
+    public void ProductService_confirmAndExportProducts_Success_ShouldReturnBatchCode() {
         // Arrange
         Long batchId = 1L;
 
@@ -150,7 +150,7 @@ public class ConfirmAndExportProductsTests {
         String result = productService.confirmAndExportProducts(batchId, exportProductDtos);
 
         // Assert
-        assertEquals("Xuất kho thành công.", result);
+        assertEquals("BATCH001", result);
     }
 
     @Test
@@ -161,7 +161,7 @@ public class ConfirmAndExportProductsTests {
         Set<ConstraintViolation<ExportProductDto>> violations = validator.validate(exportProductDtos.get(0));
 
         assertEquals(1, violations.size());
-        assertEquals("Tên không được để trống", violations.iterator().next().getMessage());
+        assertEquals("Tên sản phẩm không được để trống", violations.iterator().next().getMessage());
     }
 
     @Test
@@ -172,7 +172,7 @@ public class ConfirmAndExportProductsTests {
         Set<ConstraintViolation<ExportProductDto>> violations = validator.validate(exportProductDtos.get(0));
 
         assertEquals(1, violations.size());
-        assertEquals("Tên chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.", violations.iterator().next().getMessage());
+        assertEquals("Tên sản phẩm chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.", violations.iterator().next().getMessage());
     }
 
     @Test

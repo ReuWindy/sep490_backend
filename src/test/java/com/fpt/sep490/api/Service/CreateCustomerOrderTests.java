@@ -43,6 +43,8 @@ public class CreateCustomerOrderTests {
     @Mock
     private OrderActivityRepository orderActivityRepository;
     @Mock
+    private ProductPriceRepository productPriceRepository;
+    @Mock
     private Price price;
     @Mock
     private Product product;
@@ -143,7 +145,7 @@ public class CreateCustomerOrderTests {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.createCustomerOrder(customerOrderDto));
-        assertEquals("Product not found", exception.getMessage());
+        assertEquals("Không tìm thấy sản phẩm!", exception.getMessage());
     }
 
     @Test
@@ -153,7 +155,7 @@ public class CreateCustomerOrderTests {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.createCustomerOrder(customerOrderDto));
-        assertEquals("Customer Not Found !", exception.getMessage());
+        assertEquals("Không tìm thấy khách hàng!", exception.getMessage());
     }
 
     @Test

@@ -114,7 +114,7 @@ public class TransactionServiceImpl implements TransactionService {
             receiptVoucherRepository.save(receiptVoucher);
             return createdTransaction;
         } catch (Exception e) {
-            throw new RuntimeException("Xảy ra lỗi khi tạo giao dịch mới :" + e.getMessage());
+            throw new RuntimeException("Lỗi: " + e.getMessage());
         }
     }
 
