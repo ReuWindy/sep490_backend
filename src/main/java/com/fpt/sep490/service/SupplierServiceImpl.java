@@ -1,8 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.model.Supplier;
-import com.fpt.sep490.model.SupplierProduct;
-import com.fpt.sep490.repository.SupplierProductRepository;
 import com.fpt.sep490.repository.SupplierRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
