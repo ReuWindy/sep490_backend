@@ -24,7 +24,6 @@ public class ProductWarehouseDto {
         dto.setWeight(productWarehouse.getWeight());
         dto.setUnit(productWarehouse.getUnit());
         dto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
-        dto.setBatchCode(productWarehouse.getBatchCode());
         dto.setQuantity(productWarehouse.getQuantity());
         ProductDto productDto = new ProductDto();
         productDto.setId(productWarehouse.getProduct().getId());

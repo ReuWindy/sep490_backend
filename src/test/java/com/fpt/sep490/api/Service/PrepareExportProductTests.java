@@ -122,7 +122,7 @@ public class PrepareExportProductTests {
         when(batchRepository.save(any(Batch.class))).thenReturn(batch);
         when(productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
                 anyString(), anyString(), anyDouble(), anyLong()))
-                .thenReturn(Optional.of(new ProductWarehouse(1l, 100,"BATCH123",150.0,200.0,500.0,5.0,"kg",product,warehouse))); // Sản phẩm có trong kho
+                .thenReturn(Optional.of(new ProductWarehouse(1l, 100,150.0,200.0,500.0,5.0,"kg",product,warehouse))); // Sản phẩm có trong kho
 
         // Act
         String result = productService.prepareExportProduct(exportProductDtoList);
@@ -175,7 +175,7 @@ public class PrepareExportProductTests {
         when(batchRepository.save(any(Batch.class))).thenReturn(batch);
         when(productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
                 anyString(), anyString(), anyDouble(), anyLong()))
-                .thenReturn(Optional.of(new ProductWarehouse(1l, 100,"BATCH123",150.0,200.0,500.0,5.0,"kg",product,warehouse)));
+                .thenReturn(Optional.of(new ProductWarehouse(1l, 100,150.0,200.0,500.0,5.0,"kg",product,warehouse)));
         when(warehouseReceiptService.createExportWarehouseReceipt(anyString())).thenReturn(warehouseReceipt); // Chấp nhận bất kỳ đối số nào
 
         // Act
