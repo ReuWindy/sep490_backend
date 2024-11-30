@@ -114,6 +114,11 @@ public class AddMoreBatchProductToBatchTests {
         BatchProductDto batchProductDto = new BatchProductDto();
         batchProductDto.setProductId(1L);
         batchProductDto.setBatchId(1L);
+        batchProductDto.setUnit("Kg");
+        batchProductDto.setDescription("Test Product");
+        batchProductDto.setQuantity(10);
+        batchProductDto.setWeight(20.0);
+        batchProductDto.setPrice(100.0);
 
         Product mockProduct = new Product();
         mockProduct.setId(1L);

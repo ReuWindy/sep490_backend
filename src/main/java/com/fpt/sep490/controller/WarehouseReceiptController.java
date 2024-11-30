@@ -55,12 +55,14 @@ public class WarehouseReceiptController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate,
             @RequestParam(required = false) ReceiptType receiptType,
             @RequestParam(required = false) String username,
+            @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) String orderCode,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "1") int pageNumber,
             PagedResourcesAssembler<WarehouseReceiptDto> pagedResourcesAssembler) {
 
         Page<WarehouseReceiptDto> warehouseReceipts = warehouseReceiptService
-                .getWarehouseReceipts(startDate, endDate, receiptType, username, pageNumber, pageSize)
+                .getWarehouseReceipts(startDate, endDate, receiptType, username, pageNumber, pageSize, batchCode, orderCode)
                 .map(warehouseReceipt -> modelMapper.map(warehouseReceipt, WarehouseReceiptDto.class));
 
         PagedModel<EntityModel<WarehouseReceiptDto>> entityModels = pagedResourcesAssembler

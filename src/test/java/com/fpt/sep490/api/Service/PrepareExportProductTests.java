@@ -17,9 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
@@ -48,24 +48,26 @@ public class PrepareExportProductTests {
 
     @BeforeEach
     public void setUp() {
-        // Tạo đối tượng Authentication giả lập
-        UserDetails userDetails = User.builder()
-                .username("testUser")
-                .password("password")
-                .roles("USER")
-                .build();
+        UserDetails mockUserDetails = mock(UserDetails.class);
+        lenient().when(mockUserDetails.getUsername()).thenReturn("test_user");
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+        Authentication mockAuthentication = mock(Authentication.class);
+        lenient().when(mockAuthentication.getPrincipal()).thenReturn(mockUserDetails);
 
-        // Cung cấp đối tượng Authentication vào SecurityContext
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authenticationToken);
-        SecurityContextHolder.setContext(context);
+        SecurityContext mockSecurityContext = mock(SecurityContext.class);
+        lenient().when(mockSecurityContext.getAuthentication()).thenReturn(mockAuthentication);
+
+        SecurityContextHolder.setContext(mockSecurityContext);
+
+        User mockUser = new User();
+        mockUser.setUsername("testUser");
+        lenient().when(userService.findByUsername(anyString())).thenReturn(mockUser);
 
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
+
+
 
     @Test
     public void ProductService_PrepareExportProduct_WhenQuantityIsInvalid() {
@@ -150,13 +152,13 @@ public class PrepareExportProductTests {
         warehouse.setName("Warehouse1");
         warehouse.setLocation("Location1");
 
-        // Tạo đối tượng Batch giả lập (Bạn cần phải thay thế với các giá trị hợp lý)
+        // Tạo đối tượng Batch giả lập
         Batch batch = Batch.builder()
                 .id(1L)
                 .batchCode("Batch001")
                 .build();
 
-        // Tạo đối tượng ExpenseVoucher giả lập (Bạn cần phải thay thế với các giá trị hợp lý)
+        // Tạo đối tượng ExpenseVoucher giả lập
         ExpenseVoucher expenseVoucher = ExpenseVoucher.builder()
                 .id(1L)
                 .totalAmount(5000.00)
@@ -190,14 +192,13 @@ public class PrepareExportProductTests {
     @Test
     public void ProductService_PrepareExportProduct_WhenExportProductDtoListInvalid() {
         // Arrange
-        List<ExportProductDto> exportProductDtoList = new ArrayList<>();
-        exportProductDtoList.add(new ExportProductDto(null, "kg", 10, 10, "1", 1L, 1));
+        ExportProductDto invalidDto = new ExportProductDto(null, "kg", 10, 10, "1", 1L, 1);
 
         // Act & Assert
-        Set<ConstraintViolation<ExportProductDto>> violations = validator.validate(exportProductDtoList.get(0));
+        Set<ConstraintViolation<ExportProductDto>> violations = validator.validate(invalidDto);
 
         assertEquals(1, violations.size());
-        assertEquals("Tên không được để trống", violations.iterator().next().getMessage());
+        assertEquals("Tên sản phẩm không được để trống", violations.iterator().next().getMessage());
     }
 
 

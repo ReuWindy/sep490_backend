@@ -10,7 +10,7 @@ import java.util.List;
 
 public class EmployeeSpecification {
 
-    public static Specification<Employee> hasEmployeeCodeOrFullNameOrPhoneNumber(String employeeCode, String fullName, String phoneNumber) {
+    public static Specification<Employee> hasEmployeeCodeOrFullNameOrPhoneNumber(String employeeCode, String fullName, String phoneNumber, String email) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -21,9 +21,11 @@ public class EmployeeSpecification {
                 predicates.add(criteriaBuilder.like(root.get("fullName"), "%" + fullName + "%"));
             }
             if (phoneNumber != null && !phoneNumber.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("phoneNumber"), "%" + phoneNumber + "%"));
+                predicates.add(criteriaBuilder.like(root.get("phone"), "%" + phoneNumber + "%"));
             }
-
+            if (email != null && !email.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("email"), "%" + email + "%"));
+            }
             predicates.add(criteriaBuilder.equal(root.get("userType"), UserType.ROLE_EMPLOYEE));
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

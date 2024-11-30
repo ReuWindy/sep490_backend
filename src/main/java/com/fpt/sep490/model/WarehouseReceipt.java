@@ -28,6 +28,7 @@ public class WarehouseReceipt {
     private ReceiptType receiptType;
     private String document;
     private String receiptReason;
+    private Boolean isPay = false;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "batch_id")

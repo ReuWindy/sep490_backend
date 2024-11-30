@@ -126,7 +126,7 @@ public class CreateUserByAdminTests {
                 "User12345",
                 "User123456@",
                 "User123456@",
-                "123456789",
+                "0123456789",
                 true,
                 "user@gmail.com",
                 "user_address",
@@ -139,7 +139,7 @@ public class CreateUserByAdminTests {
                 "User12345",
                 "User123456@",
                 true,
-                "123456789",
+                "0123456789",
                 "user_address",
                 new Date(90, 5, 15),
                 true,
@@ -208,7 +208,7 @@ public class CreateUserByAdminTests {
         // Act & Assert
         Exception exception = assertThrows(RuntimeException.class, () ->
                 userService.createUserByAdmin(new RegistrationRequest(), UserType.ROLE_EMPLOYEE, createUserRequest));
-        assertEquals("Employee Role not found", exception.getMessage());
+        assertEquals("Lỗi: Không tìm thấy chức vụ phù hợp của nhân viên!", exception.getMessage());
     }
 
     @Test
@@ -259,6 +259,6 @@ public class CreateUserByAdminTests {
         // Act & Assert
         Exception exception = assertThrows(RuntimeException.class, () ->
                 userService.createUserByAdmin(registrationRequest, UserType.ROLE_CUSTOMER, createUserRequest));
-        assertEquals("Standard Price Not Found!!", exception.getMessage());
+        assertEquals("Lỗi: Không tìm thấy bảng giá cơ bản!", exception.getMessage());
     }
 }

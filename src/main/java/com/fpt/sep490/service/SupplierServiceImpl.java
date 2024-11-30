@@ -35,46 +35,42 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Supplier getSupplierByName(String name) {
-        Optional<Supplier> warehouse = supplierRepository.findByName(name);
-        return warehouse.orElse(null);
+        if(name != null && !name.trim().isEmpty()) {
+            Optional<Supplier> supplier = supplierRepository.findByName(name);
+            return supplier.orElse(null);
+        }else{
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới!");
+        }
     }
 
     @Override
     public Supplier createSupplier(Supplier supplier) {
+        try {
         Supplier newSupplier = new Supplier();
-        if (supplier.getName().isBlank()) {
-            throw new RuntimeException("Tên nhà cung cấp không được để trống");
-        }
-        if (supplier.getContactPerson().isBlank()) {
-            throw new RuntimeException("Tên người đại diện không được để trống");
-        }
-        if (supplier.getEmail().isBlank()) {
-            throw new RuntimeException("Địa chỉ email không được để trống");
-        }
-        String email = supplier.getEmail();
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-
-        Pattern pattern = Pattern.compile(emailRegex);
-        if (!pattern.matcher(email).matches()) {
-            throw new RuntimeException("Địa chỉ email không hợp lệ");
-        }
-        if (supplier.getPhoneNumber().isBlank()) {
-            throw new RuntimeException("Số điện thoại không được để trống");
-        }
-        String phoneNumber = supplier.getPhoneNumber();
-        String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
-
-        Pattern phonePattern = Pattern.compile(phoneNumberRegex);
-        if (!phonePattern.matcher(phoneNumber).matches()) {
-            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 10 hoặc 11 chữ số");
+        if(supplier.getName().trim().isEmpty()){
+            throw new RuntimeException("Lỗi: Tên nhà cung cấp không được để trống!");
         }
         newSupplier.setName(supplier.getName());
         newSupplier.setContactPerson(supplier.getContactPerson());
+        if(supplier.getEmail().isEmpty()){
+            throw new RuntimeException("Lỗi: Email của nhà cung cấp không được để trống!");
+        }
+        Optional<Supplier> existingSupplier = supplierRepository.findByEmail(supplier.getEmail());
+        if (existingSupplier.isPresent()) {
+                throw new RuntimeException("Lỗi: Email của nhà cung cấp đã tồn tại trong hệ thống!");
+        }
         newSupplier.setEmail(supplier.getEmail());
+        if(!supplier.getPhoneNumber().matches("^[0-9]+$")){
+            throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp chỉ bao gồm số từ 0 đến 9 !");
+        }
         newSupplier.setPhoneNumber(supplier.getPhoneNumber());
         newSupplier.setAddress(supplier.getAddress());
-        supplierRepository.save(newSupplier);
-        return newSupplier;
+
+            supplierRepository.save(newSupplier);
+            return newSupplier;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới! "+ e.getMessage());
+        }
     }
 
     @Override

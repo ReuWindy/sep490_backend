@@ -71,6 +71,7 @@ public class UpdateProductTests {
         // Tạo đối tượng Category và Supplier
         category = new Category();
         category.setId(2L);
+        category.setActive(true);
 
         supplier = new Supplier();
         supplier.setId(2L);

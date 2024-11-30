@@ -15,4 +15,5 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long>, JpaSp
     Optional<Supplier> findByName(String name);
 
     Page<Supplier> findAll(Specification<Supplier> specification, Pageable pageable);
+    Optional<Supplier> findByEmail(String email);
 }

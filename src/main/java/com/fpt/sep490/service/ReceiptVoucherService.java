@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.Date;
 
 public interface ReceiptVoucherService {
-    Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize);
+    Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String incomeCode);
 
     ReceiptVoucher extendReceipt(Long id, int number, String type);
 }

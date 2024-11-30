@@ -24,5 +24,5 @@ public interface WarehouseReceiptService {
 
     WarehouseReceipt deleteReceiptDocument(long receiptId);
 
-    Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize);
+    Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize, String batchCode, String orderCode);
 }

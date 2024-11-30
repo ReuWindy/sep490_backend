@@ -7,13 +7,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BatchProductDto {
-    private int quantity;
-    private double price;
-    private double weight;
+    private Integer quantity;
+    private Double price;
+    private Double weight;
     private String unit;
     private String description;
-    private long batchId;
-    private long productId;
-    private long discountId;
-    private boolean isAdded;
+    private Long batchId;
+    private Long productId;
+    private Long discountId;
+    private Boolean isAdded;
 }

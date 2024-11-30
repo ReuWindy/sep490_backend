@@ -82,22 +82,23 @@ public class CreateTransactionByAdminTests {
             transactionService.createTransactionByAdmin(transactionDto);
         });
 
-        assertEquals("ReceiptVoucher Not Found !", exception.getMessage());
+        assertEquals("Lỗi: Không tìm thấy biên lai phiếu thu !", exception.getMessage());
     }
 
     @Test
-    void testCreateTransactionByAdminAmountExceedsTotal() {
+    void testCreateTransactionByAdmin_AmountExceedsTotal() {
         transactionDto.setAmount(3000.0); // Số tiền lớn hơn tổng số tiền còn lại
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
 
-        Transaction createdTransaction = transactionService.createTransactionByAdmin(transactionDto);
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            transactionService.createTransactionByAdmin(transactionDto);
+        });
 
-        assertNotNull(createdTransaction);
-        assertEquals(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount(), receiptVoucher.getRemainAmount(), "Số tiền còn lại không đúng.");
+        assertEquals("Số tiền thanh toán vượt quá số tiền cần thanh toán", exception.getMessage());
     }
 
     @Test
-    void testCreateTransactionAmountNegative() {
+    void testCreateTransaction_AmountNegative() {
         transactionDto.setAmount(-1);
 
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
@@ -131,6 +132,6 @@ public class CreateTransactionByAdminTests {
             transactionService.createTransactionByAdmin(transactionDto);
         });
 
-        assertEquals("Xảy ra lỗi khi tạo giao dịch mới", exception.getMessage(), "Thông báo lỗi không đúng.");
+        assertEquals("Lỗi: Xảy ra lỗi khi lưu giao dịch mới", exception.getMessage(), "Thông báo lỗi không đúng.");
     }
 }

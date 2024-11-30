@@ -42,6 +42,10 @@ public class CreateAdminOrderTests {
     @Mock
     private OrderActivityRepository orderActivityRepository;
     @Mock
+    private ProductWareHouseRepository productWareHouseRepository;
+    @Mock
+    private ReceiptVoucherRepository receiptVoucherRepository;
+    @Mock
     private Customer customer;
     @Mock
     private Product product;
@@ -51,6 +55,8 @@ public class CreateAdminOrderTests {
     private AdminOrderDto adminOrderDto;
     @Mock
     private DiscountDto discountDto;
+    @Mock
+    private ProductWarehouse productWarehouse;
     @Mock
     private OrderActivity orderActivity;
     @InjectMocks
@@ -66,6 +72,14 @@ public class CreateAdminOrderTests {
         // Mock Product
         product = new Product(1L, "Sample Product", "Sample Product Description", 120.0, "Sample_Product.png",
                 "PROD-1234-123456789", null, null, null, new Date(), new Date(), false, Set.of(), Set.of(), 110.0);
+
+        productWarehouse = new ProductWarehouse();
+        productWarehouse.setId(1L);
+        productWarehouse.setProduct(product);
+        productWarehouse.setWeightPerUnit(20.0);
+        productWarehouse.setUnit("BAO");
+        productWarehouse.setQuantity(100);
+
 
         // Mock ProductPrice
         productPrice = new ProductPrice(1L, 90.0, product, price);
@@ -96,7 +110,10 @@ public class CreateAdminOrderTests {
 
         // Mock the repository calls
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
+                eq(product.getId()),
+                eq(20.0),
+                eq("BAO"))).thenReturn(Optional.of(productWarehouse));
 
         // Act : Call the service method under test
         Order createdOrder = orderService.createAdminOrder(adminOrderDto);
@@ -130,14 +147,13 @@ public class CreateAdminOrderTests {
         });
 
         // Assert: Check if the exception message matches the expected message
-        assertEquals("Customer Not Found !", exception.getMessage());
+        assertEquals("Không tìm thấy khách hàng!", exception.getMessage());
     }
 
     @Test
     public void OrderService_CreateAdminOrder_ProductNotFound(){
         // Arrange: Đảm bảo khách hàng tồn tại
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -145,7 +161,7 @@ public class CreateAdminOrderTests {
         });
 
         // Assert
-        assertEquals("Product not found", exception.getMessage());
+        assertEquals("Không tìm thấy sản phẩm tương ứng trong kho!", exception.getMessage());
     }
 
     @Test
@@ -155,7 +171,10 @@ public class CreateAdminOrderTests {
         double expectedDiscountedUnitPrice = 90.0; // 100 - 10
 
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
+                eq(product.getId()),
+                eq(20.0),
+                eq("BAO"))).thenReturn(Optional.of(productWarehouse));
 
         // Act
         Order createdOrder = orderService.createAdminOrder(adminOrderDto);
@@ -174,7 +193,10 @@ public class CreateAdminOrderTests {
         double expectedUnitPrice = 100.0; // Original price
 
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
+                eq(product.getId()),
+                eq(20.0),
+                eq("BAO"))).thenReturn(Optional.of(productWarehouse));
 
         // Act
         Order createdOrder = orderService.createAdminOrder(adminOrderDto);

@@ -204,6 +204,9 @@ public class ProductServiceImpl implements ProductService {
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
+        if(productDto.getPrice() < 0){
+            throw new RuntimeException("Lỗi: Giá của sản phẩm phải là số dương");
+        }
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
 
@@ -220,8 +223,11 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUpdateAt(new Date());
-
-        return productRepository.save(product);
+        try {
+            return productRepository.save(product);
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: "+ e.getMessage());
+        }
     }
 
     @Override
@@ -235,6 +241,30 @@ public class ProductServiceImpl implements ProductService {
 
         Set<BatchProduct> batchProducts = new HashSet<>();
         for (importProductDto dto : ImportProductDtoList) {
+            Product product = findOrCreateProduct(dto);
+            BatchProduct batchProduct = getBatchProduct(dto, product, batch);
+            batchProduct = batchProductRepository.save(batchProduct);
+            batchProducts.add(batchProduct);
+        }
+
+        batch.setBatchProducts(batchProducts);
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batchRepository.save(batch);
+
+        return new ArrayList<>(batchProducts);
+    }
+
+    @Override
+    public List<BatchProduct> previewBatchProductsFromProduction(List<importProductFromProductionDto> ImportProductDtoList) {
+        Batch batch = new Batch();
+        batch.setBatchStatus("Bản xem trước");
+        Date importDate = new Date();
+        batch.setImportDate(importDate);
+        batch.setReceiptType(ReceiptType.IMPORT);
+        batch = createNewBatch(batch);
+
+        Set<BatchProduct> batchProducts = new HashSet<>();
+        for (importProductFromProductionDto dto : ImportProductDtoList) {
             Product product = findOrCreateProduct(dto);
             BatchProduct batchProduct = getBatchProduct(dto, product, batch);
             batchProduct = batchProductRepository.save(batchProduct);
@@ -263,15 +293,37 @@ public class ProductServiceImpl implements ProductService {
         return batchProduct;
     }
 
+    private static BatchProduct getBatchProduct(importProductFromProductionDto dto, Product product, Batch batch) {
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(product);
+        batchProduct.setQuantity(dto.getQuantity());
+        batchProduct.setPrice(0.0);
+        batchProduct.setWeightPerUnit(dto.getWeightPerUnit());
+        batchProduct.setWeight(dto.getWeightPerUnit() * dto.getQuantity());
+        batchProduct.setUnit(dto.getUnit());
+        batchProduct.setDescription("Nhập: Lô hàng của sản phẩm: " + dto.getName() + " sau khi hoàn thành sản xuất");
+        batchProduct.setWarehouseId(2L);
+        batchProduct.setAdded(false);
+        batchProduct.setBatch(batch);
+        return batchProduct;
+    }
+
     private Batch createNewBatch(Batch batch) {
         batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
+        if(user == null){
+            throw new RuntimeException("Lỗi : không tìm thấy thông tin người dùng!");
+        }
         batch.setBatchCreator(user);
-        batch = batchRepository.save(batch);
-        return batch;
+        try {
+            batch = batchRepository.save(batch);
+            return batch;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!"+ e.getMessage());
+        }
     }
 
     @Override
@@ -453,6 +505,35 @@ public class ProductServiceImpl implements ProductService {
 
             UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(dto.getUnitOfMeasureId())
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi với id: " + dto.getUnitOfMeasureId()));
+
+            product.setCategory(category);
+            product.setUnitOfMeasure(unitOfMeasure);
+            product.setSupplier(supplier);
+            return productRepository.save(product);
+        }
+    }
+
+    private Product findOrCreateProduct(importProductFromProductionDto dto) {
+        Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(dto.getName(),
+                Long.valueOf(dto.getCategoryId()), 1L);
+        if (existingProduct.isPresent()) {
+            return existingProduct.get();
+        } else {
+            Product product = new Product();
+            product.setName(dto.getName());
+            product.setProductCode(RandomProductCodeGenerator.generateProductCode());
+            product.setImportPrice(0.0);
+            product.setCreateAt(new Date());
+            product.setIsDeleted(false);
+
+            Supplier supplier = supplierRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp mặc định" ));
+
+            Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục với id: " + dto.getCategoryId()));
+
+            UnitOfMeasure unitOfMeasure = unitOfMeasureRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy hệ quy đổi mặc định"));
 
             product.setCategory(category);
             product.setUnitOfMeasure(unitOfMeasure);

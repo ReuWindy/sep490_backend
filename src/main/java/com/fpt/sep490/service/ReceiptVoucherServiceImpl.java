@@ -25,10 +25,10 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
     }
 
     @Override
-    public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize) {
+    public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String incomeCode) {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-            Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate);
+            Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate, incomeCode);
 
             Page<ReceiptVoucher> receipVoucherPage = receiptVoucherRepository.findAll(specification, pageable);
 
@@ -63,6 +63,11 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         }
         extendDate = calendar.getTime();
         receiptVoucher.setDueDate(extendDate);
-        return receiptVoucherRepository.save(receiptVoucher);
+        try {
+            ReceiptVoucher savedVoucher = receiptVoucherRepository.save(receiptVoucher);
+            return savedVoucher;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình gia hạn phiếu! "+e.getMessage());
+        }
     }
 }
