@@ -95,13 +95,14 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
+        product.setCreateAt(new Date());
 
         Product savedProduct = productRepository.save(product);
 
-        if (productDto.getWarehouseId() != null) {
-            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
-
+//        if (productDto.getWarehouseId() != null) {
+//            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
+//                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
+//
 //            ProductWarehouse productWarehouse = new ProductWarehouse();
 //            productWarehouse.setProduct(savedProduct);
 //            productWarehouse.setWarehouse(warehouse);
@@ -109,7 +110,7 @@ public class ProductServiceImpl implements ProductService {
 //            product.setIsDeleted(true);
 //
 //            productWareHouseRepository.save(productWarehouse);
-        }
+//        }
 
         return savedProduct;
     }
