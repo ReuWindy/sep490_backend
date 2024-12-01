@@ -19,6 +19,8 @@ public class OrderDto {
     private Long id;
     private String orderCode;
     private Date orderDate;
+    private String orderPhone;
+    private String orderAddress;
     private double totalAmount;
     private double deposit;  // Số tiền đặt cọc
     private double remainingAmount;  // Số tiền còn lại cần thanh toán

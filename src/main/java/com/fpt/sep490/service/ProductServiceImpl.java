@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
                 productDto.getCategoryId(), productDto.getSupplierId());
 
         if (existingProduct.isPresent()) {
-            throw new RuntimeException("Sản phẩm đã tồn tại");
+            throw new RuntimeException("Error:  Sản phẩm đã tồn tại");
         }
 
         Product product = new Product();
@@ -95,6 +95,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
+        product.setCreateAt(new Date());
 
         Product savedProduct = productRepository.save(product);
 
@@ -105,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
             ProductWarehouse productWarehouse = new ProductWarehouse();
             productWarehouse.setProduct(savedProduct);
             productWarehouse.setWarehouse(warehouse);
-            productWarehouse.setUnit("Bao");
+            productWarehouse.setUnit("Chưa đóng gói");
             productWarehouse.setWeightPerUnit(1.0);
             product.setCreateAt(new Date());
             product.setIsDeleted(true);
@@ -139,20 +140,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         Customer customer = getCustomerByUsername(username);
         return products.map(product -> toProductDto(product, customer));
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         if (id != null) {
             Customer customer = customerRepository.findById(id)
@@ -343,25 +344,36 @@ public class ProductServiceImpl implements ProductService {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
 
             BatchProductSelection selection = selectionMap.get(key);
+
             if (selection != null && !batchProduct.isAdded()) {
                 batchProduct.setAdded(true);
                 batchProduct.setDescription("Đã thêm vào kho");
-                ProductWarehouse productWarehouse = new ProductWarehouse();
-                productWarehouse.setQuantity(batchProduct.getQuantity());
-                productWarehouse.setImportPrice(batchProduct.getPrice());
-                productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
-                productWarehouse.setWeight(batchProduct.getWeight());
-                productWarehouse.setUnit(batchProduct.getUnit());
-                productWarehouse.setProduct(batchProduct.getProduct());
-                Product product = productWarehouse.getProduct();
-                product.setImportPrice(productWarehouse.getImportPrice() / productWarehouse.getWeightPerUnit());
-                product.setIsDeleted(false);
 
                 Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
-                productWarehouse.setWarehouse(warehouse);
-                productRepository.save(product);
-                productWareHouseRepository.save(productWarehouse);
+
+                Optional<ProductWarehouse> existingProductWarehouse = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
+                        batchProduct.getProduct().getName(),
+                        batchProduct.getUnit(),
+                        batchProduct.getWeightPerUnit(),
+                        batchProduct.getWarehouseId()
+                );
+
+                if (existingProductWarehouse.isPresent()) {
+                    ProductWarehouse productWarehouse = existingProductWarehouse.get();
+                    productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
+                    productWarehouse.setImportPrice(batchProduct.getProduct().getImportPrice());
+                    productWareHouseRepository.save(productWarehouse);
+                } else {
+                    ProductWarehouse productWarehouse = getProductWarehouse(batchProduct, warehouse);
+
+                    Product product = productWarehouse.getProduct();
+                    product.setImportPrice(productWarehouse.getImportPrice());
+                    product.setIsDeleted(false);
+
+                    productRepository.save(product);
+                    productWareHouseRepository.save(productWarehouse);
+                }
             }
         }
         batchProductRepository.saveAll(batch.getBatchProducts());
@@ -369,6 +381,18 @@ public class ProductServiceImpl implements ProductService {
         batchRepository.save(batch);
 
         return batch.getBatchCode();
+    }
+
+    private static ProductWarehouse getProductWarehouse(BatchProduct batchProduct, Warehouse warehouse) {
+        ProductWarehouse productWarehouse = new ProductWarehouse();
+        productWarehouse.setQuantity(batchProduct.getQuantity());
+        productWarehouse.setImportPrice(batchProduct.getPrice());
+        productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
+        productWarehouse.setWeight(batchProduct.getWeight());
+        productWarehouse.setUnit(batchProduct.getUnit());
+        productWarehouse.setProduct(batchProduct.getProduct());
+        productWarehouse.setWarehouse(warehouse);
+        return productWarehouse;
     }
 
 

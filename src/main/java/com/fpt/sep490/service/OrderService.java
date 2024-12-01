@@ -32,4 +32,6 @@ public interface OrderService {
     List<TopSaleProductDto> getTopSellingProducts(Date date, String type);
 
     OrderWeightStatisticsView getOrderWeightStatistics(String timeFilter);
+
+    Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto, String username);
 }

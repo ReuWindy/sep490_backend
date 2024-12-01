@@ -16,5 +16,7 @@ public class AdminOrderDto {
     private double totalAmount;
     private double deposit;
     private double remainingAmount;
+    private String orderPhone;
+    private String orderAddress;
     private List<OrderDetailDto> orderDetails;
 }

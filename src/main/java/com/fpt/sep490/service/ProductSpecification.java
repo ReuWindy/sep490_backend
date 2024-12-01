@@ -43,10 +43,12 @@ public class ProductSpecification {
         };
     }
 
-    public Specification<Product> hasProductCodeOrCategoryNameOrSupplierName(String productCode, String categoryName, String supplierName) {
+    public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName(String name,String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            if(name != null && !name.isEmpty()){
+                predicates.add(criteriaBuilder.equal(root.get("name"), name));
+            }
             if (productCode != null && !productCode.isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("productCode"), productCode));
             }

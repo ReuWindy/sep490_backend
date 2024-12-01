@@ -27,6 +27,12 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
+    @Column(name="order_address")
+    private String orderAddress;
+
+    @Column(name="order_phone")
+    private String orderPhone;
+
     private Date orderDate;
     private double totalAmount;
     private String createBy;
