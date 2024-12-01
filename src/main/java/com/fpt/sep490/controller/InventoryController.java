@@ -54,9 +54,9 @@ public class InventoryController {
     @PostMapping("/createInventory")
     public ResponseEntity<?> createInventory(HttpServletRequest request, @RequestBody InventoryDto inventoryDto) {
         try {
-            Inventory createdInventory = inventoryService.createInventory(inventoryDto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
+            Inventory createdInventory = inventoryService.createInventory(inventoryDto, username);
             userActivityService.logAndNotifyAdmin(username, "CREATE_RECEIPT", "Create inventory: " + createdInventory.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/inventories", "Phiếu kiểm kho với id " + createdInventory.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(createdInventory);
@@ -69,7 +69,7 @@ public class InventoryController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteInventory(HttpServletRequest request, @PathVariable long id) {
         Inventory inventory = inventoryService.deleteInventory(id);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete inventory: " + inventory.getId() + " by " + username);
         messagingTemplate.convertAndSend("/topic/inventories", "Phiếu kiểm kho với id " + inventory.getId() + " đã được ẩn bởi người dùng: " + username);

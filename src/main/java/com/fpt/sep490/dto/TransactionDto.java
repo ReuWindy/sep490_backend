@@ -17,6 +17,7 @@ import java.util.Date;
 public class TransactionDto {
     private long id;
     private long receiptVoucherId;
+    private long orderId;
     private double amount;
     private Date transactionDate;
     private String paymentMethod;

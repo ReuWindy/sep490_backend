@@ -22,4 +22,8 @@ public class ProductionOrderSpecification {
     public static Specification<ProductionOrder> hasProductName(String productName) {
         return (root, query, criteriaBuilder) -> productName != null && !productName.isEmpty() ? criteriaBuilder.like(criteriaBuilder.lower(root.get("productWarehouse").get("product").get("name")), "%" + productName.toLowerCase() + "%") : null;
     }
+
+    public static Specification<ProductionOrder> hasProductionCode(String productionCode) {
+        return (root, query, criteriaBuilder) -> productionCode != null && !productionCode.isEmpty() ? criteriaBuilder.like(criteriaBuilder.lower(root.get("productionCode")), "%" + productionCode.toLowerCase() + "%") : null;
+    }
 }

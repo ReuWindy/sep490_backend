@@ -14,7 +14,7 @@ public class InventorySpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (code != null) {
-                predicates.add(cb.equal(root.get("inventory").get("inventoryCode"), code));
+                predicates.add(cb.like(root.get("inventoryCode"), "%" + code + "%"));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

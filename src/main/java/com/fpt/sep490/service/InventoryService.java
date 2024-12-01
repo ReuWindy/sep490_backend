@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.Date;
 
 public interface InventoryService {
-    Inventory createInventory(InventoryDto inventoryDto);
+    Inventory createInventory(InventoryDto inventoryDto, String username);
 
     Page<InventoryDto> getInventoryByFilter(String inventoryCode, Date startDate, Date endDate, int pageNumber, int pageSize);
 

@@ -25,6 +25,7 @@ public class ProductionOrderView {
     private double weightPerUnit;
     private String note;
     private Long productId;
+    private Boolean active;
 
     @Data
     @Builder

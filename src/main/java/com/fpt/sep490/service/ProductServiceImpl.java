@@ -52,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findAllByIsDeleted(false);
     }
 
     @Override
@@ -348,7 +348,6 @@ public class ProductServiceImpl implements ProductService {
                 batchProduct.setDescription("Đã thêm vào kho");
                 ProductWarehouse productWarehouse = new ProductWarehouse();
                 productWarehouse.setQuantity(batchProduct.getQuantity());
-                productWarehouse.setBatchCode(batch.getBatchCode());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
                 productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
                 productWarehouse.setWeight(batchProduct.getWeight());

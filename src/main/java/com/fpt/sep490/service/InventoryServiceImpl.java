@@ -36,10 +36,10 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory createInventory(InventoryDto inventoryDto) {
+    public Inventory createInventory(InventoryDto inventoryDto, String username) {
         Inventory createdInventory = new Inventory();
         Warehouse warehouse = warehouseRepository.findById(inventoryDto.getWarehouseId()).orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
-        User user = userRepository.findByUsername(inventoryDto.getUsername());
+        User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("Không tìm thấy người dùng");
         }

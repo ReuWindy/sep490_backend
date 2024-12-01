@@ -61,14 +61,15 @@ public class ProductionController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
-            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String ingredientName,
+            @RequestParam(required = false) String productionCode,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productionDate,desc") String sort) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sort.split(",")[1]), sort.split(",")[0]));
         Page<ProductionOrderView> productionOrders = productionOrderService.getProductionOrders(
-                status, startDate, endDate, productName, pageable);
+                status, startDate, endDate, ingredientName, productionCode, pageable);
         return ResponseEntity.ok(productionOrders);
     }
 
@@ -159,10 +160,9 @@ public class ProductionController {
     @PostMapping("/confirm-done/{id}")
     public ResponseEntity<?> confirmProductionOrderDone(
             HttpServletRequest request,
-            @PathVariable Long id,
-            @Valid @RequestBody List<ProductionCompleteDto> dtos) {
+            @PathVariable Long id) {
         try {
-            productionOrderService.ConfirmProductionOrderDone(id, dtos);
+            productionOrderService.ConfirmProductionOrderDone(id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DONE_PRODUCTION_ORDER", "Xác nhận đơn sản xuất hoàn thành bởi người dùng: " + username);

@@ -53,6 +53,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
                 .quantity(dto.getQuantity())
                 .createBy(user)
                 .productWarehouse(productWarehouse)
+                .active(true)
                 .build();
 
         Set<FinishedProduct> finishedProducts = new HashSet<>();
@@ -187,7 +188,8 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
     public ProductionOrder deleteProductionOrder(Long id) {
         ProductionOrder productionOrder = productionOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu sản xuất"));
-        productionOrderRepository.delete(productionOrder);
+        productionOrder.setActive(false);
+        productionOrderRepository.save(productionOrder);
         return productionOrder;
     }
 
@@ -224,14 +226,13 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
 
 
     @Override
-    public void ConfirmProductionOrderDone(Long id, List<ProductionCompleteDto> dtos) {
+    public void ConfirmProductionOrderDone(Long id) {
         ProductionOrder productionOrder = productionOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu sản xuất"));
 
         if (productionOrder.getStatus() != StatusEnum.COMPLETED) {
             throw new IllegalStateException("Chỉ có thể hoàn thành đơn sản xuất ở trạng thái hoàn thành sản xuất.");
         }
-        productWarehouseService.importProductWarehouseToProduction(dtos);
 
         productionOrder.setDescription("Đã hoàn thành sản xuất");
         productionOrder.setStatus(StatusEnum.CONFIRMED);
@@ -245,6 +246,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             Date startDate,
             Date endDate,
             String productName,
+            String productionCode,
             Pageable pageable) {
 
         Specification<ProductionOrder> spec = Specification.where(null);
@@ -265,6 +267,10 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
             spec = spec.and(ProductionOrderSpecification.hasProductName(productName));
         }
 
+        if (productionCode != null && !productionCode.isEmpty()) {
+            spec = spec.and(ProductionOrderSpecification.hasProductionCode(productionCode));
+        }
+
         Page<ProductionOrder> productionOrders = productionOrderRepository.findAllWithFinishedProducts(spec, pageable);
 
 
@@ -277,6 +283,7 @@ public class ProductionOrderServiceImpl implements ProductionOrderService {
                 .status(String.valueOf(order.getStatus()))
                 .productionDate(order.getProductionDate())
                 .completionDate(order.getCompletionDate())
+                .active(true)
                 .finishedProducts(order.getFinishedProducts().stream()
                         .map(finishedProduct -> ProductionOrderView.FinishedProductDetail.builder()
                                 .productName(finishedProduct.getProduct().getName())

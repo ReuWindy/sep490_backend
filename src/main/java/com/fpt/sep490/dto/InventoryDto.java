@@ -23,6 +23,7 @@ public class InventoryDto {
     private Date inventoryDate;
     private Warehouse warehouse;
     private String status;
+    private Boolean active = true;
     private Set<InventoryDetailDto> inventoryDetails;
     private String username;
 
