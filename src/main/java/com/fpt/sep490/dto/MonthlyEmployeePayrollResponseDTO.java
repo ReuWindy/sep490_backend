@@ -1,9 +1,11 @@
 package com.fpt.sep490.dto;
 
+import org.apache.xpath.operations.Bool;
+
 import java.util.Date;
 
 public record MonthlyEmployeePayrollResponseDTO(
-        long id,
+        Long id,
         String phone,
         String email,
         String address,
@@ -11,11 +13,12 @@ public record MonthlyEmployeePayrollResponseDTO(
         String bankName,
         String bankNumber,
         Date dob,
-        boolean gender,
+        Boolean gender,
         String image,
         String employeeRole,
-        double dailyWage,
-        int dayWorked,
-        double totalSalary
+        Double dailyWage,
+        Integer dayWorked,
+        Double unpaidSalary,
+        Double totalSalary
 ) {
 }

@@ -17,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -245,12 +242,19 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee -> {
                     List<DayActive> dayActives = employeeCustomRepository.getDayActiveByEmployeeId(employee.getId(), month, year);
                     int dayWorked = dayActives.size();
+                    List<DayActive> payedDay = new ArrayList<>();
+                    for (DayActive dayActive: dayActives) {
+                        if (!dayActive.isSpend()) {
+                            payedDay.add(dayActive);
+                        }
+                    }
                     double totalSalary = employee.getRole().getSalaryDetail().getDailyWage() * dayWorked;
+                    double unpaidSalary = employee.getRole().getSalaryDetail().getDailyWage() * payedDay.size();
                     return new MonthlyEmployeePayrollResponseDTO(
                             employee.getId(), employee.getPhone(), employee.getEmail(), employee.getAddress(),
                             employee.getFullName(), employee.getBankName(), employee.getBankNumber(), employee.getDob(),
                             employee.isGender(), employee.getImage(), employee.getRole().getEmployeeRole().getRoleName(),
-                            employee.getRole().getSalaryDetail().getDailyWage(), dayWorked, totalSalary
+                            employee.getRole().getSalaryDetail().getDailyWage(), dayWorked, unpaidSalary, totalSalary
                     );
                 }
         ).toList();

@@ -52,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findAllByIsDeleted(false);
     }
 
     @Override
@@ -99,18 +99,20 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepository.save(product);
 
-//        if (productDto.getWarehouseId() != null) {
-//            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
-//                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
-//
-//            ProductWarehouse productWarehouse = new ProductWarehouse();
-//            productWarehouse.setProduct(savedProduct);
-//            productWarehouse.setWarehouse(warehouse);
-//            product.setCreateAt(new Date());
-//            product.setIsDeleted(true);
-//
-//            productWareHouseRepository.save(productWarehouse);
-//        }
+        if (productDto.getWarehouseId() != null) {
+            Warehouse warehouse = warehouseRepository.findById(productDto.getWarehouseId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
+
+            ProductWarehouse productWarehouse = new ProductWarehouse();
+            productWarehouse.setProduct(savedProduct);
+            productWarehouse.setWarehouse(warehouse);
+            productWarehouse.setUnit("Chưa đóng gói");
+            productWarehouse.setWeightPerUnit(1.0);
+            product.setCreateAt(new Date());
+            product.setIsDeleted(true);
+
+            productWareHouseRepository.save(productWarehouse);
+        }
 
         return savedProduct;
     }
@@ -340,6 +342,7 @@ public class ProductServiceImpl implements ProductService {
 
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
+
             BatchProductSelection selection = selectionMap.get(key);
 
             if (selection != null && !batchProduct.isAdded()) {

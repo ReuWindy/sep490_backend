@@ -10,7 +10,6 @@ public class ProductWarehouseDto {
     private Double weight;
     private Double weightPerUnit;
     private String unit;
-    private String batchCode;
     private String description;
     private Long productId;
     private Long warehouseId;
@@ -26,6 +25,8 @@ public class ProductWarehouseDto {
         dto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
         dto.setQuantity(productWarehouse.getQuantity());
         ProductDto productDto = new ProductDto();
+        productDto.setCategoryName(productWarehouse.getProduct().getCategory().getName());
+        productDto.setSupplierName(productWarehouse.getProduct().getSupplier().getName());
         productDto.setId(productWarehouse.getProduct().getId());
         productDto.setProductCode(productWarehouse.getProduct().getProductCode());
         productDto.setName(productWarehouse.getProduct().getName());

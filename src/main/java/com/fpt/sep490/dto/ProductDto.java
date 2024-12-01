@@ -24,6 +24,7 @@ public class ProductDto {
     @NotNull(message = "Vui lòng chọn danh mục")
     private Long categoryId;
     private String categoryName;
+    private String supplierName;
     @NotNull(message = "Vui lòng chọn nhà cung cấp")
     private Long supplierId;
     private Long unitOfMeasureId;

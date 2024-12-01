@@ -31,6 +31,9 @@ public class ProductionOrder {
     private Date productionDate;
     private Date completionDate;
 
+    @Column(name = "is_active")
+    private boolean active = true;
+
     @OneToMany(mappedBy = "productionOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FinishedProduct> finishedProducts = new HashSet<>();
 

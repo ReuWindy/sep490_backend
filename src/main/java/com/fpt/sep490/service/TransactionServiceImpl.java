@@ -3,8 +3,10 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.RevenueStatisticsView;
 import com.fpt.sep490.dto.TransactionDto;
+import com.fpt.sep490.model.Order;
 import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.model.Transaction;
+import com.fpt.sep490.repository.OrderRepository;
 import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import com.fpt.sep490.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -21,10 +23,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final ReceiptVoucherRepository receiptVoucherRepository;
+    private final OrderRepository orderRepository;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, ReceiptVoucherRepository receiptVoucherRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, ReceiptVoucherRepository receiptVoucherRepository, OrderRepository orderRepository) {
         this.transactionRepository = transactionRepository;
         this.receiptVoucherRepository = receiptVoucherRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Transactional
@@ -117,6 +121,40 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Lỗi: " + e.getMessage());
         }
     }
+
+    @Transactional
+    @Override
+    public Transaction createTransactionByPayOS(TransactionDto transactionDto) {
+        Order order = orderRepository.findById(transactionDto.getOrderId()).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy đơn hàng !"));
+        ReceiptVoucher receiptVoucher = order.getReceiptVoucher();
+        Transaction createdTransaction = new Transaction();
+
+        // check if amount of transaction is negative
+        if (transactionDto.getAmount() <= 0) {
+            throw new RuntimeException("Số tiền giao dịch phải là số dương");
+        }
+
+        // set up newPaidAmount and new RemainAmount of receipt voucher
+        receiptVoucher.setPaidAmount(receiptVoucher.getPaidAmount() + transactionDto.getAmount());
+        receiptVoucher.setRemainAmount(receiptVoucher.getTotalAmount() - receiptVoucher.getPaidAmount());
+
+        //set up attribute of transaction
+        createdTransaction.setReceiptVoucher(receiptVoucher);
+        createdTransaction.setAmount(transactionDto.getAmount());
+        createdTransaction.setTransactionDate(new Date());
+        createdTransaction.setPaymentMethod("Chuyển khoản");
+        createdTransaction.setStatus(StatusEnum.COMPLETED);
+
+        // save transaction and receiptVoucher
+        try {
+            transactionRepository.save(createdTransaction);
+            receiptVoucherRepository.save(receiptVoucher);
+            return createdTransaction;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi: " + e.getMessage());
+        }
+    }
+
 
     @Override
     public RevenueStatisticsView getRevenueStatistics(String timeFilter) {

@@ -28,12 +28,13 @@ public interface ProductionOrderService {
 
     void confirmProductionOrder(Long id);
 
-    void ConfirmProductionOrderDone(Long id, List<ProductionCompleteDto> dto);
+    void ConfirmProductionOrderDone(Long id);
 
     Page<ProductionOrderView> getProductionOrders(
             String status,
             Date startDate,
             Date endDate,
             String productName,
+            String productionCode,
             Pageable pageable);
 }

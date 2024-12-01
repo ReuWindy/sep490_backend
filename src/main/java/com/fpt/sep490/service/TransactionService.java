@@ -16,5 +16,7 @@ public interface TransactionService {
 
     Transaction createTransactionByAdmin(TransactionDto transactionDto);
 
+    Transaction createTransactionByPayOS(TransactionDto transactionDto);
+
     RevenueStatisticsView getRevenueStatistics(String timeFilter);
 }

@@ -78,6 +78,21 @@ public class TransactionController {
         }
     }
 
+    @PostMapping("/createTransaction")
+    public ResponseEntity<?> createTransactionPayOS(HttpServletRequest request, @RequestBody TransactionDto transactionDto) {
+        try {
+            Transaction createdTransaction = transactionService.createTransactionByPayOS(transactionDto);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_TRANSACTION", "Tạo giao dịch: " + createdTransaction.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/transactions", "Giao dịch " + createdTransaction.getId() + " đã được tạo bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
+        } catch (Exception e) {
+            ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @PostMapping("/update")
     public ResponseEntity<?> updateTransaction(HttpServletRequest request, @RequestBody TransactionDto transactionDto) {
         try {
