@@ -11,5 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CustomerOrderDto {
     private long customerId;
+    private String orderPhone;
+    private String orderAddress;
     private List<OrderDetailDto> orderDetails;
 }

@@ -138,20 +138,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         Customer customer = getCustomerByUsername(username);
         return products.map(product -> toProductDto(product, customer));
     }
 
     @Override
-    public Page<ProductDto> getProductByFilterForCustomer(String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
+    public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasProductCodeOrCategoryNameOrSupplierName(productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         if (id != null) {
             Customer customer = customerRepository.findById(id)

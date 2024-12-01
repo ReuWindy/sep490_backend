@@ -160,6 +160,21 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/customer/UpdateOrder/{orderId}")
+    public ResponseEntity<?> updateOrderByCustomer(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto){
+        try{
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            Order updatedOrder = orderService.updateOrderByCustomer(orderId, adminOrderDto, username);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_CUSTOMER_ORDER","Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
+            messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
+        }catch (Exception e){
+            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
     @PostMapping("/admin/UpdateOrderDetail/{orderId}")
     public ResponseEntity<?> updateOrderDetailByAdmin(HttpServletRequest request, @PathVariable long orderId, @RequestBody AdminOrderDto adminOrderDto) {
         try {

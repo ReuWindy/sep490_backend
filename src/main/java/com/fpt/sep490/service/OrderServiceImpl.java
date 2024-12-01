@@ -94,6 +94,8 @@ public class OrderServiceImpl implements OrderService {
                 .customer(customer)
                 .orderDate(new Date())
                 .deposit(adminOrderDto.getDeposit())
+                .orderPhone(adminOrderDto.getOrderPhone())
+                .orderAddress(adminOrderDto.getOrderAddress())
                 .remainingAmount(adminOrderDto.getRemainingAmount())
                 .status(StatusEnum.PENDING)
                 .build();
@@ -162,6 +164,8 @@ public class OrderServiceImpl implements OrderService {
                 .customer(customer)
                 .orderDate(new Date())
                 .deposit(0.0)
+                .orderAddress(customerOrderDto.getOrderAddress())
+                .orderPhone(customerOrderDto.getOrderPhone())
                 .remainingAmount(0.0)
                 .status(StatusEnum.PENDING)
                 .build();
@@ -335,6 +339,8 @@ public class OrderServiceImpl implements OrderService {
         if (newDeposit > updatedTotalAmount) {
             throw new RuntimeException("Số tiền cọc không được lớn hơn tổng giá trị đơn hàng!");
         }
+        updatedOrder.setOrderPhone(adminOrderDto.getOrderPhone());
+        updatedOrder.setOrderAddress(adminOrderDto.getOrderAddress());
         updatedOrder.setDeposit(newDeposit);
         updatedOrder.setRemainingAmount(updatedTotalAmount - newDeposit);
         try{
@@ -435,12 +441,29 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Override
+    public Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto, String username) {
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("không tìm thấy đơn hàng!"));
+        try{
+            if(updatedOrder.getStatus() == null){
+                throw new RuntimeException("Lỗi: trạng thái của đơn hàng không thể để trống!");
+            }
+            updatedOrder.setStatus(updatedOrder.getStatus());
+            orderRepository.save(updatedOrder);
+            return updatedOrder;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: xảy ra lỗi trong quá trình cập nhật đơn hàng !");
+        }
+    }
+
     private OrderDto convertToDTO(Order order) {
         OrderDto orderDTO = new OrderDto();
         orderDTO.setId(order.getId());
         orderDTO.setOrderCode(order.getOrderCode());
         orderDTO.setOrderDate(order.getOrderDate());
         orderDTO.setTotalAmount(order.getTotalAmount());
+        orderDTO.setOrderPhone(order.getOrderPhone());
+        orderDTO.setOrderAddress(order.getOrderAddress());
         orderDTO.setDeposit(order.getDeposit());
         orderDTO.setRemainingAmount(order.getRemainingAmount());
         orderDTO.setStatus(order.getStatus());

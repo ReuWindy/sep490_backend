@@ -206,6 +206,7 @@ public class ProductController {
     @GetMapping("/customer/products")
     public ResponseEntity<PagedModel<EntityModel<ProductDto>>> customerProductPage(
             HttpServletRequest request,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String supplierName,
@@ -215,13 +216,14 @@ public class ProductController {
 
         String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
-        Page<ProductDto> productPage = productService.getProductByFilterForCustomer(productCode, categoryName, supplierName, username, pageNumber, pageSize);
+        Page<ProductDto> productPage = productService.getProductByFilterForCustomer(name, productCode, categoryName, supplierName, username, pageNumber, pageSize);
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/admin/order/products")
     public ResponseEntity<PagedModel<EntityModel<ProductDto>>> customerProductPage(
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String supplierName,
@@ -232,7 +234,7 @@ public class ProductController {
 
 //        String token = jwtTokenManager.resolveTokenFromCookie(request);
 //        String username = jwtTokenManager.getUsernameFromToken(token);
-        Page<ProductDto> productPage = productService.getProductByFilterForCustomer(productCode, categoryName, supplierName, id, pageNumber, pageSize);
+        Page<ProductDto> productPage = productService.getProductByFilterForCustomer(name, productCode, categoryName, supplierName, id, pageNumber, pageSize);
         PagedModel<EntityModel<ProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
