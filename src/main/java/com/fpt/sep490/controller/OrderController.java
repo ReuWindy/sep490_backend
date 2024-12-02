@@ -115,6 +115,12 @@ public class OrderController {
         return ResponseEntity.ok(statistics);
     }
 
+    @GetMapping("/invoiceSummary")
+    public ResponseEntity<?> getInvoiceSummary(){
+        List<InvoiceSummaryDto> invoiceSummary = orderService.getInvoiceSummary();
+        return ResponseEntity.ok(invoiceSummary);
+    }
+
     @PostMapping("/admin/CreateOrder")
     public ResponseEntity<?> createAdminOrder(HttpServletRequest request, @RequestBody AdminOrderDto adminOrderDto) {
         try{
@@ -165,7 +171,7 @@ public class OrderController {
         try{
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            Order updatedOrder = orderService.updateOrderByCustomer(orderId, adminOrderDto, username);
+            Order updatedOrder = orderService.updateOrderByCustomer(orderId, adminOrderDto);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CUSTOMER_ORDER","Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
