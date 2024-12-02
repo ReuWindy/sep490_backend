@@ -66,7 +66,7 @@ public class BatchController {
     @PutMapping("/updateStatus/{id}")
     public ResponseEntity<?> updateBatchStatus(HttpServletRequest request, @PathVariable Long id, @RequestBody String status) {
         Batch batch = batchService.updateBatchStatus(id, status);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "UPDATE_BATCH_STATUS", "Update status for batch: " + batch.getBatchCode() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).build();

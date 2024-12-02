@@ -104,7 +104,7 @@ public class WarehouseReceiptController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateReceipt(HttpServletRequest request, @PathVariable long id, @RequestBody String document) {
         WarehouseReceipt warehouseReceipt = warehouseReceiptService.updateReceiptDocument(id, document);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "UPDATE_RECEIPT_DOCUMENT", "Update document for receipt: " + warehouseReceipt.getId() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully updated receipt");
@@ -113,7 +113,7 @@ public class WarehouseReceiptController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteReceipt(HttpServletRequest request, @PathVariable long id) {
         WarehouseReceipt warehouseReceipt = warehouseReceiptService.deleteReceiptDocument(id);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "DELETE_RECEIPT", "Delete receipt: " + warehouseReceipt.getId() + " by " + username);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted receipt");

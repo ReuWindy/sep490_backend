@@ -50,7 +50,7 @@ public class DiscountController {
     @PostMapping("/create")
     public ResponseEntity<?> createDiscount(HttpServletRequest request, @RequestBody DiscountDto discountDto) {
         Discount createdDiscount = discountService.createDiscount(discountDto);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "CREATE_DISCOUNT", discountDto.getDescription());
         if (createdDiscount != null) {
@@ -68,7 +68,7 @@ public class DiscountController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         Discount updatedDiscount = discountService.updateDiscount(discount);
-        String token = jwtTokenManager.resolveToken(request);
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
         String username = jwtTokenManager.getUsernameFromToken(token);
         userActivityService.logAndNotifyAdmin(username, "UPDATE_DISCOUNT", discount.getDescription());
         if (updatedDiscount != null) {
@@ -82,7 +82,7 @@ public class DiscountController {
     public ResponseEntity<?> disableDiscount(HttpServletRequest request, @PathVariable int id) {
         Discount disabledDiscount = discountService.disableDiscount(id);
         if (disabledDiscount != null) {
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_DISCOUNT", disabledDiscount.getDescription());
             return ResponseEntity.status(HttpStatus.OK).body(disabledDiscount);

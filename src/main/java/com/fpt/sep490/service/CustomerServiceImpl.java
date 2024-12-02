@@ -29,7 +29,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDto> getAllCustomers() {
-        List<User> users = userRepository.findAllByUserType(UserType.ROLE_CUSTOMER);
+        List<User> users = userRepository.findAllByUserTypeAndActive(UserType.ROLE_CUSTOMER, true);
         return users.stream().map(user -> {
             if (user instanceof Customer customer) {
                 return convertCustomerToDTO(customer);

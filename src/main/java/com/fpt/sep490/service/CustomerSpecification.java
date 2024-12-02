@@ -24,7 +24,7 @@ public class CustomerSpecification {
                 predicates.add(criteriaBuilder.like(root.get("email"), "%" + email + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("userType"), UserType.ROLE_CUSTOMER));
-
+            predicates.add(criteriaBuilder.equal(root.get("active"), true));
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
