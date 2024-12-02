@@ -7,6 +7,8 @@ import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
+import jakarta.validation.constraints.NotBlank;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -231,6 +234,54 @@ public class ProductServiceImpl implements ProductService {
         }catch (Exception e){
             throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: "+ e.getMessage());
         }
+    }
+
+    @Override
+    public List<importProductDto> readExcelFile(MultipartFile file) {
+        List<importProductDto> productList = new ArrayList<>();
+
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    importProductDto product = importProductDto.builder()
+                            .name(getCellValue(row.getCell(0)))
+                            .importPrice(Double.parseDouble(getCellValue(row.getCell(1))))
+                            .quantity(Integer.parseInt(getCellValue(row.getCell(2))))
+                            .weightPerUnit(Double.parseDouble(getCellValue(row.getCell(3))))
+                            .unit(getCellValue(row.getCell(4)))
+                            .categoryId(findCategoryIdByName(getCellValue(row.getCell(5))))
+                            .supplierId(findSupplierIdByName(getCellValue(row.getCell(6))))
+                            .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(7))))
+                            .build();
+
+                    productList.add(product);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
+        }
+
+        return productList;
+    }
+
+    private @NotBlank(message = "Vui lòng chọn danh mục") String findCategoryIdByName(String categoryName) {
+        return categoryRepository.findByName(categoryName)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục: " + categoryName))
+                .getId().toString();
+    }
+
+    private Long findSupplierIdByName(String supplierName) {
+        return supplierRepository.findByName(supplierName)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp: " + supplierName))
+                .getId();
+    }
+
+    private Long findWarehouseIdByName(String warehouseName) {
+        return warehouseRepository.findByName(warehouseName)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà kho: " + warehouseName))
+                .getId();
     }
 
     @Override
@@ -657,6 +708,24 @@ public class ProductServiceImpl implements ProductService {
         User user = userRepository.findByUsername(username);
         long id = user.getId();
         return customerRepository.findById(id).orElseThrow(() -> new RuntimeException("no customer here for u"));
+    }
+
+    private String getCellValue(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    return String.valueOf((int) cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            default:
+                return "";
+        }
     }
 
     @Override

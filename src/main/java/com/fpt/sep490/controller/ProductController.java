@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -94,6 +95,25 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/import/excel")
+    public ResponseEntity<?> importProductFromExcel(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
+        try {
+            List<importProductDto> importProductDtoList = productService.readExcelFile(file);
+            List<BatchProduct> importList = productService.previewBatchProducts(importProductDtoList);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT_EXCEL", "Import lô hàng từ file Excel bởi: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Lô hàng nhập kho từ file Excel vừa được tạo bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(importList);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Lỗi khi đọc file Excel.", HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

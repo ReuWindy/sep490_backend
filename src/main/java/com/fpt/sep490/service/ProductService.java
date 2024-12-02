@@ -4,6 +4,7 @@ import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.Product;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
@@ -44,4 +45,6 @@ public interface ProductService {
     Product disableProduct(Long id);
 
     Product enableProduct(Long id);
+
+    List<importProductDto> readExcelFile(MultipartFile file);
 }
