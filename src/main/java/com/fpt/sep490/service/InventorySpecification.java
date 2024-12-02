@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.model.Inventory;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +31,7 @@ public class InventorySpecification {
             } else if (endDate != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("inventoryDate"), endDate));
             }
+            predicates.add(cb.notEqual(root.get("status"), StatusEnum.CANCELED));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

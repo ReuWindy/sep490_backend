@@ -15,7 +15,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,16 +29,16 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
-    private final WarehouseReceiptService warehouseReceiptService;
+    private final WarehouseReceiptRepository warehouseReceiptRepository;
     private final BatchRepository batchRepository;
 
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptService warehouseReceiptService, BatchRepository batchRepository) {
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptRepository warehouseReceiptRepository, BatchRepository batchRepository) {
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.productWareHouseRepository = productWareHouseRepository;
-        this.warehouseReceiptService = warehouseReceiptService;
+        this.warehouseReceiptRepository = warehouseReceiptRepository;
         this.batchRepository = batchRepository;
     }
 
@@ -178,13 +181,29 @@ public class InventoryServiceImpl implements InventoryService {
             }
             if (exportBatchProducts.size() > 0) {
                 exportBatch.setBatchProducts(exportBatchProducts);
-                exportBatch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(exportBatch.getBatchCode()));
+                batchRepository.save(exportBatch);
+                WarehouseReceipt receipt = new WarehouseReceipt();
+                receipt.setReceiptDate(new Date());
+                receipt.setReceiptType(ReceiptType.EXPORT);
+                receipt.setBatch(exportBatch);
+                receipt.setIsPay(true);
+
+                warehouseReceiptRepository.save(receipt);
+                exportBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(exportBatch);
             }
             if (importBatchProducts.size() > 0) {
                 importBatch.setBatchProducts(importBatchProducts);
-                importBatch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(importBatch.getBatchCode()));
                 batchRepository.save(importBatch);
+                WarehouseReceipt receipt = new WarehouseReceipt();
+                receipt.setReceiptDate(new Date());
+                receipt.setReceiptType(ReceiptType.IMPORT);
+                receipt.setBatch(importBatch);
+                receipt.setIsPay(true);
+                warehouseReceiptRepository.save(receipt);
+                importBatch.setWarehouseReceipt(receipt);
+                batchRepository.save(importBatch);
+
             }
             return "Xác nhận phiếu kiểm kho và cập nhật số lượng thành công !";
         } catch (Exception e) {
