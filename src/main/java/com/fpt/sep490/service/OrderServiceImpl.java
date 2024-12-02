@@ -442,18 +442,32 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto, String username) {
+    public Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("không tìm thấy đơn hàng!"));
         try{
             if(updatedOrder.getStatus() == null){
                 throw new RuntimeException("Lỗi: trạng thái của đơn hàng không thể để trống!");
             }
-            updatedOrder.setStatus(updatedOrder.getStatus());
+            updatedOrder.setStatus(adminOrderDto.getStatus());
             orderRepository.save(updatedOrder);
             return updatedOrder;
         }catch (Exception e){
             throw new RuntimeException("Lỗi: xảy ra lỗi trong quá trình cập nhật đơn hàng !");
         }
+    }
+
+    @Override
+    public List<InvoiceSummaryDto> getInvoiceSummary() {
+        List<Object[]> results = orderRepository.findIncomeSummary();
+
+        return results.stream()
+                .map(row -> new InvoiceSummaryDto(
+                        ((Number) row[0]).intValue(),  // month
+                        ((Number) row[1]).longValue(),  // totalReceipt
+                        ((Number) row[2]).doubleValue(), // totalPaid
+                        ((Number) row[3]).doubleValue()  // totalRemain
+                ))
+                .toList();
     }
 
     private OrderDto convertToDTO(Order order) {

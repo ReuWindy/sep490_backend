@@ -1,5 +1,6 @@
 package com.fpt.sep490.repository;
 
+import com.fpt.sep490.dto.InvoiceSummaryDto;
 import com.fpt.sep490.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,4 +19,26 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE DATE(o.orderDate) = :date")
     List<Order> findAllByOrderDate(@Param("date") LocalDate date);
+
+    @Query(value = """
+        SELECT 
+            MONTH(o.order_date) AS month,
+            COUNT(DISTINCT o.id) AS total_receipt,
+            SUM(rv.total_paid_from_receipt) AS total_paid,
+            SUM(rv.total_unpaid) AS total_remain
+        FROM orders o
+        JOIN (
+            SELECT 
+                rv.order_id, 
+                SUM(rv.paid_amount) AS total_paid_from_receipt, 
+                SUM(rv.remain_amount) AS total_unpaid
+            FROM receipt_voucher rv
+            GROUP BY rv.order_id
+        ) rv ON o.id = rv.order_id
+        WHERE o.status IN ('COMPLETED', 'COMPLETE')
+          AND o.order_date >= DATE_ADD(CURDATE(), INTERVAL -5 MONTH)
+        GROUP BY MONTH(o.order_date)
+        ORDER BY MONTH(o.order_date)
+        """, nativeQuery = true)
+    List<Object[]> findIncomeSummary();
 }

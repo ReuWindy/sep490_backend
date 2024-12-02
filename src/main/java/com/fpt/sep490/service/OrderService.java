@@ -33,5 +33,7 @@ public interface OrderService {
 
     OrderWeightStatisticsView getOrderWeightStatistics(String timeFilter);
 
-    Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto, String username);
+    Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto);
+
+    List<InvoiceSummaryDto> getInvoiceSummary();
 }
