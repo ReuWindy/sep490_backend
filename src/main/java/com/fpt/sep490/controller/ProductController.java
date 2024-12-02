@@ -104,7 +104,7 @@ public class ProductController {
             List<BatchProduct> importList = productService.previewBatchProductsFromProduction(importProductDtoList);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT", "Tạo lô hàng nhập kho bởi :" + username);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT_PRODUCTION", "Tạo lô hàng nhập kho bởi :" + username);
             messagingTemplate.convertAndSend("/topic/products", "Bản xem trước cho 1 lô hàng nhập kho mới vừa được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
         } catch (RuntimeException e) {

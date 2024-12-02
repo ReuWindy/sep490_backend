@@ -149,7 +149,7 @@ public class ProductionController {
             ProductionOrder productionOrder = productionOrderService.finishProductionOrder(dto, id);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CREATE_PRODUCTION_ORDER", "Cập nhật thành phẩm cho: " + productionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
+            userActivityService.logAndNotifyAdmin(username, "UPDATE_PRODUCTION_ORDER_PRODUCT", "Cập nhật thành phẩm cho: " + productionOrder.getProductWarehouse().getProduct().getName() + " bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(productionOrder);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
