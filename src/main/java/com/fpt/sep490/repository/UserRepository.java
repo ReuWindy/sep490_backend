@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
-    List<User> findAllByUserType(UserType userType);
+    List<User> findAllByUserTypeAndActive(UserType userType, Boolean active);
 
     Page<User> findAll(Specification<User> specification, Pageable pageable);
 }

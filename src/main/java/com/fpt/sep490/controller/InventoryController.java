@@ -92,7 +92,7 @@ public class InventoryController {
                                                       @RequestBody InventoryDto inventoryDto) {
         try {
             String message = inventoryService.confirmAndAddSelectedProductToInventory(inventoryId, inventoryDto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CONFIRM_ADD_TO_INVENTORY", "Xác nhận lưu phiếu kiểm kho bởi :" + username);
             messagingTemplate.convertAndSend("/topic/inventories", "Người dùng: " + username + " đã xác nhận lưu phiếu kiểm kho: "+ inventoryId );

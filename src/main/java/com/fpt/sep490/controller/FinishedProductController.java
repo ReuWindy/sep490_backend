@@ -86,7 +86,7 @@ public class FinishedProductController {
     public ResponseEntity<?> addFinishedProduct(HttpServletRequest request, @Valid @RequestBody FinishedProductDto finishedProductDto) {
         try {
             FinishedProduct createdFinishedProduct = finishedProductService.createFinishedProduct(finishedProductDto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_FINISHED_PRODUCT", "Tạo sản phẩm đầu ra cho sản phẩm: " + createdFinishedProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdFinishedProduct);
@@ -103,7 +103,7 @@ public class FinishedProductController {
                                                    @RequestParam(required = false) Boolean status) {
         try {
             FinishedProduct updatedFinishedProduct = finishedProductService.updateFinishedProduct(id, finishedProductDto, status);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_FINISHED_PRODUCT", "Cập nhật sản phẩm đầu ra cho sản phẩm: " + updatedFinishedProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedFinishedProduct);
@@ -117,7 +117,7 @@ public class FinishedProductController {
     public ResponseEntity<?> deleteFinishedProduct(HttpServletRequest request, @PathVariable("id") long id) {
         try {
             FinishedProduct finishedProduct = finishedProductService.deleteFinishedProduct(id);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DELETE", "Xoá sản phẩm đầu ra cho sản phẩm: " + finishedProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(finishedProduct);

@@ -66,7 +66,7 @@ public class BatchProductController {
     public ResponseEntity<?> addMoreBatchProductToBatch(HttpServletRequest request, @Valid @RequestBody BatchProductDto batchProductDto) {
         try {
             BatchProduct batchProduct = batchProductService.addMoreBatchProductToBatch(batchProductDto);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ADD_BATCH_PRODUCT_TO_BATCH", "Tạo danh mục: " + batchProduct.getProduct().getName() + " by " + username);
             return ResponseEntity.status(HttpStatus.OK).body(batchProduct);
@@ -94,7 +94,7 @@ public class BatchProductController {
     public ResponseEntity<?> deleteBatchProduct(HttpServletRequest request, @Valid @RequestBody DeleteBatchProductRequest requestDelete) {
         try {
             List<BatchProduct> batchProduct = batchProductService.deleteBatchProducts(requestDelete);
-            String token = jwtTokenManager.resolveToken(request);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DELETE_BATCH_PRODUCT", "Xóa sản phẩm trong lô bởi: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(batchProduct);

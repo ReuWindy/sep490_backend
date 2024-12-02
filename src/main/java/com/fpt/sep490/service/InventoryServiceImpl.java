@@ -1,9 +1,11 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.InventoryDto;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
+import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomInventoryCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,9 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,13 +26,17 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
+    private final WarehouseReceiptService warehouseReceiptService;
+    private final BatchRepository batchRepository;
 
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository) {
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptService warehouseReceiptService, BatchRepository batchRepository) {
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+        this.warehouseReceiptService = warehouseReceiptService;
+        this.batchRepository = batchRepository;
     }
 
     @Override
@@ -135,15 +139,54 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.setStatus(StatusEnum.COMPLETED);
         try {
             inventoryRepository.save(inventory);
-
+            Batch importBatch = new Batch();
+            Batch exportBatch = new Batch();
+            importBatch.setImportDate(new Date());
+            importBatch.setReceiptType(ReceiptType.IMPORT);
+            importBatch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+            importBatch.setBatchCreator(inventory.getCreateBy());
+            importBatch.setBatchStatus("Đã xác nhận");
+            exportBatch.setImportDate(new Date());
+            exportBatch.setReceiptType(ReceiptType.IMPORT);
+            exportBatch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+            exportBatch.setBatchCreator(inventory.getCreateBy());
+            exportBatch.setBatchStatus("Đã xác nhận");
+            Set<BatchProduct> importBatchProducts = new HashSet<>();
+            Set<BatchProduct> exportBatchProducts = new HashSet<>();
             for (var detail : inventory.getInventoryDetails()) {
                 ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
                                 detail.getProduct().getId(), inventoryDto.getWarehouseId(), detail.getUnit(), detail.getWeightPerUnit())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
+                BatchProduct batchProduct = new BatchProduct();
+                batchProduct.setProduct(productWarehouse.getProduct());
+                batchProduct.setQuantity(Math.abs(detail.getQuantity_discrepancy()));
+                batchProduct.setAdded(true);
+                batchProduct.setPrice(0.0);
+                batchProduct.setUnit(detail.getUnit());
+                batchProduct.setWeightPerUnit(detail.getWeightPerUnit());
+                batchProduct.setWarehouseId(productWarehouse.getWarehouse().getId());
+                if (detail.getQuantity_discrepancy() < 0) {
+                    batchProduct.setDescription("Sản phẩm bị hao hụt trong quá trình kiểm kho");
+                    exportBatchProducts.add(batchProduct);
+                } else {
+                    batchProduct.setDescription("Sản phẩm dư trong quá trình kiểm kho");
+                    importBatchProducts.add(batchProduct);
+                }
+
                 productWarehouse.setQuantity(detail.getQuantity());
                 productWareHouseRepository.save(productWarehouse);
             }
-            return "Xác nhận phiếu kiểm kho thành công !";
+            if (exportBatchProducts.size() > 0) {
+                exportBatch.setBatchProducts(exportBatchProducts);
+                exportBatch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(exportBatch.getBatchCode()));
+                batchRepository.save(exportBatch);
+            }
+            if (importBatchProducts.size() > 0) {
+                importBatch.setBatchProducts(importBatchProducts);
+                importBatch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(importBatch.getBatchCode()));
+                batchRepository.save(importBatch);
+            }
+            return "Xác nhận phiếu kiểm kho và cập nhật số lượng thành công !";
         } catch (Exception e) {
             throw new RuntimeException("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !");
         }

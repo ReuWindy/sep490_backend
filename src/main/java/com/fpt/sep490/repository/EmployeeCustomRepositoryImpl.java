@@ -37,7 +37,8 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
                 .createQuery("SELECT e FROM Employee e " +
                                 "JOIN e.role r " +
                                 "JOIN r.salaryDetail s " +
-                                "WHERE s.salaryType = :role "
+                                "WHERE s.salaryType = :role " +
+                                "AND e.active = true"
                         , Employee.class);
         query.setParameter("role", SalaryType.valueOf(role));
         return query.getResultList();
