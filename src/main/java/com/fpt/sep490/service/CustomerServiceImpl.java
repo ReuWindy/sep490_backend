@@ -8,6 +8,7 @@ import com.fpt.sep490.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -131,7 +132,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "id"));
         Specification<User> specification = CustomerSpecification.hasEmailOrNameOrPhoneNumber(fullName, phone, email);
         return userRepository.findAll(specification, pageable);
     }

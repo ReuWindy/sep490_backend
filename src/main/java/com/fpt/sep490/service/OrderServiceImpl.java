@@ -10,6 +10,7 @@ import com.fpt.sep490.utils.RandomOrderCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -212,7 +213,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Specification<Order> specification = OrderSpecification.hasNameOrHasStatus(name, status);
         return orderRepository.findAll(specification, pageable);
     }

@@ -6,10 +6,7 @@ import com.fpt.sep490.model.Batch;
 import com.fpt.sep490.model.WarehouseReceipt;
 import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.WarehouseReceiptRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -121,7 +118,7 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
     @Override
     public Page<WarehouseReceiptDto> getWarehouseReceipts(Date startDate, Date endDate, ReceiptType receiptType, String username, int pageNumber, int pageSize, String batchCode, String orderCode) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "receiptDate"));
             Specification<WarehouseReceipt> specification = WarehouseReceiptSpecification.hasType(receiptType)
                     .and(WarehouseReceiptSpecification.hasUsername(username))
                     .and(WarehouseReceiptSpecification.isReceiptDateBetween(startDate, endDate)

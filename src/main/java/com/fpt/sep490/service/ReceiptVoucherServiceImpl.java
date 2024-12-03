@@ -3,10 +3,7 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.dto.ReceiptVoucherDto;
 import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.repository.ReceiptVoucherRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +24,7 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
     @Override
     public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String incomeCode) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "voucherDate"));
             Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate, incomeCode);
 
             Page<ReceiptVoucher> receipVoucherPage = receiptVoucherRepository.findAll(specification, pageable);
@@ -64,8 +61,7 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
         extendDate = calendar.getTime();
         receiptVoucher.setDueDate(extendDate);
         try {
-            ReceiptVoucher savedVoucher = receiptVoucherRepository.save(receiptVoucher);
-            return savedVoucher;
+            return receiptVoucherRepository.save(receiptVoucher);
         }catch (Exception e){
             throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình gia hạn phiếu! "+e.getMessage());
         }
