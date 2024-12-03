@@ -91,7 +91,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @PutMapping("/edit/{username}")
+    @PutMapping("/editByUsername")
     public ResponseEntity<?> updateUser(HttpServletRequest request, @RequestBody UserDto userDto) {
         ApiExceptionResponse response;
         String token = jwtTokenManager.resolveTokenFromCookie(request);
