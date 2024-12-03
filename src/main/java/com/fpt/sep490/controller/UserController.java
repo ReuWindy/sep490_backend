@@ -10,6 +10,7 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.security.jwt.JwtTokenService;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.ApiSuccessResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -91,8 +92,10 @@ public class UserController {
     }
 
     @PutMapping("/edit/{username}")
-    public ResponseEntity<?> updateUser(@PathVariable String username, @RequestBody UserDto userDto) {
+    public ResponseEntity<?> updateUser(HttpServletRequest request, @RequestBody UserDto userDto) {
         ApiExceptionResponse response;
+        String token = jwtTokenManager.resolveTokenFromCookie(request);
+        String username = jwtTokenManager.getUsernameFromToken(token);
         User u = userService.updateUserByUserName(username, userDto);
         if (u != null) {
             response = new ApiExceptionResponse("Update user successfully!", HttpStatus.OK, LocalDateTime.now());
