@@ -82,6 +82,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUserByUserName(String username, UserDto userDto) {
+        try {
+            User u = userRepository.findByUsername(username);
+            u.setUpdateAt(new Date());
+            u.setDob(userDto.getDob());
+            u.setPhone(userDto.getPhone());
+            u.setEmail(userDto.getEmail());
+            u.setAddress(userDto.getAddress());
+            u.setImage(userDto.getImage());
+            u.setFullName(userDto.getName());
+        }catch (Exception e) {
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật hồ sơ người dùng!");
+        }
         return null;
     }
 
