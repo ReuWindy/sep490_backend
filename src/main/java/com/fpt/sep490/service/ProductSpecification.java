@@ -62,8 +62,15 @@ public class ProductSpecification {
 
             Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
             Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán hàng");
-
-            predicates.add(warehouseNamePredicate);
+            if ((name == null || name.isEmpty()) &&
+                    (productCode == null || productCode.isEmpty()) &&
+                    (categoryName == null || categoryName.isEmpty()) &&
+                    (supplierName == null || supplierName.isEmpty())) {
+                predicates.add(warehouseNamePredicate);
+            } else {
+                predicates.add(criteriaBuilder.or(criteriaBuilder.isNull(productWarehouseJoin), warehouseNamePredicate));
+            }
+            query.distinct(true);
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
