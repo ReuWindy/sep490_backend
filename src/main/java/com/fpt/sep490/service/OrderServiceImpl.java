@@ -260,6 +260,8 @@ public class OrderServiceImpl implements OrderService {
                 warehouseReceipt.setOrder(updatedOrder);
                 warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
                 warehouseReceipt.setReceiptDate(new Date());
+                warehouseReceiptRepository.save(warehouseReceipt);
+            } else if (status == StatusEnum.COMPLETED) {
                 ReceiptVoucher receiptVoucher = new ReceiptVoucher();
                 receiptVoucher.setOrder(updatedOrder);
                 receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
@@ -271,7 +273,6 @@ public class OrderServiceImpl implements OrderService {
                 Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
                 receiptVoucher.setDueDate(dueDate);
                 receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
-                warehouseReceiptRepository.save(warehouseReceipt);
                 receiptVoucherRepository.save(receiptVoucher);
             }
         } else {
