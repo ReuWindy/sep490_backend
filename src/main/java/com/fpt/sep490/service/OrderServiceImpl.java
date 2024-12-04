@@ -76,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Order.desc("orderDate")));
         Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
         if (orderCode != null && !orderCode.isEmpty()) {
             spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
