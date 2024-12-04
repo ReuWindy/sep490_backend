@@ -10,6 +10,7 @@ import com.fpt.sep490.utils.RandomOrderCodeGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Order.desc("orderDate")));
         Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
         if (orderCode != null && !orderCode.isEmpty()) {
             spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
@@ -142,16 +143,6 @@ public class OrderServiceImpl implements OrderService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(currentDate);
         calendar.add(Calendar.MONTH, 1);
-
-        ReceiptVoucher receiptVoucher = new ReceiptVoucher();
-        receiptVoucher.setReceiptDate(new Date());
-        receiptVoucher.setOrder(order);
-        receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
-        receiptVoucher.setPaidAmount(0);
-        receiptVoucher.setTotalAmount(totalAmount);
-        receiptVoucher.setRemainAmount(totalAmount);
-        receiptVoucher.setDueDate(calendar.getTime());
-        receiptVoucherRepository.save(receiptVoucher);
         logOrderActivity(order, customer.getName());
         return order;
     }
@@ -212,7 +203,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getAdminOrder(String name, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "orderDate"));
         Specification<Order> specification = OrderSpecification.hasNameOrHasStatus(name, status);
         return orderRepository.findAll(specification, pageable);
     }

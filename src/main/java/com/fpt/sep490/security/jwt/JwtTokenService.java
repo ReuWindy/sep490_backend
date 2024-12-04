@@ -1,12 +1,12 @@
 package com.fpt.sep490.security.jwt;
 
+import com.fpt.sep490.model.Employee;
 import com.fpt.sep490.model.User;
-import com.fpt.sep490.security.dto.AuthenticatedUserDto;
-import com.fpt.sep490.security.dto.LoginRequest;
-import com.fpt.sep490.security.dto.LoginResponse;
-import com.fpt.sep490.security.dto.LogoutResponse;
+import com.fpt.sep490.model.UserType;
+import com.fpt.sep490.security.dto.*;
 import com.fpt.sep490.security.mapper.UserMapper;
 import com.fpt.sep490.security.service.UserService;
+import com.fpt.sep490.service.EmployeeService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +26,7 @@ public class JwtTokenService {
     private final JwtTokenManager jwtTokenManager;
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final EmployeeService employeeService;
 
     public LoginResponse getLoginResponse(LoginRequest loginRequest, HttpServletResponse response) {
 
@@ -50,6 +51,7 @@ public class JwtTokenService {
 
 
         final User user = UserMapper.INSTANCE.convertToUser(authenticatedUserDto);
+        final Employee employee = employeeService.getEmployeeById((int) user.getId());
         final String token = jwtTokenManager.generateToken(user);
         Cookie cookie = new Cookie("token", token);
         cookie.setMaxAge(604800);
@@ -58,7 +60,9 @@ public class JwtTokenService {
         cookie.setPath("/");
         response.addCookie(cookie);
         log.info("{} has successfully logged in!", user.getUsername());
-
+        if(user.getUserType() == UserType.ROLE_EMPLOYEE){
+            return new EmployeeLoginResponse(token, user.getUserType(), user.getUsername(), user.getId(), employee.getRole().getEmployeeRole().getRoleName());
+        }
         return new LoginResponse(token, user.getUserType(), user.getUsername(), user.getId());
     }
 

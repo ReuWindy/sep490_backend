@@ -12,10 +12,7 @@ import com.fpt.sep490.repository.EmployeeRepository;
 import com.fpt.sep490.repository.ExpenseVoucherRepository;
 import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import com.fpt.sep490.utils.RandomExpenseCodeGenerator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +40,7 @@ public class ExpenseVoucherServiceImpl implements ExpenseVoucherService {
     @Override
     public Page<ExpenseVoucherDto> getExpenseVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String expenseCode) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "id"));
             Specification<ExpenseVoucher> specification = ExpenseVoucherSpecification.isExpenseDateBetween(startDate, endDate, expenseCode);
 
             Page<ExpenseVoucher> expenseVoucherPage = expenseVoucherRepository.findAll(specification, pageable);

@@ -7,10 +7,7 @@ import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
 import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomInventoryCodeGenerator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,7 +83,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Page<InventoryDto> getInventoryByFilter(String inventoryCode, Date startDate, Date endDate, int pageNumber, int pageSize) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "inventoryDate")) ;
             Specification<Inventory> specification = InventorySpecification.hasCode(inventoryCode)
                     .and(InventorySpecification.isInventoryDateBetween(startDate, endDate));
 
@@ -179,7 +176,7 @@ public class InventoryServiceImpl implements InventoryService {
                 productWarehouse.setQuantity(detail.getQuantity());
                 productWareHouseRepository.save(productWarehouse);
             }
-            if (exportBatchProducts.size() > 0) {
+            if (!exportBatchProducts.isEmpty()) {
                 exportBatch.setBatchProducts(exportBatchProducts);
                 batchRepository.save(exportBatch);
                 WarehouseReceipt receipt = new WarehouseReceipt();
@@ -192,7 +189,7 @@ public class InventoryServiceImpl implements InventoryService {
                 exportBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(exportBatch);
             }
-            if (importBatchProducts.size() > 0) {
+            if (!importBatchProducts.isEmpty()) {
                 importBatch.setBatchProducts(importBatchProducts);
                 batchRepository.save(importBatch);
                 WarehouseReceipt receipt = new WarehouseReceipt();

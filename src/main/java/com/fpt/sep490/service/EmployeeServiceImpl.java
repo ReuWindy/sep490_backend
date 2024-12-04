@@ -11,6 +11,7 @@ import com.fpt.sep490.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +50,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<Employee> getEmployeeByFilter(String employeeCode, String fullName, String phoneNumber, String email, int pageNumber, int pageSize) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "id"));
             Specification<Employee> specification = EmployeeSpecification.hasEmployeeCodeOrFullNameOrPhoneNumber(employeeCode, fullName, phoneNumber, email);
             return employeeRepository.findAll(specification, pageable);
         } catch (Exception e) {
@@ -73,9 +74,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         User existingEmail = userRepository.findUserByEmail(employee.getEmail());
 
         EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
-        if (existingEmployee == null) {
-            throw new RuntimeException("Không tìm thấy chức vụ");
-        }
         if (existingEmail.getId() != employee.getId()){
             throw new RuntimeException("Đã có tài khoản được đăng ký bằng địa chỉ email này");
         }
@@ -99,7 +97,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new RuntimeException("Số điện thoại không được để trống");
         }
         String phoneNumber = employee.getPhone();
-        String phoneNumberRegex = "^(\\+84|0)[3-9]{1}[0-9]{8}$";
+        String phoneNumberRegex = "^(\\+84|0)[3-9][0-9]{8}$";
 
         Pattern phonePattern = Pattern.compile(phoneNumberRegex);
         if (!phonePattern.matcher(phoneNumber).matches()) {

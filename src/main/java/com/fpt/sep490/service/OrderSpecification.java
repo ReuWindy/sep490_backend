@@ -30,6 +30,7 @@ public class OrderSpecification {
             if (status != null && !status.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("status"), "%" + status + "%"));
             }
+            query.orderBy(criteriaBuilder.desc(root.get("orderDate")));
             return criteriaBuilder.and(predicates.toArray(predicates.toArray(new Predicate[0])));
         };
     }
