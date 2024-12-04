@@ -261,24 +261,11 @@ public class OrderServiceImpl implements OrderService {
                 warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
                 warehouseReceipt.setReceiptDate(new Date());
                 warehouseReceiptRepository.save(warehouseReceipt);
-            } else if (status == StatusEnum.COMPLETED) {
-                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
-                receiptVoucher.setOrder(updatedOrder);
-                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
-                receiptVoucher.setPaidAmount(0);
-                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
-                receiptVoucher.setReceiptDate(new Date());
-                LocalDate currentDate = LocalDate.now();
-                LocalDate dueDateLocal = currentDate.plusMonths(1);
-                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                receiptVoucher.setDueDate(dueDate);
-                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
-                receiptVoucherRepository.save(receiptVoucher);
+                orderRepository.save(updatedOrder);
             }
         } else {
             throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");
         }
-        orderRepository.save(updatedOrder);
         return updatedOrder;
     }
 
@@ -441,6 +428,20 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("Lỗi: trạng thái của đơn hàng không thể để trống!");
             }
             updatedOrder.setStatus(adminOrderDto.getStatus());
+            if (adminOrderDto.getStatus() == StatusEnum.COMPLETE) {
+                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+                receiptVoucher.setOrder(updatedOrder);
+                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setPaidAmount(0);
+                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setReceiptDate(new Date());
+                LocalDate currentDate = LocalDate.now();
+                LocalDate dueDateLocal = currentDate.plusMonths(1);
+                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                receiptVoucher.setDueDate(dueDate);
+                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+                receiptVoucherRepository.save(receiptVoucher);
+            }
             orderRepository.save(updatedOrder);
             return updatedOrder;
         }catch (Exception e){
