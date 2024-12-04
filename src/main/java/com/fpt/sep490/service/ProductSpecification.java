@@ -10,15 +10,21 @@ import java.util.Date;
 import java.util.List;
 
 public class ProductSpecification {
-    public Specification<Product> hasProductCodeOrProductNameOrBatchCodeOrImportDate(String productCode, String productName, Long warehouseId, String batchCode, Date importDate, String priceOrder, String sortDirection) {
+    public Specification<Product> hasProductCodeOrProductNameOrBatchCodeOrImportDate(
+            String productCode, String productName, Long warehouseId,
+            String batchCode, Date importDate, String priceOrder, String sortDirection) {
+
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
             if (productCode != null && !productCode.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
             }
+
             if (productName != null && !productName.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + productName + "%"));
             }
+
             if (batchCode != null && !batchCode.isEmpty()) {
                 Join<Product, BatchProduct> batchProductJoin = root.join("batchProducts");
                 Join<BatchProduct, Batch> batchJoin = batchProductJoin.join("batch");
@@ -35,9 +41,10 @@ public class ProductSpecification {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createAt"), importDate));
             }
 
-            List<Order> orders = getSortByField(root, criteriaBuilder, priceOrder, sortDirection);
-            assert query != null;
-            query.orderBy(orders);
+            if (query != null) {
+                List<Order> orders = getSortByField(root, criteriaBuilder, priceOrder, sortDirection);
+                query.orderBy(orders);
+            }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

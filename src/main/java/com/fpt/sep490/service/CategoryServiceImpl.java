@@ -114,7 +114,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public TopCategoryResponseDTO getTopCategoriesWithTotalAmount(int limit) {
         List<TopCategoryDto> topCategories = orderDetailRepository.findAll().stream()
-                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED)
+                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED || od.getOrder().getStatus() == StatusEnum.COMPLETE)
                 .collect(Collectors.groupingBy(
                         od -> od.getProduct().getCategory().getName(),
                         Collectors.collectingAndThen(
@@ -133,7 +133,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
 
         double totalAmount = orderDetailRepository.findAll().stream()
-                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED)
+                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED || od.getOrder().getStatus() == StatusEnum.COMPLETE)
                 .filter(od -> topCategories.stream()
                         .map(TopCategoryDto::getCategoryName)
                         .toList()
