@@ -143,16 +143,6 @@ public class OrderServiceImpl implements OrderService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(currentDate);
         calendar.add(Calendar.MONTH, 1);
-
-        ReceiptVoucher receiptVoucher = new ReceiptVoucher();
-        receiptVoucher.setReceiptDate(new Date());
-        receiptVoucher.setOrder(order);
-        receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
-        receiptVoucher.setPaidAmount(0);
-        receiptVoucher.setTotalAmount(totalAmount);
-        receiptVoucher.setRemainAmount(totalAmount);
-        receiptVoucher.setDueDate(calendar.getTime());
-        receiptVoucherRepository.save(receiptVoucher);
         logOrderActivity(order, customer.getName());
         return order;
     }
