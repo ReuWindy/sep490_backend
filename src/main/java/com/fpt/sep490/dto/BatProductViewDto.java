@@ -10,5 +10,8 @@ public class BatProductViewDto {
     private String unit;
     private double weightPerUnit;
     private int quantity;
+    private int categoryId;
+    private long supplierId;
+    private long warehouseId;
     private String description;
 }

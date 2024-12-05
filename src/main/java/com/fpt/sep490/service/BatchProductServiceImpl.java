@@ -60,6 +60,9 @@ public class BatchProductServiceImpl implements BatchProductService {
         dto.setWeightPerUnit(batchProduct.getWeightPerUnit());
         dto.setQuantity(batchProduct.getQuantity());
         dto.setDescription(batchProduct.getDescription());
+        dto.setCategoryId(Math.toIntExact(batchProduct.getProduct().getCategory().getId()));
+        dto.setSupplierId(batchProduct.getProduct().getSupplier().getId());
+        dto.setWarehouseId( batchProduct.getWarehouseId());
         return dto;
     }
 
