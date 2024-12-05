@@ -28,8 +28,9 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductWareHouseRepository productWareHouseRepository;
     private final WarehouseReceiptRepository warehouseReceiptRepository;
     private final BatchRepository batchRepository;
+    private final BatchProductRepository batchProductRepository;
 
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptRepository warehouseReceiptRepository, BatchRepository batchRepository) {
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, WarehouseRepository warehouseRepository, ProductRepository productRepository, UserRepository userRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseReceiptRepository warehouseReceiptRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository) {
         this.inventoryRepository = inventoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
@@ -37,6 +38,7 @@ public class InventoryServiceImpl implements InventoryService {
         this.productWareHouseRepository = productWareHouseRepository;
         this.warehouseReceiptRepository = warehouseReceiptRepository;
         this.batchRepository = batchRepository;
+        this.batchProductRepository = batchProductRepository;
     }
 
     @Override
@@ -152,6 +154,8 @@ public class InventoryServiceImpl implements InventoryService {
             exportBatch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
             exportBatch.setBatchCreator(inventory.getCreateBy());
             exportBatch.setBatchStatus("Đã xác nhận");
+            batchRepository.save(importBatch);
+            batchRepository.save(exportBatch);
             Set<BatchProduct> importBatchProducts = new HashSet<>();
             Set<BatchProduct> exportBatchProducts = new HashSet<>();
             for (var detail : inventory.getInventoryDetails()) {
@@ -160,16 +164,18 @@ public class InventoryServiceImpl implements InventoryService {
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
                 BatchProduct batchProduct = new BatchProduct();
                 batchProduct.setProduct(productWarehouse.getProduct());
-                batchProduct.setQuantity(Math.abs(detail.getQuantity_discrepancy()));
+                batchProduct.setQuantity(Math.abs(detail.getQuantity() - detail.getSystemQuantity()));
                 batchProduct.setAdded(true);
                 batchProduct.setPrice(0.0);
                 batchProduct.setUnit(detail.getUnit());
                 batchProduct.setWeightPerUnit(detail.getWeightPerUnit());
                 batchProduct.setWarehouseId(productWarehouse.getWarehouse().getId());
                 if (detail.getQuantity_discrepancy() < 0) {
+                    batchProduct.setBatch(exportBatch);
                     batchProduct.setDescription("Sản phẩm bị hao hụt trong quá trình kiểm kho");
                     exportBatchProducts.add(batchProduct);
-                } else {
+                } else if (detail.getQuantity_discrepancy() > 0) {
+                    batchProduct.setBatch(importBatch);
                     batchProduct.setDescription("Sản phẩm dư trong quá trình kiểm kho");
                     importBatchProducts.add(batchProduct);
                 }
@@ -185,10 +191,13 @@ public class InventoryServiceImpl implements InventoryService {
                 receipt.setReceiptType(ReceiptType.EXPORT);
                 receipt.setBatch(exportBatch);
                 receipt.setIsPay(true);
-
+                receipt.setReceiptReason("");
+                receipt.setDocument("");
                 warehouseReceiptRepository.save(receipt);
                 exportBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(exportBatch);
+            } else {
+                batchRepository.delete(exportBatch);
             }
             if (!importBatchProducts.isEmpty()) {
                 importBatch.setBatchProducts(importBatchProducts);
@@ -198,10 +207,13 @@ public class InventoryServiceImpl implements InventoryService {
                 receipt.setReceiptType(ReceiptType.IMPORT);
                 receipt.setBatch(importBatch);
                 receipt.setIsPay(true);
+                receipt.setReceiptReason("");
+                receipt.setDocument("");
                 warehouseReceiptRepository.save(receipt);
                 importBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(importBatch);
-
+            } else {
+                batchRepository.delete(importBatch);
             }
             return "Xác nhận phiếu kiểm kho và cập nhật số lượng thành công !";
         } catch (Exception e) {
