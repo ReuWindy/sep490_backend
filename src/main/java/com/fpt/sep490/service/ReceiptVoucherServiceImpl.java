@@ -24,7 +24,7 @@ public class ReceiptVoucherServiceImpl implements ReceiptVoucherService {
     @Override
     public Page<ReceiptVoucherDto> getReceiptVoucherPagination(Date startDate, Date endDate, int pageNumber, int pageSize, String incomeCode) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "voucherDate"));
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "receiptDate"));
             Specification<ReceiptVoucher> specification = ReceiptVoucherSpecification.isReceiptDateBetween(startDate, endDate, incomeCode);
 
             Page<ReceiptVoucher> receipVoucherPage = receiptVoucherRepository.findAll(specification, pageable);
