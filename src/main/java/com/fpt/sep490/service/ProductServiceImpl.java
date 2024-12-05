@@ -112,7 +112,7 @@ public class ProductServiceImpl implements ProductService {
             productWarehouse.setUnit("Chưa đóng gói");
             productWarehouse.setWeightPerUnit(1.0);
             product.setCreateAt(new Date());
-            product.setIsDeleted(true);
+            product.setIsDeleted(false);
 
             productWareHouseRepository.save(productWarehouse);
         }
