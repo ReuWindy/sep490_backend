@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.BatProductViewDto;
 import com.fpt.sep490.dto.BatchProductDto;
 import com.fpt.sep490.dto.DeleteBatchProductRequest;
 import com.fpt.sep490.dto.UpdateBatchProductRequest;
@@ -12,7 +13,8 @@ public interface BatchProductService {
 
     List<BatchProduct> getBatchProductByProductId(Long id);
 
-    List<BatchProduct> getBatchProductByBatchCode(String batchCode);
+    List<BatProductViewDto> getBatchProductByBatchCode(String batchCode);
+    List<BatchProduct> getBatchProductByBatchCodeV2(String batchCode);
 
     List<BatchProduct> getBatchProductByBatchId(Long batchId);
 
