@@ -55,11 +55,15 @@ public class BatchProductServiceImpl implements BatchProductService {
         BatProductViewDto dto = new BatProductViewDto();
         dto.setProductCode(batchProduct.getProduct().getProductCode());
         dto.setProductName(batchProduct.getProduct().getName());
+        dto.setProductId(batchProduct.getProduct().getId());
         dto.setPrice(String.valueOf(batchProduct.getPrice()));
         dto.setUnit(batchProduct.getUnit());
         dto.setWeightPerUnit(batchProduct.getWeightPerUnit());
         dto.setQuantity(batchProduct.getQuantity());
         dto.setDescription(batchProduct.getDescription());
+        dto.setCategoryId(Math.toIntExact(batchProduct.getProduct().getCategory().getId()));
+        dto.setSupplierId(batchProduct.getProduct().getSupplier().getId());
+        dto.setWarehouseId( batchProduct.getWarehouseId());
         return dto;
     }
 
