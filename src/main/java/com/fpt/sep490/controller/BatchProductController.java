@@ -1,5 +1,6 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.BatProductViewDto;
 import com.fpt.sep490.dto.BatchProductDto;
 import com.fpt.sep490.dto.DeleteBatchProductRequest;
 import com.fpt.sep490.dto.UpdateBatchProductRequest;
@@ -43,7 +44,7 @@ public class BatchProductController {
 
     @GetMapping("/batchCode/{batchCode}")
     public ResponseEntity<?> getBatchByBatchCode(@PathVariable String batchCode) {
-        List<BatchProduct> batch = batchProductService.getBatchProductByBatchCode(batchCode);
+        List<BatProductViewDto> batch = batchProductService.getBatchProductByBatchCode(batchCode);
         if (batch != null) {
             return ResponseEntity.ok(batch);
         }

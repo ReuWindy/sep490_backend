@@ -1,6 +1,7 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.CustomerDto;
+import com.fpt.sep490.dto.CustomerOrderSummaryDTO;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import org.springframework.data.domain.Page;
@@ -21,4 +22,6 @@ public interface CustomerService {
     User enableCustomer(Long id);
 
     Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize);
+
+    CustomerOrderSummaryDTO getCustomerOrderSummaryById(long customerId);
 }

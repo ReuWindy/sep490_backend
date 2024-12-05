@@ -100,7 +100,6 @@ public class ProductServiceImpl implements ProductService {
         product.setSupplier(supplier);
         product.setUnitOfMeasure(unitOfMeasure);
         product.setCreateAt(new Date());
-        product.setCreateAt(new Date());
 
         Product savedProduct = productRepository.save(product);
 

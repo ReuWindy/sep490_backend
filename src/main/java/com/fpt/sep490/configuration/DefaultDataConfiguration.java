@@ -17,28 +17,30 @@ public class DefaultDataConfiguration {
     private final UnitOfMeasureRepository unitOfMeasureRepository;
     private final PriceRepository priceRepository;
     private final ProductService productService;
+    private final EmployeeRoleRepository employeeRoleRepository;
 
-    public DefaultDataConfiguration(SupplierRepository supplierRepository, CategoryRepository categoryRepository, WarehouseRepository warehouseRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductService productService,PriceRepository priceRepository) {
+    public DefaultDataConfiguration(SupplierRepository supplierRepository, CategoryRepository categoryRepository, WarehouseRepository warehouseRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductService productService, PriceRepository priceRepository, EmployeeRoleRepository employeeRoleRepository) {
         this.supplierRepository = supplierRepository;
         this.categoryRepository = categoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
         this.productService = productService;
         this.priceRepository = priceRepository;
+        this.employeeRoleRepository = employeeRoleRepository;
     }
 
     @Bean
     public CommandLineRunner createDefaultSupplier(SupplierService supplierService) {
         return args -> {
-            Supplier existingDefaultSupplier = supplierService.getSupplierByName("Default Supplier");
+            Supplier existingDefaultSupplier = supplierService.getSupplierByName("Kho Thanh Quang");
             if (existingDefaultSupplier == null) {
                 Supplier defaultSupplier = new Supplier();
-                defaultSupplier.setName("Default Supplier");
+                defaultSupplier.setName("Kho Thanh Quang");
                 defaultSupplier.setActive(true);
-                defaultSupplier.setEmail("default@email.com");
-                defaultSupplier.setAddress("defaultAddress");
-                defaultSupplier.setPhoneNumber("defaultPhoneNumber");
-                defaultSupplier.setContactPerson("Em Tu Chim to");
+                defaultSupplier.setEmail("thanhquang@email.com");
+                defaultSupplier.setAddress("Khu 1, Xã Bản Nguyên, Huyện Lâm Thao, Phú Thọ");
+                defaultSupplier.setPhoneNumber("0394696259");
+                defaultSupplier.setContactPerson("Phạm Trung");
                 supplierRepository.save(defaultSupplier);
             }
         };
@@ -47,11 +49,11 @@ public class DefaultDataConfiguration {
     @Bean
     public CommandLineRunner createStaterCategory() {
         return args -> {
-            categoryRepository.save(new Category(1L, "Gạo", "Danh muc gao", true));
-            categoryRepository.save(new Category(2L, "Cám", "Danh muc cam", true));
-            categoryRepository.save(new Category(3L, "Thóc", "Danh muc thoc", true));
-            categoryRepository.save(new Category(4L, "Trấu", "Danh muc trau", true));
-            categoryRepository.save(new Category(5L, " Thức ăn chăn nuôi", "Danh muc thuc anh chan nuoi", true));
+            categoryRepository.save(new Category(1L, "Gạo", "Danh mục gạo", true));
+            categoryRepository.save(new Category(2L, "Cám", "Danh mục cám", true));
+            categoryRepository.save(new Category(3L, "Thóc", "Danh mục thóc", true));
+            categoryRepository.save(new Category(4L, "Ngô", "Danh mục ngô", true));
+            categoryRepository.save(new Category(5L, " Thức ăn chăn nuôi", "Danh mục thức ăn chăn nuôi", true));
         };
     }
 
@@ -98,12 +100,27 @@ public class DefaultDataConfiguration {
     @Bean
     public CommandLineRunner createDefaultPrices(){
         return args -> {
-            Price defaultPrice = priceRepository.findByName("Bảng giá cơ bản");
+            Price defaultPrice = priceRepository.findByName("Bảng giá chung");
             if(defaultPrice == null){
                 defaultPrice = new Price();
-                defaultPrice.setName("Bảng giá cơ bản");
+                defaultPrice.setName("Bảng giá chung");
                 priceRepository.save(defaultPrice);
             }
         };
     }
+
+//    @Bean
+//    public CommandLineRunner createDefaultRoles() {
+//        return args -> {
+//            EmployeeRole porter = new EmployeeRole();
+//            porter.setRoleName("PORTER");
+//            employeeRoleRepository.save(porter);
+//            EmployeeRole driver = new EmployeeRole();
+//            driver.setRoleName("DRIVER");
+//            employeeRoleRepository.save(driver);
+//            EmployeeRole warehouseManager = new EmployeeRole();
+//            warehouseManager.setRoleName("WAREHOUSE_MANAGER");
+//            employeeRoleRepository.save(warehouseManager);
+//        };
+//    }
 }

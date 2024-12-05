@@ -1,5 +1,6 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.BatProductViewDto;
 import com.fpt.sep490.dto.BatchProductDto;
 import com.fpt.sep490.dto.DeleteBatchProductRequest;
 import com.fpt.sep490.dto.UpdateBatchProductRequest;
@@ -8,11 +9,14 @@ import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.repository.BatchProductRepository;
 import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BatchProductServiceImpl implements BatchProductService {
@@ -38,15 +42,43 @@ public class BatchProductServiceImpl implements BatchProductService {
     }
 
     @Override
-    public List<BatchProduct> getBatchProductByBatchCode(String batchCode) {
-        Optional<List<BatchProduct>> b = Optional.ofNullable(batchProductRepository.findByBatchCode(batchCode));
-        return b.orElse(null);
+    public List<BatProductViewDto> getBatchProductByBatchCode(String batchCode) {
+        List<BatchProduct> batchProducts = batchProductRepository.findByBatchCode(batchCode);
+        return Optional.ofNullable(batchProducts)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    private BatProductViewDto toDTO(BatchProduct batchProduct) {
+        BatProductViewDto dto = new BatProductViewDto();
+        dto.setProductCode(batchProduct.getProduct().getProductCode());
+        dto.setProductName(batchProduct.getProduct().getName());
+        dto.setPrice(String.valueOf(batchProduct.getPrice()));
+        dto.setUnit(batchProduct.getUnit());
+        dto.setWeightPerUnit(batchProduct.getWeightPerUnit());
+        dto.setQuantity(batchProduct.getQuantity());
+        dto.setDescription(batchProduct.getDescription());
+        return dto;
     }
 
     public List<BatchProduct> getBatchProductByBatchId(Long batchId) {
         return batchProductRepository.findAllByBatchId(batchId);
     }
 
+    public List<BatchProduct> getBatchProductByBatchCodeV2(String batchCode) {
+        if (batchCode == null || batchCode.isBlank()) {
+            throw new IllegalArgumentException("Batch code cannot be null or empty");
+        }
+
+        List<BatchProduct> batchProducts = batchProductRepository.findByBatchCode(batchCode);
+        if (batchProducts.isEmpty()) {
+            throw new EntityNotFoundException("No BatchProduct found for batchCode: " + batchCode);
+        }
+
+        return batchProducts;
+    }
     @Override
     public BatchProduct updateBatchProduct(UpdateBatchProductRequest request, Long batchProductId) {
         BatchProduct batchProduct = batchProductRepository.findById(batchProductId)
