@@ -83,7 +83,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Page<InventoryDto> getInventoryByFilter(String inventoryCode, Date startDate, Date endDate, int pageNumber, int pageSize) {
         try {
-            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Direction.DESC, "inventoryDate")) ;
+            Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
             Specification<Inventory> specification = InventorySpecification.hasCode(inventoryCode)
                     .and(InventorySpecification.isInventoryDateBetween(startDate, endDate));
 
@@ -125,10 +125,10 @@ public class InventoryServiceImpl implements InventoryService {
 
             // Nếu tìm thấy InventoryDetail, cập nhật nó
             if (inventoryDetail != null) {
-                int discrepancy = detail.getQuantity() - productWarehouse.getQuantity();
+                int discrepancy = detail.getQuantity() - detail.getSystemQuantity();
                 inventoryDetail.setQuantity(detail.getQuantity());
                 inventoryDetail.setDescription(detail.getDescription());
-                inventoryDetail.setSystemQuantity(productWarehouse.getQuantity());
+                inventoryDetail.setSystemQuantity(detail.getSystemQuantity());
                 inventoryDetail.setQuantity_discrepancy(discrepancy);
             } else {
                 // Nếu không tìm thấy InventoryDetail tương ứng, có thể bỏ qua hoặc báo lỗi
@@ -137,6 +137,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         }
         inventory.setStatus(StatusEnum.COMPLETED);
+
         try {
             inventoryRepository.save(inventory);
             Batch importBatch = new Batch();
@@ -147,7 +148,7 @@ public class InventoryServiceImpl implements InventoryService {
             importBatch.setBatchCreator(inventory.getCreateBy());
             importBatch.setBatchStatus("Đã xác nhận");
             exportBatch.setImportDate(new Date());
-            exportBatch.setReceiptType(ReceiptType.IMPORT);
+            exportBatch.setReceiptType(ReceiptType.EXPORT);
             exportBatch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
             exportBatch.setBatchCreator(inventory.getCreateBy());
             exportBatch.setBatchStatus("Đã xác nhận");

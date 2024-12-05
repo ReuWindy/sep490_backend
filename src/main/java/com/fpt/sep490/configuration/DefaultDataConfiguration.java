@@ -1,13 +1,7 @@
 package com.fpt.sep490.configuration;
 
-import com.fpt.sep490.model.Category;
-import com.fpt.sep490.model.Supplier;
-import com.fpt.sep490.model.UnitOfMeasure;
-import com.fpt.sep490.model.Warehouse;
-import com.fpt.sep490.repository.CategoryRepository;
-import com.fpt.sep490.repository.SupplierRepository;
-import com.fpt.sep490.repository.UnitOfMeasureRepository;
-import com.fpt.sep490.repository.WarehouseRepository;
+import com.fpt.sep490.model.*;
+import com.fpt.sep490.repository.*;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.SupplierService;
 import com.fpt.sep490.service.WarehouseService;
@@ -21,14 +15,16 @@ public class DefaultDataConfiguration {
     private final CategoryRepository categoryRepository;
     private final WarehouseRepository warehouseRepository;
     private final UnitOfMeasureRepository unitOfMeasureRepository;
+    private final PriceRepository priceRepository;
     private final ProductService productService;
 
-    public DefaultDataConfiguration(SupplierRepository supplierRepository, CategoryRepository categoryRepository, WarehouseRepository warehouseRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductService productService) {
+    public DefaultDataConfiguration(SupplierRepository supplierRepository, CategoryRepository categoryRepository, WarehouseRepository warehouseRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductService productService,PriceRepository priceRepository) {
         this.supplierRepository = supplierRepository;
         this.categoryRepository = categoryRepository;
         this.warehouseRepository = warehouseRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
         this.productService = productService;
+        this.priceRepository = priceRepository;
     }
 
     @Bean
@@ -95,6 +91,18 @@ public class DefaultDataConfiguration {
                 kg.setUnitName("kg");
                 kg.setConversionFactor(1);
                 unitOfMeasureRepository.save(kg);
+            }
+        };
+    }
+
+    @Bean
+    public CommandLineRunner createDefaultPrices(){
+        return args -> {
+            Price defaultPrice = priceRepository.findByName("Bảng giá cơ bản");
+            if(defaultPrice == null){
+                defaultPrice = new Price();
+                defaultPrice.setName("Bảng giá cơ bản");
+                priceRepository.save(defaultPrice);
             }
         };
     }

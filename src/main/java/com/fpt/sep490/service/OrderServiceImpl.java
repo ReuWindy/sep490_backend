@@ -76,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> getOrderHistoryByCustomerId(long customerId, String orderCode, String status, int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by(Sort.Order.desc("orderDate")));
         Specification<Order> spec = Specification.where(OrderSpecification.hasCustomerId(customerId));
         if (orderCode != null && !orderCode.isEmpty()) {
             spec = spec.and(OrderSpecification.hasOrderCode(orderCode));
@@ -143,16 +143,6 @@ public class OrderServiceImpl implements OrderService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(currentDate);
         calendar.add(Calendar.MONTH, 1);
-
-        ReceiptVoucher receiptVoucher = new ReceiptVoucher();
-        receiptVoucher.setReceiptDate(new Date());
-        receiptVoucher.setOrder(order);
-        receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
-        receiptVoucher.setPaidAmount(0);
-        receiptVoucher.setTotalAmount(totalAmount);
-        receiptVoucher.setRemainAmount(totalAmount);
-        receiptVoucher.setDueDate(calendar.getTime());
-        receiptVoucherRepository.save(receiptVoucher);
         logOrderActivity(order, customer.getName());
         return order;
     }
@@ -270,24 +260,12 @@ public class OrderServiceImpl implements OrderService {
                 warehouseReceipt.setOrder(updatedOrder);
                 warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
                 warehouseReceipt.setReceiptDate(new Date());
-                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
-                receiptVoucher.setOrder(updatedOrder);
-                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
-                receiptVoucher.setPaidAmount(0);
-                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
-                receiptVoucher.setReceiptDate(new Date());
-                LocalDate currentDate = LocalDate.now();
-                LocalDate dueDateLocal = currentDate.plusMonths(1);
-                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                receiptVoucher.setDueDate(dueDate);
-                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
                 warehouseReceiptRepository.save(warehouseReceipt);
-                receiptVoucherRepository.save(receiptVoucher);
+                orderRepository.save(updatedOrder);
             }
         } else {
             throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");
         }
-        orderRepository.save(updatedOrder);
         return updatedOrder;
     }
 
@@ -450,6 +428,20 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("Lỗi: trạng thái của đơn hàng không thể để trống!");
             }
             updatedOrder.setStatus(adminOrderDto.getStatus());
+            if (adminOrderDto.getStatus() == StatusEnum.COMPLETE) {
+                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+                receiptVoucher.setOrder(updatedOrder);
+                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setPaidAmount(0);
+                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setReceiptDate(new Date());
+                LocalDate currentDate = LocalDate.now();
+                LocalDate dueDateLocal = currentDate.plusMonths(1);
+                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                receiptVoucher.setDueDate(dueDate);
+                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+                receiptVoucherRepository.save(receiptVoucher);
+            }
             orderRepository.save(updatedOrder);
             return updatedOrder;
         }catch (Exception e){
