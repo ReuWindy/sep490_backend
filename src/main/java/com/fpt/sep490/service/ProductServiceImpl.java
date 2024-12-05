@@ -84,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(productDto.getDescription());
         product.setPrice(productDto.getPrice());
         product.setImage(productDto.getImage());
+        product.setIsDeleted(false);
         product.setProductCode(RandomProductCodeGenerator.generateProductCode());
 
         Category category = categoryRepository.findById(productDto.getCategoryId())
@@ -111,8 +112,6 @@ public class ProductServiceImpl implements ProductService {
             productWarehouse.setWarehouse(warehouse);
             productWarehouse.setUnit("Chưa đóng gói");
             productWarehouse.setWeightPerUnit(1.0);
-            product.setCreateAt(new Date());
-            product.setIsDeleted(false);
 
             productWareHouseRepository.save(productWarehouse);
         }

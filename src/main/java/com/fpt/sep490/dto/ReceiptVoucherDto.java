@@ -18,9 +18,9 @@ public class ReceiptVoucherDto {
     private String receiptCode;
     private Date receiptDate;
     private Date dueDate;
-    private double totalAmount;
-    private double paidAmount;
-    private double remainAmount;
+    private Double totalAmount;
+    private Double paidAmount;
+    private Double remainAmount;
     private List<TransactionDto> transactionDtoList;
     private OrderDto orderDto;
 
