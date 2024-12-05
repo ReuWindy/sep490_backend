@@ -74,7 +74,7 @@ public class CustomerServiceImpl implements CustomerService {
                     .build();
         }
 
-        throw new EntityNotFoundException("Customer with ID " + customerId + " not found or no orders.");
+        throw new RuntimeException("Không tìm thấy người dùng");
     }
 
     @Override
