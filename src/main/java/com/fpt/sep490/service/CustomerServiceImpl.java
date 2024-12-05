@@ -1,10 +1,14 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.dto.CustomerDto;
+import com.fpt.sep490.dto.CustomerOrderSummaryDTO;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
+import com.fpt.sep490.repository.OrderRepository;
 import com.fpt.sep490.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,10 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -23,9 +24,11 @@ import java.util.stream.Collectors;
 public class CustomerServiceImpl implements CustomerService {
 
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public CustomerServiceImpl(UserRepository userRepository) {
+    public CustomerServiceImpl(UserRepository userRepository, OrderRepository orderRepository) {
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -55,6 +58,23 @@ public class CustomerServiceImpl implements CustomerService {
             return user;
         }
         return null;
+    }
+
+    @Override
+    public CustomerOrderSummaryDTO getCustomerOrderSummaryById(long customerId) {
+        Object[] result = orderRepository.getOrderSummaryByCustomerId(customerId);
+
+        if (result != null) {
+            int totalOrders = ((Number) result[0]).intValue();
+            double totalRemainingDeposit = ((Number) result[1]).doubleValue();
+
+            return CustomerOrderSummaryDTO.builder()
+                    .totalOrders(totalOrders)
+                    .totalRemainingDeposit(totalRemainingDeposit)
+                    .build();
+        }
+
+        throw new EntityNotFoundException("Customer with ID " + customerId + " not found or no orders.");
     }
 
     @Override

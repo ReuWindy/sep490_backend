@@ -41,4 +41,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         ORDER BY MONTH(o.order_date)
         """, nativeQuery = true)
     List<Object[]> findIncomeSummary();
+
+    @Query("SELECT COUNT(o), SUM(o.remainingAmount) FROM Order o WHERE o.customer.id = :customerId")
+    Object[] getOrderSummaryByCustomerId(@Param("customerId") long customerId);
 }

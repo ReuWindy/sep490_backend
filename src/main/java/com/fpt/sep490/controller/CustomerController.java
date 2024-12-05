@@ -1,6 +1,7 @@
 package com.fpt.sep490.controller;
 
 import com.fpt.sep490.dto.CustomerDto;
+import com.fpt.sep490.dto.CustomerOrderSummaryDTO;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.User;
@@ -69,6 +70,12 @@ public class CustomerController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Not Found", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @GetMapping("/{id}/order-summary")
+    public ResponseEntity<CustomerOrderSummaryDTO> getCustomerOrderSummary(@PathVariable("id") long customerId) {
+        CustomerOrderSummaryDTO summaryDTO = customerService.getCustomerOrderSummaryById(customerId);
+        return ResponseEntity.ok(summaryDTO);
     }
 
     @PostMapping("/createCustomer")
