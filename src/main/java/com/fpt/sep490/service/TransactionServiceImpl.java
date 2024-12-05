@@ -111,6 +111,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
         createdTransaction.setPaymentMethod(transactionDto.getPaymentMethod());
         createdTransaction.setStatus(StatusEnum.COMPLETED);
+        if (receiptVoucher.getRemainAmount() == 0) {
+            receiptVoucher.getOrder().setStatus(StatusEnum.COMPLETED);
+        }
 
         // save transaction and receiptVoucher
         try {
@@ -144,6 +147,10 @@ public class TransactionServiceImpl implements TransactionService {
         createdTransaction.setTransactionDate(new Date());
         createdTransaction.setPaymentMethod("Chuyển khoản");
         createdTransaction.setStatus(StatusEnum.COMPLETED);
+        if (receiptVoucher.getRemainAmount() == 0) {
+            order.setStatus(StatusEnum.COMPLETED);
+            orderRepository.save(order);
+        }
 
         // save transaction and receiptVoucher
         try {
