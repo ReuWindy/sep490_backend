@@ -62,7 +62,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionSuccess() {
+    public void TransactionService_UpdateTransaction_UpdateTransactionSuccess() {
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
 
@@ -75,7 +75,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionTransactionNotFound() {
+    public void TransactionService_UpdateTransaction_TransactionNotFound() {
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -86,7 +86,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionReceiptVoucherNotFound() {
+    public void TransactionService_UpdateTransaction_ReceiptVoucherNotFound() {
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -98,7 +98,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionExpired() {
+    public void TransactionService_UpdateTransaction_TransactionExpired() {
         // Cập nhật thời gian giao dịch đã quá 3 ngày
         transactionDto.setTransactionDate(new Date(System.currentTimeMillis() - (4L * 24 * 60 * 60 * 1000)));
 
@@ -113,7 +113,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionSaveReceiptVoucherError() {
+    public void testUpdateTransactionSaveReceiptVoucherError() {
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
         doThrow(new RuntimeException("Xảy ra lỗi khi lưu giao dịch !")).when(receiptVoucherRepository).save(any(ReceiptVoucher.class));
@@ -126,7 +126,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionAmountNegative() {
+    public void TransactionService_UpdateTransaction_AmountNegative() {
         transactionDto.setAmount(-1);
 
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));
@@ -140,7 +140,7 @@ public class UpdateTransactionTests {
     }
 
     @Test
-    void testUpdateTransactionPaymentMethodNull() {
+    public void TransactionService_UpdateTransaction_PaymentMethodNull() {
         transactionDto.setPaymentMethod(null);
 
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));

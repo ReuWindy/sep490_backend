@@ -53,7 +53,7 @@ public class CreateProductTests {
     }
 
     @Test
-    public void createProduct_ShouldThrowException_WhenProductAlreadyExists() {
+    public void ProductService_CreateProduct_ProductAlreadyExists() {
 
         when(productRepository.findByNameAndCategoryIdAndSupplierId(anyString(), anyLong(), anyLong()))
                 .thenReturn(Optional.of(new Product()));
@@ -66,7 +66,7 @@ public class CreateProductTests {
     }
 
     @Test
-    public void createProduct_ShouldThrowException_WhenCategoryNotFound() {
+    public void ProductService_CreateProduct_CategoryNotFound() {
 
         when(productRepository.findByNameAndCategoryIdAndSupplierId(anyString(), anyLong(), anyLong()))
                 .thenReturn(Optional.empty());
@@ -80,7 +80,7 @@ public class CreateProductTests {
     }
 
     @Test
-    public void createProduct_ShouldThrowException_WhenSupplierNotFound() {
+    public void ProductService_CreateProduct_SupplierNotFound() {
 
         when(productRepository.findByNameAndCategoryIdAndSupplierId(anyString(), anyLong(), anyLong()))
                 .thenReturn(Optional.empty());
@@ -95,7 +95,7 @@ public class CreateProductTests {
     }
 
     @Test
-    public void createProduct_ShouldThrowException_WhenUnitOfMeasureNotFound() {
+    public void ProductService_CreateProduct_UnitOfMeasureNotFound() {
 
         when(productRepository.findByNameAndCategoryIdAndSupplierId(anyString(), anyLong(), anyLong()))
                 .thenReturn(Optional.empty());
@@ -111,7 +111,7 @@ public class CreateProductTests {
     }
 
     @Test
-    public void createProduct_ShouldThrowException_WhenWarehouseNotFound() {
+    public void ProductService_CreateProduct_WarehouseNotFound() {
 
         when(productRepository.findByNameAndCategoryIdAndSupplierId(anyString(), anyLong(), anyLong()))
                 .thenReturn(Optional.empty());
@@ -129,7 +129,7 @@ public class CreateProductTests {
 
 
     @Test
-    public void createProduct_ShouldCreateProductAndSaveToWarehouse_WhenWarehouseIdIsProvided() {
+    public void ProductService_CreateProduct_CreateProductSuccess() {
 
         // Mock Category
         Category category = new Category();

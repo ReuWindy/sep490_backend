@@ -88,7 +88,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    void ProductService_ConfirmAndExportProducts_ReturnBatchNotFound() {
+    public void ProductService_ConfirmAndExportProducts_BatchNotFound() {
         // Arrange
         Long batchId = 1L;
 
@@ -103,7 +103,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_ConfirmAndExportProducts_ReturnProductQuantityNotEnough() {
+    public void ProductService_ConfirmAndExportProducts_ProductQuantityNotEnough() {
         // Arrange
         Long batchId = 1L;
         // Số lượng sản phẩm trong kho ít hơn yêu cầu
@@ -122,7 +122,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ProductNotFound_ShouldThrowException() {
+    public void ProductService_ConfirmAndExportProducts_ProductNotFound() {
         // Arrange
         Long batchId = 1L;
 
@@ -138,7 +138,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_Success_ShouldReturnBatchCode() {
+    public void ProductService_ConfirmAndExportProducts_ReturnBatchCode() {
         // Arrange
         Long batchId = 1L;
 
@@ -154,7 +154,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosProductNameNull(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosProductNameNull(){
         Long batchId = 1L;
         exportProductDtos.get(0).setProductName(null);
 
@@ -165,7 +165,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosProductNameContainSpecialCharacter(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosProductNameContainSpecialCharacter(){
         Long batchId = 1L;
         exportProductDtos.get(0).setProductName("!@#$%^");
 
@@ -176,7 +176,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosUnitNull(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosUnitNull(){
         Long batchId = 1L;
         exportProductDtos.get(0).setUnit(null);
 
@@ -187,7 +187,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosWeightPerUnitNegative(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosWeightPerUnitNegative(){
         Long batchId = 1L;
         exportProductDtos.get(0).setWeightPerUnit(-1);
 
@@ -198,7 +198,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosCategoryIdNull(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosCategoryIdNull(){
         Long batchId = 1L;
         exportProductDtos.get(0).setCategoryId(null);
 
@@ -209,7 +209,7 @@ public class ConfirmAndExportProductsTests {
     }
 
     @Test
-    public void ProductService_confirmAndExportProducts_ExportProductDtosWarehouseIdNegative(){
+    public void ProductService_ConfirmAndExportProducts_ExportProductDtosWarehouseIdNegative(){
         Long batchId = 1L;
         exportProductDtos.get(0).setWarehouseId(-1);
 

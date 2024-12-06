@@ -78,7 +78,7 @@ public class UpdateProductTests {
     }
 
     @Test
-    void testUpdateProduct_Success() {
+    public void ProductService_UpdateProduct_UpdateProductSuccess() {
         // Giả lập productRepository.existsByNameAndCategoryIdAndSupplierId trả về false (không có sản phẩm trùng tên)
         when(productRepository.findById(any())).thenReturn(Optional.of(existingProduct));
         when(productRepository.existsByNameAndCategoryIdAndSupplierId(
@@ -103,7 +103,7 @@ public class UpdateProductTests {
     }
 
     @Test
-    void testUpdateProduct_ProductNotFound() {
+    public void ProductService_UpdateProduct_ProductNotFound() {
         when(productRepository.findById(any())).thenReturn(Optional.of(existingProduct));
         // Giả lập findById trả về Optional.empty() (sản phẩm không tìm thấy)
         when(productRepository.findById(productDto.getId())).thenReturn(Optional.empty());
@@ -113,7 +113,7 @@ public class UpdateProductTests {
     }
 
     @Test
-    void testUpdateProduct_CategoryNotFound() {
+    public void ProductService_UpdateProduct_CategoryNotFound() {
         when(productRepository.findById(any())).thenReturn(Optional.of(existingProduct));
         // Giả lập findById của CategoryRepository trả về Optional.empty() (category không tìm thấy)
         when(categoryRepository.findById(Long.valueOf(productDto.getCategoryId()))).thenReturn(Optional.empty());
@@ -123,7 +123,7 @@ public class UpdateProductTests {
     }
 
     @Test
-    void testUpdateProduct_SupplierNotFound() {
+    public void ProductService_UpdateProduct_SupplierNotFound() {
         when(productRepository.findById(any())).thenReturn(Optional.of(existingProduct));
 
 
@@ -132,7 +132,7 @@ public class UpdateProductTests {
     }
 
     @Test
-    void testUpdateProduct_ProductNameConflict() {
+    public void ProductService_UpdateProduct_ProductNameConflict() {
         when(productRepository.findById(any())).thenReturn(Optional.of(existingProduct));
         // Giả lập productRepository.existsByNameAndCategoryIdAndSupplierId trả về true (trùng tên)
         when(productRepository.existsByNameAndCategoryIdAndSupplierId(

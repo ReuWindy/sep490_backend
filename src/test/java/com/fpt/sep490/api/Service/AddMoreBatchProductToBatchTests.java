@@ -37,7 +37,7 @@ public class AddMoreBatchProductToBatchTests {
     private BatchProductServiceImpl batchProductService;
 
     @Test
-    public void testAddMoreBatchProductToBatch_WhenValidData_ReturnsBatchProduct() {
+    public void BatchProductService_AddMoreBatchProductToBatch_ReturnsBatchProduct() {
         // Arrange
         BatchProductDto batchProductDto = new BatchProductDto();
         batchProductDto.setProductId(1L);
@@ -88,7 +88,7 @@ public class AddMoreBatchProductToBatchTests {
     }
 
     @Test
-    public void testAddMoreBatchProductToBatch_WhenProductNotFound_ThrowsException() {
+    public void BatchProductService_AddMoreBatchProductToBatch_WhenProductNotFound() {
         // Arrange
         BatchProductDto batchProductDto = new BatchProductDto();
         batchProductDto.setProductId(1L);
@@ -109,7 +109,7 @@ public class AddMoreBatchProductToBatchTests {
     }
 
     @Test
-    public void testAddMoreBatchProductToBatch_WhenBatchNotFound_ThrowsException() {
+    public void BatchProductService_AddMoreBatchProductToBatch_WhenBatchNotFound() {
         // Arrange
         BatchProductDto batchProductDto = new BatchProductDto();
         batchProductDto.setProductId(1L);

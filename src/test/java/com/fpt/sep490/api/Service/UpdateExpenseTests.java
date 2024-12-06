@@ -52,7 +52,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateExpenseSuccessfully() {
+    public void ExpenseService_UpdateExpense_UpdateExpenseSuccessfully() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
         when(expenseVoucherRepository.save(any())).thenReturn(expenseVoucher);
 
@@ -65,7 +65,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateExpenseVoucherNotFound() {
+    public void ExpenseService_UpdateExpense_VoucherNotFound() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -76,7 +76,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateDeletedExpenseVoucher() {
+    public void ExpenseService_UpdateExpense_DeletedExpenseVoucher() {
         expenseVoucher.setDeleted(true);
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
 
@@ -88,7 +88,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateExpenseAfterDeadline() {
+    public void ExpenseService_UpdateExpense_ExpenseAfterDeadline() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
 
         Calendar calendar = Calendar.getInstance();
@@ -104,7 +104,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateExpenseWithinDeadline() {
+    public void ExpenseService_UpdateExpense_ExpenseWithinDeadline() {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.DAY_OF_MONTH, -2);  // Set expense date to 2 days ago
@@ -122,7 +122,7 @@ public class UpdateExpenseTests {
     }
 
     @Test
-    void testUpdateExpenseSaveError() {
+    public void ExpenseService_UpdateExpense_ExpenseSaveError() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
         when(expenseVoucherRepository.save(any())).thenThrow(new RuntimeException("Lỗi khi cập nhật phiếu chi"));
 

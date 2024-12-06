@@ -43,7 +43,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsByDay() {
+    public void ProductService_GetTopSellingProducts_GetTopSellingProductsByDay() {
 
         when(orderDetailRepository.findTopSellingProductsByDay(any(), eq(pageable))).thenReturn(mockResults);
 
@@ -55,7 +55,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsByWeek() {
+    public void ProductService_GetTopSellingProducts_GetTopSellingProductsByWeek() {
 
         when(orderDetailRepository.findTopSellingProductsByWeek(any(), eq(pageable))).thenReturn(mockResults);
 
@@ -67,7 +67,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsByMonth() {
+    public void ProductService_GetTopSellingProducts_GetTopSellingProductsByMonth() {
 
         when(orderDetailRepository.findTopSellingProductsByMonth(any(), eq(pageable))).thenReturn(mockResults);
 
@@ -79,7 +79,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsByYear() {
+    public void ProductService_GetTopSellingProducts_GetTopSellingProductsByYear() {
 
         when(orderDetailRepository.findTopSellingProductsByYear(any(), eq(pageable))).thenReturn(mockResults);
 
@@ -91,7 +91,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsInvalidType() {
+    public void ProductService_GetTopSellingProducts_InvalidType() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             productService.getTopSellingProducts(date, "invalidType");
         });
@@ -100,7 +100,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsEmptyList() {
+    public void ProductService_GetTopSellingProducts_EmptyList() {
         List<Object[]> mockResults = new ArrayList<>();
 
         when(orderDetailRepository.findTopSellingProductsByDay(any(), eq(pageable))).thenReturn(mockResults);
@@ -111,7 +111,7 @@ public class GetTopSellingProductsTests {
     }
 
     @Test
-    void testGetTopSellingProductsNullDate() {
+    public void ProductService_GetTopSellingProducts_NullDate() {
         List<Object[]> mockResults = new ArrayList<>();
         mockResults.add(new Object[]{"Product6", 150});
 

@@ -182,7 +182,7 @@ public class CreateUserByAdminTests {
     }
 
     @Test
-    void testCreateUserByAdmin_InvalidRegistrationRequest_ShouldThrowException() {
+    public void UserService_CreateUserByAdmin_InvalidRegistrationRequest() {
         // Arrange
         RegistrationRequest registrationRequest = new RegistrationRequest();
         registrationRequest.setName(null); // Không hợp lệ
@@ -198,7 +198,7 @@ public class CreateUserByAdminTests {
     }
 
     @Test
-    void testCreateUserByAdmin_EmployeeRoleNotFound_ShouldThrowException() {
+    public void UserService_CreateUserByAdmin_EmployeeRoleNotFound() {
         // Arrange
         CreateUserRequest createUserRequest = new CreateUserRequest();
         createUserRequest.setEmployeeRoleId(999L); // ID không tồn tại
@@ -212,7 +212,7 @@ public class CreateUserByAdminTests {
     }
 
     @Test
-    void testCreateUserByAdmin_StandardPriceNotFound_ShouldThrowException() {
+    public void UserService_CreateUserByAdmin_StandardPriceNotFound() {
         // Arrange : Set up data test
         RegistrationRequest registrationRequest = new RegistrationRequest(
                 "User Test",

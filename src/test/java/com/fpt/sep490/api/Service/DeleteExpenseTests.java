@@ -50,7 +50,7 @@ public class DeleteExpenseTests {
     }
 
     @Test
-    void testDeleteExpenseNotFound() {
+    public void  ExpenseVoucherService_DeleteExpense_ExpenseNotFound() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
@@ -59,7 +59,7 @@ public class DeleteExpenseTests {
     }
 
     @Test
-    void testDeleteExpenseAlreadyDeleted() {
+    public void  ExpenseVoucherService_DeleteExpense_ExpenseAlreadyDeleted() {
         expenseVoucher.setDeleted(true); // Giả lập phiếu chi đã bị xóa
 
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
@@ -70,7 +70,7 @@ public class DeleteExpenseTests {
     }
 
     @Test
-    void testDeleteExpenseAfterDeadline() {
+    public void  ExpenseVoucherService_DeleteExpense_DeleteExpenseAfterDeadline() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
 
         // Giả lập ngày phiếu chi đã quá 3 ngày
@@ -84,7 +84,7 @@ public class DeleteExpenseTests {
     }
 
     @Test
-    void testDeleteExpenseSuccessfully() {
+    public void  ExpenseVoucherService_DeleteExpense_DeleteExpenseSuccessfully() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
         when(expenseVoucherRepository.save(any())).thenReturn(expenseVoucher);
 
@@ -95,7 +95,7 @@ public class DeleteExpenseTests {
     }
 
     @Test
-    void testDeleteExpenseSaveError() {
+    public void  ExpenseVoucherService_DeleteExpense_DeleteExpenseSaveError() {
         when(expenseVoucherRepository.findById(1L)).thenReturn(Optional.of(expenseVoucher));
         when(expenseVoucherRepository.save(any())).thenThrow(new RuntimeException("Lỗi khi lưu phiếu chi"));
 

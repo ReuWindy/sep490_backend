@@ -53,7 +53,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransactionByAdminSuccess() {
+    public void TransactionService_CreateTransactionByAdmin_CreateSuccess() {
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
 
         Transaction newTransaction = new Transaction();
@@ -75,7 +75,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransactionByAdminReceiptVoucherNotFound() {
+    public void TransactionService_CreateTransactionByAdmin_ReceiptVoucherNotFound() {
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -86,7 +86,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransactionByAdmin_AmountExceedsTotal() {
+    public void TransactionService_CreateTransactionByAdmin_AmountExceedsTotal() {
         transactionDto.setAmount(3000.0); // Số tiền lớn hơn tổng số tiền còn lại
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
 
@@ -98,7 +98,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransaction_AmountNegative() {
+    public void TransactionService_CreateTransactionByAdmin_AmountNegative() {
         transactionDto.setAmount(-1);
 
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
@@ -111,7 +111,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransactionPaymentMethodNull() {
+    public void TransactionService_CreateTransactionByAdmin_PaymentMethodNull() {
         transactionDto.setPaymentMethod(null);
 
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
@@ -124,7 +124,7 @@ public class CreateTransactionByAdminTests {
     }
 
     @Test
-    void testCreateTransactionByAdminSaveReceiptVoucherError() {
+    public void TransactionService_CreateTransactionByAdmin_SaveReceiptVoucherError() {
         when(receiptVoucherRepository.findById(anyLong())).thenReturn(Optional.of(receiptVoucher));
         doThrow(new RuntimeException("Xảy ra lỗi khi lưu giao dịch mới")).when(receiptVoucherRepository).save(any(ReceiptVoucher.class));
 

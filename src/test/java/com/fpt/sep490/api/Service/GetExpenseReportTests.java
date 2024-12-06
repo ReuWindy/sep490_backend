@@ -46,7 +46,7 @@ public class GetExpenseReportTests {
     }
 
     @Test
-    void testGetExpenseReportByDay() {
+    public void ExpenseVoucherService_GetExpenseReport_GetExpenseReportByDay() {
 
         when(expenseVoucherRepository.findDailyExpenseByMonth(any())).thenReturn(mockResults);
 
@@ -61,7 +61,7 @@ public class GetExpenseReportTests {
 
     // Kiểm thử với loại báo cáo "week"
     @Test
-    void testGetExpenseReportByWeek() {
+    public void ExpenseVoucherService_GetExpenseReport_GetExpenseReportByWeek() {
 
         when(expenseVoucherRepository.findDailyExpenseByWeek(any())).thenReturn(mockResults);
 
@@ -76,7 +76,7 @@ public class GetExpenseReportTests {
 
 
     @Test
-    void testGetExpenseReportByMonth() {
+    public void ExpenseVoucherService_GetExpenseReport_GetExpenseReportByMonth() {
 
         when(expenseVoucherRepository.findMonthlyExpenseByYear(any())).thenReturn(mockResults);
 
@@ -90,7 +90,7 @@ public class GetExpenseReportTests {
     }
 
     @Test
-    void testGetExpenseReportInvalidType() {
+    public void ExpenseVoucherService_GetExpenseReport_InvalidType() {
         Date date = new Date(); // Ngày hiện tại
 
         assertThrows(IllegalArgumentException.class, () -> {
@@ -99,7 +99,7 @@ public class GetExpenseReportTests {
     }
 
     @Test
-    void testGetExpenseReportEmptyList() {
+    public void ExpenseVoucherService_GetExpenseReport_EmptyList() {
         // Giả lập repository trả về danh sách trống
         when(expenseVoucherRepository.findDailyExpenseByMonth(any())).thenReturn(new ArrayList<>());
 

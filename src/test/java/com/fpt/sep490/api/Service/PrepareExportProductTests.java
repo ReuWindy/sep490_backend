@@ -70,7 +70,7 @@ public class PrepareExportProductTests {
 
 
     @Test
-    public void ProductService_PrepareExportProduct_WhenQuantityIsInvalid() {
+    public void ProductService_PrepareExportProduct_QuantityIsInvalid() {
         // Arrange
         List<ExportProductDto> exportProductDtoList = new ArrayList<>();
         exportProductDtoList.add(new ExportProductDto("Product1", "kg", 10, 0, "1", 1L, 1)); // Số lượng = 0 (không hợp lệ)
@@ -83,7 +83,7 @@ public class PrepareExportProductTests {
     }
 
     @Test
-    public void ProductService_PrepareExportProduct_WhenProductNotFoundInWarehouse() {
+    public void ProductService_PrepareExportProduct_ProductNotFoundInWarehouse() {
         // Arrange
         List<ExportProductDto> exportProductDtoList = new ArrayList<>();
         exportProductDtoList.add(new ExportProductDto("Product1", "kg", 10, 100, "1", 1L, 1)); // Số lượng hợp lệ
@@ -104,7 +104,7 @@ public class PrepareExportProductTests {
     }
 
     @Test
-    public void ProductService_PrepareExportProduct_WhenBatchIsCreatedSuccessfully() {
+    public void ProductService_PrepareExportProduct_BatchIsCreatedSuccessfully() {
         // Arrange
         List<ExportProductDto> exportProductDtoList = new ArrayList<>();
         exportProductDtoList.add(new ExportProductDto("Product1", "kg", 10, 100, "1", 1L, 1)); // Số lượng hợp lệ
@@ -136,7 +136,7 @@ public class PrepareExportProductTests {
     }
 
     @Test
-    public void testPrepareExportProduct_WhenWarehouseReceiptIsCreated() {
+    public void ProductService_PrepareExportProduct_WarehouseReceiptIsCreated() {
         // Arrange
         List<ExportProductDto> exportProductDtoList = new ArrayList<>();
         exportProductDtoList.add(new ExportProductDto("Product1", "kg", 10, 100, "1", 1L, 1)); // Số lượng hợp lệ
@@ -190,7 +190,7 @@ public class PrepareExportProductTests {
     }
 
     @Test
-    public void ProductService_PrepareExportProduct_WhenExportProductDtoListInvalid() {
+    public void ProductService_PrepareExportProduct_ExportProductDtoListInvalid() {
         // Arrange
         ExportProductDto invalidDto = new ExportProductDto(null, "kg", 10, 10, "1", 1L, 1);
 

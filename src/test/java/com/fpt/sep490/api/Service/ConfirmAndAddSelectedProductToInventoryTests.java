@@ -4,8 +4,10 @@ import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.InventoryDetailDto;
 import com.fpt.sep490.dto.InventoryDto;
 import com.fpt.sep490.model.*;
+import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.InventoryRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
+import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import com.fpt.sep490.service.InventoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,10 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
     private Warehouse warehouse;
     @Mock
     private ProductWarehouse productWarehouse;
+    @Mock
+    private BatchRepository batchRepository;
+    @Mock
+    private WarehouseReceiptRepository warehouseReceiptRepository;
     @InjectMocks
     private InventoryServiceImpl inventoryService;
 
@@ -77,6 +83,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
         detailDto.setUnit("box");
         detailDto.setWeightPerUnit(10.0);
         detailDto.setQuantity(50);
+        detailDto.setSystemQuantity(40);
         detailDto.setDescription("Test Description");
         inventoryDto.setInventoryDetails(Set.of(detailDto));
     }
@@ -93,7 +100,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
         String result = inventoryService.confirmAndAddSelectedProductToInventory(1L, inventoryDto);
 
         // Kiểm tra kết quả
-        assertEquals("Xác nhận phiếu kiểm kho thành công !", result);
+        assertEquals("Xác nhận phiếu kiểm kho và cập nhật số lượng thành công !", result);
         assertEquals(StatusEnum.COMPLETED, inventory.getStatus());
         assertEquals(50, productWarehouse.getQuantity());
         verify(inventoryRepository).save(inventory);

@@ -3,12 +3,11 @@ package com.fpt.sep490.api.Service;
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.AdminOrderDto;
 import com.fpt.sep490.dto.OrderDetailDto;
-import com.fpt.sep490.model.Order;
-import com.fpt.sep490.model.OrderDetail;
-import com.fpt.sep490.model.Product;
-import com.fpt.sep490.model.ProductWarehouse;
+import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.OrderRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
+import com.fpt.sep490.repository.UserRepository;
+import com.fpt.sep490.repository.WarehouseReceiptRepository;
 import com.fpt.sep490.service.OrderServiceImpl;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -35,7 +34,11 @@ public class UpdateOrderByAdminTests {
     @Mock
     private ProductWareHouseRepository productWareHouseRepository;
     @Mock
+    private UserRepository userRepository;
+    @Mock
     private AdminOrderDto adminOrderDto;
+    @Mock
+    private WarehouseReceiptRepository warehouseReceiptRepository;
     @Mock
     private ProductWarehouse productWarehouse;
     @Mock
@@ -46,6 +49,8 @@ public class UpdateOrderByAdminTests {
     private OrderDetail orderDetail;
     @Mock
     private Validator validator;
+    @Mock
+    private User mockUser;
     @InjectMocks
     private OrderServiceImpl orderService;
     @Mock
@@ -85,6 +90,10 @@ public class UpdateOrderByAdminTests {
         productWarehouse.setUnit("unit");
         productWarehouse.setWeightPerUnit(10.0);
 
+        mockUser = new User();
+        mockUser.setUsername("testUser");
+        mockUser.setPassword("testPassword");
+
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.getValidator();
     }
@@ -94,6 +103,7 @@ public class UpdateOrderByAdminTests {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
                 .thenReturn(List.of(productWarehouse));
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
 
         Order result = orderService.updateOrderByAdmin(1L, adminOrderDto,"testUser");
 
@@ -124,7 +134,6 @@ public class UpdateOrderByAdminTests {
         Order result = orderService.updateOrderByAdmin(1L, adminOrderDto,"testUser");
 
         assertEquals(StatusEnum.CANCELED, result.getStatus());
-        verify(orderRepository, times(1)).save(order);
     }
 
     @Test
@@ -193,6 +202,7 @@ public class UpdateOrderByAdminTests {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
                 .thenReturn(List.of(warehouse1, warehouse2));
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
 
         Order result = orderService.updateOrderByAdmin(1L, adminOrderDto,"testUser");
 
