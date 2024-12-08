@@ -5,6 +5,7 @@ import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.TopCategoryDto;
 import com.fpt.sep490.dto.TopCategoryResponseDTO;
 import com.fpt.sep490.model.Category;
+import com.fpt.sep490.model.Order;
 import com.fpt.sep490.model.OrderDetail;
 import com.fpt.sep490.repository.CategoryRepository;
 import com.fpt.sep490.repository.OrderDetailRepository;
@@ -14,9 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,33 +112,42 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public TopCategoryResponseDTO getTopCategoriesWithTotalAmount(int limit) {
+        // Step 1: Get all completed order details
         List<OrderDetail> completedOrderDetails = orderDetailRepository.findAll().stream()
-                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED || od.getOrder().getStatus() == StatusEnum.COMPLETE)
+                .filter(od -> od.getOrder() != null &&
+                        (od.getOrder().getStatus() == StatusEnum.COMPLETED ||
+                                od.getOrder().getStatus() == StatusEnum.COMPLETE))
+                .filter(od -> od.getProduct() != null && od.getProduct().getCategory() != null)
                 .toList();
 
-        List<TopCategoryDto> topCategories = completedOrderDetails.stream()
-                .collect(Collectors.groupingBy(
-                        od -> od.getProduct().getCategory().getName(),
-                        Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                list -> new TopCategoryDto(
-                                        list.get(0).getProduct().getCategory().getName(),
-                                        list.stream().map(od -> od.getOrder().getId()).distinct().count(),
-                                        list.stream().mapToLong(OrderDetail::getQuantity).sum()
-                                )
-                        )
-                ))
-                .values()
-                .stream()
+        Map<String, TopCategoryDto> categoryStats = new HashMap<>();
+        for (OrderDetail orderDetail : completedOrderDetails) {
+            String categoryName = orderDetail.getProduct().getCategory().getName();
+            TopCategoryDto categoryDto = categoryStats.computeIfAbsent(categoryName,
+                    name -> new TopCategoryDto(name, 0, 0));
+
+            // Update totals for this category
+            categoryDto.setTotalOrders(categoryDto.getTotalOrders() + 1);
+            categoryDto.setTotalQuantity(categoryDto.getTotalQuantity() + orderDetail.getQuantity());
+        }
+
+        // Step 3: Sort categories by total quantity and limit to top N
+        List<TopCategoryDto> topCategories = categoryStats.values().stream()
                 .sorted(Comparator.comparingLong(TopCategoryDto::getTotalQuantity).reversed())
                 .limit(limit)
                 .toList();
+
+        // Step 4: Calculate total amount for top categories
+        Set<String> topCategoryNames = topCategories.stream()
+                .map(TopCategoryDto::getCategoryName)
+                .collect(Collectors.toSet());
+
         double totalAmount = completedOrderDetails.stream()
-                .filter(od -> topCategories.stream()
-                        .map(TopCategoryDto::getCategoryName)
-                        .anyMatch(categoryName -> categoryName.equals(od.getProduct().getCategory().getName())))
+                .filter(od -> topCategoryNames.contains(od.getProduct().getCategory().getName()))
                 .mapToDouble(OrderDetail::getTotalPrice)
                 .sum();
+
+        // Step 5: Return the response
         return new TopCategoryResponseDTO(topCategories, totalAmount);
     }
 }

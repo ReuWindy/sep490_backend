@@ -265,7 +265,7 @@ public class ProductServiceImpl implements ProductService {
         return productList;
     }
 
-    private @NotBlank(message = "Vui lòng chọn danh mục") String findCategoryIdByName(String categoryName) {
+    private String findCategoryIdByName(String categoryName) {
         return categoryRepository.findByName(categoryName)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục: " + categoryName))
                 .getId().toString();
