@@ -384,11 +384,17 @@ public class ProductServiceImpl implements ProductService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng với id:" + batchId));
 
-        Map<String, BatchProductSelection> selectionMap = batchProductSelections.stream()
-                .collect(Collectors.toMap(
-                        selection -> selection.getProductId() + "-" + selection.getUnit() + "-" + selection.getWeighPerUnit() + "-" + selection.getSupplierId(),
-                        selection -> selection
-                ));
+        // Step 1: Create the selection map and check for duplicate keys
+        Map<String, BatchProductSelection> selectionMap = new HashMap<>();
+        for (BatchProductSelection selection : batchProductSelections) {
+            String key = selection.getProductId() + "-" + selection.getUnit() + "-" + selection.getWeighPerUnit() + "-" + selection.getSupplierId();
+
+            if (selectionMap.containsKey(key)) {
+                throw new RuntimeException("Lỗi: Trùng sản phẩm với Id: " + selection.getProductId() + ", đơn vị: " + selection.getUnit() + ", trọng lượng: " + selection.getWeighPerUnit() + ". Vui lòng xoá sản phẩm bị trùng");
+            }
+
+            selectionMap.put(key, selection);
+        }
 
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
