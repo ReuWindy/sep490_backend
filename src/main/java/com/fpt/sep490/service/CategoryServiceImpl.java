@@ -113,15 +113,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public TopCategoryResponseDTO getTopCategoriesWithTotalAmount(int limit) {
-        List<TopCategoryDto> topCategories = orderDetailRepository.findAll().stream()
+        List<OrderDetail> completedOrderDetails = orderDetailRepository.findAll().stream()
                 .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED || od.getOrder().getStatus() == StatusEnum.COMPLETE)
+                .toList();
+
+        List<TopCategoryDto> topCategories = completedOrderDetails.stream()
                 .collect(Collectors.groupingBy(
                         od -> od.getProduct().getCategory().getName(),
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 list -> new TopCategoryDto(
                                         list.get(0).getProduct().getCategory().getName(),
-                                        list.stream().map(OrderDetail::getOrder).distinct().count(),
+                                        list.stream().map(od -> od.getOrder().getId()).distinct().count(),
                                         list.stream().mapToLong(OrderDetail::getQuantity).sum()
                                 )
                         )
@@ -131,17 +134,12 @@ public class CategoryServiceImpl implements CategoryService {
                 .sorted(Comparator.comparingLong(TopCategoryDto::getTotalQuantity).reversed())
                 .limit(limit)
                 .toList();
-
-        double totalAmount = orderDetailRepository.findAll().stream()
-                .filter(od -> od.getOrder().getStatus() == StatusEnum.COMPLETED || od.getOrder().getStatus() == StatusEnum.COMPLETE)
+        double totalAmount = completedOrderDetails.stream()
                 .filter(od -> topCategories.stream()
                         .map(TopCategoryDto::getCategoryName)
-                        .toList()
-                        .contains(od.getProduct().getCategory().getName()))
+                        .anyMatch(categoryName -> categoryName.equals(od.getProduct().getCategory().getName())))
                 .mapToDouble(OrderDetail::getTotalPrice)
                 .sum();
-
         return new TopCategoryResponseDTO(topCategories, totalAmount);
-
     }
 }
