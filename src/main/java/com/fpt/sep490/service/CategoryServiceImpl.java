@@ -54,8 +54,12 @@ public class CategoryServiceImpl implements CategoryService {
         newCategory.setName(category.getName());
         newCategory.setDescription(category.getDescription());
         newCategory.setActive(true);
-        categoryRepository.save(newCategory);
-        return newCategory;
+        try {
+            categoryRepository.save(newCategory);
+            return newCategory;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo danh mục mới !");
+        }
     }
 
     @Override

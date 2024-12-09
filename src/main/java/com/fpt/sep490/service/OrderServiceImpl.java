@@ -286,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
                             throw new RuntimeException("Số lượng sản phẩm không được âm: Product ID " + detailDto.getProductId());
                         }
                         updatedDetail.setQuantity(detailDto.getQuantity());
-                        double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity();
+                        double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
                         updatedDetail.setTotalPrice(updatedPrice);
                         updatedTotalAmount += updatedPrice;
                         if(detailDto.getQuantity() == 0){
@@ -308,7 +308,7 @@ public class OrderServiceImpl implements OrderService {
                     newDetail.setProduct(product);
                     newDetail.setQuantity(detailDto.getQuantity());
                     newDetail.setUnitPrice(product.getPrice());
-                    double totalPrice = product.getPrice() * detailDto.getQuantity();
+                    double totalPrice = product.getPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
                     newDetail.setTotalPrice(totalPrice);
                     updatedOrder.getOrderDetails().add(newDetail);
                     updatedTotalAmount += totalPrice;

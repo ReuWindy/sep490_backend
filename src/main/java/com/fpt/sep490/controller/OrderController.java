@@ -83,13 +83,13 @@ public class OrderController {
 
     @GetMapping("/admin/orders")
     public ResponseEntity<PagedModel<EntityModel<Order>>> getAdminOrderPage(
-            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<Order> pagedResourcesAssembler
     ) {
-        Page<Order> orderpage = orderService.getAdminOrder(customerName, status, pageNumber, pageSize);
+        Page<Order> orderpage = orderService.getAdminOrder(name, status, pageNumber, pageSize);
         PagedModel<EntityModel<Order>> pagedModel = pagedResourcesAssembler.toModel(orderpage);
         return ResponseEntity.ok(pagedModel);
     }

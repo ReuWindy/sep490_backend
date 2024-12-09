@@ -48,15 +48,19 @@ public class ContractServiceImpl implements ContractService {
     public Contract createContract(ContractDto contractDto) {
         Contract newContract = new Contract();
         Customer customer = customerRepository.findById(contractDto.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng !"));
         newContract.setContractNumber(ContractNumberGenerator.generateContractCode());
         newContract.setContractDuration(contractDto.getDuration());
         newContract.setContractTime(new Date());
         newContract.setConfirmed(false);
         newContract.setCustomer(customer);
         newContract.setPdfFilePath(contractDto.getPdfFilePath());
-        contractRepository.save(newContract);
-        return newContract;
+        try {
+            contractRepository.save(newContract);
+            return newContract;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo hợp đồng");
+        }
     }
 
     @Override

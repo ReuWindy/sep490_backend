@@ -54,22 +54,22 @@ public class ProductSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if(name != null && !name.isEmpty()){
-                predicates.add(criteriaBuilder.equal(root.get("name"), name));
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
             }
             if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("productCode"), productCode));
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
             }
             if (categoryName != null && !categoryName.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("category").get("name"), categoryName));
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
             }
             if (supplierName != null && !supplierName.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("supplier").get("name"), supplierName));
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
             Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
             Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán hàng");
-            if ((name == null || name.isEmpty()) &&
+            if (    (name == null || name.isEmpty()) &&
                     (productCode == null || productCode.isEmpty()) &&
                     (categoryName == null || categoryName.isEmpty()) &&
                     (supplierName == null || supplierName.isEmpty())) {

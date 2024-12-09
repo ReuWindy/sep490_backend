@@ -94,6 +94,13 @@ public class DefaultDataConfiguration {
                 kg.setConversionFactor(1);
                 unitOfMeasureRepository.save(kg);
             }
+            UnitOfMeasure ta = unitOfMeasureRepository.findByUnitName("tạ");
+            if (ta == null) {
+                ta = new UnitOfMeasure();
+                ta.setUnitName("tạ");
+                ta.setConversionFactor(100);
+                unitOfMeasureRepository.save(ta);
+            }
         };
     }
 
