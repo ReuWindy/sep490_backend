@@ -42,6 +42,7 @@ public class ProductSpecification {
             }
 
             if (query != null) {
+                query.distinct(true);
                 List<Order> orders = getSortByField(root, criteriaBuilder, priceOrder, sortDirection);
                 query.orderBy(orders);
             }
@@ -50,10 +51,10 @@ public class ProductSpecification {
         };
     }
 
-    public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName(String name,String productCode, String categoryName, String supplierName) {
+    public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName(String name, String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if(name != null && !name.isEmpty()){
+            if (name != null && !name.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
             }
             if (productCode != null && !productCode.isEmpty()) {
@@ -68,7 +69,7 @@ public class ProductSpecification {
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
             Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
-            Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán hàng");
+            Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán Hàng");
             if (    (name == null || name.isEmpty()) &&
                     (productCode == null || productCode.isEmpty()) &&
                     (categoryName == null || categoryName.isEmpty()) &&

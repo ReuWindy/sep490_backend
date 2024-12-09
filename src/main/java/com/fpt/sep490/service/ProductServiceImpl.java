@@ -254,7 +254,7 @@ public class ProductServiceImpl implements ProductService {
                             .supplierId(findSupplierIdByName(getCellValue(row.getCell(6))))
                             .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(7))))
                             .build();
-
+                    product.setUnitOfMeasureId(1L);
                     productList.add(product);
                 }
             }

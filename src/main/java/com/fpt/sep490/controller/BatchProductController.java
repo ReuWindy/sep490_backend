@@ -34,7 +34,7 @@ public class BatchProductController {
 
     @GetMapping("/productId/{id}")
     public ResponseEntity<?> getBatchByProductId(@PathVariable Long id) {
-        List<BatchProduct> batch = batchProductService.getBatchProductByProductId(id);
+        List<BatchProductDto> batch = batchProductService.getBatchProductByProductId(id);
         if (batch != null) {
             return ResponseEntity.ok(batch);
         }
