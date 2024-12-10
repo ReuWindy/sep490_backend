@@ -36,6 +36,7 @@ public class WarehouseReceiptDto {
         dto.setId(warehouseReceipt.getId());
         dto.setReceiptDate(warehouseReceipt.getReceiptDate());
         dto.setReceiptType(String.valueOf(warehouseReceipt.getReceiptType()));
+        dto.setReceiptReason(warehouseReceipt.getReceiptReason());
         dto.setIsPay(warehouseReceipt.getIsPay());
         if (warehouseReceipt.getBatch() != null && warehouseReceipt.getBatch().getBatchCreator() != null) {
             dto.setBatchCode(warehouseReceipt.getBatch().getBatchCode());

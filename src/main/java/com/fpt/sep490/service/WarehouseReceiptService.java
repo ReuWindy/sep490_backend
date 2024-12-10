@@ -16,9 +16,13 @@ public interface WarehouseReceiptService {
 
     WarehouseReceipt createImportWarehouseReceipt(String batchCode);
 
+    WarehouseReceipt createImportWarehouseReceiptFromProduction(String batchCode);
+
     WarehouseReceipt createImportWarehouseReceiptByBatch(Batch batch);
 
     WarehouseReceipt createExportWarehouseReceipt(String batchCode);
+
+    WarehouseReceipt createExportWarehouseReceiptForProduction(String batchCode);
 
     WarehouseReceipt updateReceiptDocument(long receiptId, String document);
 

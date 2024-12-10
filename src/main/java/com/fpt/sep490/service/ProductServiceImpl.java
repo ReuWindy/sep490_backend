@@ -325,7 +325,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         batch.setBatchProducts(batchProducts);
-        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceiptFromProduction(batch.getBatchCode()));
         batchRepository.save(batch);
 
         return new ArrayList<>(batchProducts);
