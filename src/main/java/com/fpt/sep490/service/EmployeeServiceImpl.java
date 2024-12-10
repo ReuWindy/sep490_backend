@@ -127,8 +127,12 @@ public class EmployeeServiceImpl implements EmployeeService {
             role.setSalaryDetail(salaryDetail);
         }
         existingEmployee.setRole(role);
-        employeeRepository.save(existingEmployee);
-        return existingEmployee;
+        try {
+            employeeRepository.save(existingEmployee);
+            return existingEmployee;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật thông tin nhân viên!");
+        }
     }
 
     @Override
