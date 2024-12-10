@@ -128,8 +128,12 @@ public class CustomerServiceImpl implements CustomerService {
         existingCustomer.setGender(user.isGender());
         existingCustomer.setImage(user.getImage());
         existingCustomer.setUpdateAt(new Date());
-        userRepository.save(existingCustomer);
-        return existingCustomer;
+        try {
+            userRepository.save(existingCustomer);
+            return existingCustomer;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật thông tin khách hàng!");
+        }
     }
 
     @Override
