@@ -75,6 +75,7 @@ public class BatchProductServiceImpl implements BatchProductService {
     private BatProductViewDto toDTO(BatchProduct batchProduct) {
         BatProductViewDto dto = new BatProductViewDto();
         dto.setAdded(batchProduct.isAdded());
+        dto.setId(batchProduct.getId());
         dto.setProductCode(batchProduct.getProduct().getProductCode());
         dto.setProductName(batchProduct.getProduct().getName());
         dto.setProductId(batchProduct.getProduct().getId());
@@ -144,7 +145,7 @@ public class BatchProductServiceImpl implements BatchProductService {
             BatchProduct batchProduct = batchProductRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy"));
             batchProductRepository.delete(batchProduct);
-            batchProducts.add(batchProduct);
+//            batchProducts.add(batchProduct);
         }
         return batchProducts;
     }

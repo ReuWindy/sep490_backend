@@ -1,5 +1,6 @@
 package com.fpt.sep490.dto;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.WarehouseReceipt;
 import lombok.Data;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -37,7 +39,11 @@ public class WarehouseReceiptDto {
         dto.setReceiptDate(warehouseReceipt.getReceiptDate());
         dto.setReceiptType(String.valueOf(warehouseReceipt.getReceiptType()));
         dto.setReceiptReason(warehouseReceipt.getReceiptReason());
-        dto.setIsPay(warehouseReceipt.getIsPay());
+        if (warehouseReceipt.getReceiptType() == ReceiptType.IMPORT) {
+            dto.setIsPay(warehouseReceipt.getIsPay());
+        } else {
+            dto.setIsPay(true);
+        }
         if (warehouseReceipt.getBatch() != null && warehouseReceipt.getBatch().getBatchCreator() != null) {
             dto.setBatchCode(warehouseReceipt.getBatch().getBatchCode());
             dto.setUsername(warehouseReceipt.getBatch().getBatchCreator().getUsername());
@@ -68,12 +74,16 @@ public class WarehouseReceiptDto {
             }
         }
 
-        if (count == batchProductDtoSet.size() && !batchProductDtoSet.isEmpty()) {
+        if ((count == batchProductDtoSet.size() && !batchProductDtoSet.isEmpty()) || (warehouseReceipt.getOrder() != null && (Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "CONFIRMED") || Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "COMPLETED") || Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "COMPLETE")))) {
             dto.setStatus("Đã xác nhận");
-        } else if (count == 0 && !batchProductDtoSet.isEmpty()) {
+        } else if ((count == 0 && !batchProductDtoSet.isEmpty()) || (warehouseReceipt.getOrder() != null && (Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "PENDING")))) {
             dto.setStatus("Chờ xác nhận");
-        } else if (!batchProductDtoSet.isEmpty()) {
+        } else if (!batchProductDtoSet.isEmpty() || (warehouseReceipt.getOrder() != null && Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "IN_PROCESS"))) {
             dto.setStatus("Đang xử lý");
+        } else if (warehouseReceipt.getOrder() != null && Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "CANCELED")) {
+            dto.setStatus("Đã hủy");
+        } else if (warehouseReceipt.getOrder() != null && Objects.equals(warehouseReceipt.getOrder().getStatus().toString(), "FAILED")) {
+            dto.setStatus("Thất bại");
         } else {
             dto.setStatus("Không có sản phẩm");
         }
