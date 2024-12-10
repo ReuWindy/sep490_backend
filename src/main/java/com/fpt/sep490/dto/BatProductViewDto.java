@@ -9,6 +9,7 @@ public class BatProductViewDto {
     private long productId;
     private String price;
     private String unit;
+    private long id;
     private double weightPerUnit;
     private int quantity;
     private boolean added;

@@ -213,8 +213,13 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderByAdmin(long orderId, AdminOrderDto adminOrderDto, String username) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         StatusEnum status = adminOrderDto.getStatus();
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("Không tìm thấy người dùng");
+        }
         if (status != null) {
             updatedOrder.setStatus(status);
+            updatedOrder.setCreateBy(user.getFullName());
             if (status == StatusEnum.IN_PROCESS) {
                 Set<OrderDetail> orderDetails = updatedOrder.getOrderDetails();
                 for (OrderDetail orderDetail : orderDetails) {
@@ -252,14 +257,12 @@ public class OrderServiceImpl implements OrderService {
                         throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
                     }
                 }
-                User user = userRepository.findByUsername(username);
-                if (user == null) {
-                    throw new RuntimeException("Không tìm thấy người dùng");
-                }
+
                 WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
                 warehouseReceipt.setOrder(updatedOrder);
                 warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
                 warehouseReceipt.setReceiptDate(new Date());
+                warehouseReceipt.setReceiptReason("Xuất kho để bán");
                 warehouseReceiptRepository.save(warehouseReceipt);
                 orderRepository.save(updatedOrder);
             }

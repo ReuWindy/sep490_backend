@@ -415,11 +415,17 @@ public class ProductServiceImpl implements ProductService {
                                 batchProduct.getWarehouseId())
                         .orElseGet(() -> {
                             ProductWarehouse newProductWarehouse = getProductWarehouse(batchProduct, warehouse);
+                            Product product = newProductWarehouse.getProduct();
+                            product.setImportPrice(batchProduct.getPrice());
+                            product.setUpdateAt(new Date());
                             productRepository.save(newProductWarehouse.getProduct()); // Save product first
                             return newProductWarehouse;
                         });
-
-                productWarehouse.setImportPrice(batchProduct.getProduct().getImportPrice());
+                Product product = productWarehouse.getProduct();
+                product.setImportPrice(batchProduct.getPrice());
+                product.setUpdateAt(new Date());
+                productWarehouse.setImportPrice(batchProduct.getPrice());
+                productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
             }
         }
