@@ -113,11 +113,6 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu kiểm kho phù hợp!"));
 
         for (var detail : inventoryDto.getInventoryDetails()) {
-
-            ProductWarehouse productWarehouse = productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                            detail.getProductId(), inventoryDto.getWarehouseId(), detail.getUnit(), detail.getWeightPerUnit())
-                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho"));
-
             InventoryDetail inventoryDetail = inventory.getInventoryDetails().stream()
                     .filter(d -> d.getProduct().getId() == detail.getProductId()
                             && d.getUnit().equals(detail.getUnit())
@@ -191,8 +186,8 @@ public class InventoryServiceImpl implements InventoryService {
                 receipt.setReceiptType(ReceiptType.EXPORT);
                 receipt.setBatch(exportBatch);
                 receipt.setIsPay(true);
-                receipt.setReceiptReason("");
-                receipt.setDocument("");
+                receipt.setReceiptReason("Xuất sản phẩm hao hụt");
+                receipt.setDocument("N/A");
                 warehouseReceiptRepository.save(receipt);
                 exportBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(exportBatch);
@@ -207,8 +202,8 @@ public class InventoryServiceImpl implements InventoryService {
                 receipt.setReceiptType(ReceiptType.IMPORT);
                 receipt.setBatch(importBatch);
                 receipt.setIsPay(true);
-                receipt.setReceiptReason("");
-                receipt.setDocument("");
+                receipt.setReceiptReason("Nhập sản phẩm dư");
+                receipt.setDocument("N/A");
                 warehouseReceiptRepository.save(receipt);
                 importBatch.setWarehouseReceipt(receipt);
                 batchRepository.save(importBatch);

@@ -36,9 +36,30 @@ public class BatchProductServiceImpl implements BatchProductService {
     }
 
     @Override
-    public List<BatchProduct> getBatchProductByProductId(Long id) {
-        Optional<List<BatchProduct>> b = Optional.ofNullable(batchProductRepository.findByProductId(id));
-        return b.orElse(null);
+    public List<BatchProductDto> getBatchProductByProductId(Long id) {
+        List<BatchProduct> b = batchProductRepository.findByProductId(id);
+        if (b.isEmpty()) {
+            throw new RuntimeException("Chưa có lịch sử nhập xuất");
+        }
+        List<BatchProductDto> batchProductDtos = new ArrayList<>();
+        for (BatchProduct batchProduct : b) {
+            if (batchProduct.isAdded()) {
+                BatchProductDto batchProductDto = new BatchProductDto();
+                batchProductDto.setProductId(batchProduct.getProduct().getId());
+                batchProductDto.setBatchId(batchProduct.getBatch().getId());
+                batchProductDto.setPrice(batchProduct.getPrice());
+                batchProductDto.setWeightPerUnit(batchProduct.getWeightPerUnit());
+                batchProductDto.setIsAdded(batchProduct.isAdded());
+                batchProductDto.setUnit(batchProduct.getUnit());
+                batchProductDto.setDescription(batchProduct.getDescription());
+                batchProductDto.setQuantity(batchProduct.getQuantity());
+                batchProductDto.setWeight(batchProduct.getWeight());
+                batchProductDto.setBatchCode(batchProduct.getBatch().getBatchCode());
+                batchProductDto.setReceiptType(String.valueOf(batchProduct.getBatch().getReceiptType()));
+                batchProductDtos.add(batchProductDto);
+            }
+        }
+        return batchProductDtos;
     }
 
     @Override
@@ -64,7 +85,7 @@ public class BatchProductServiceImpl implements BatchProductService {
         dto.setDescription(batchProduct.getDescription());
         dto.setCategoryId(Math.toIntExact(batchProduct.getProduct().getCategory().getId()));
         dto.setSupplierId(batchProduct.getProduct().getSupplier().getId());
-        dto.setWarehouseId( batchProduct.getWarehouseId());
+        dto.setWarehouseId(batchProduct.getWarehouseId());
         return dto;
     }
 
@@ -84,6 +105,7 @@ public class BatchProductServiceImpl implements BatchProductService {
 
         return batchProducts;
     }
+
     @Override
     public BatchProduct updateBatchProduct(UpdateBatchProductRequest request, Long batchProductId) {
         BatchProduct batchProduct = batchProductRepository.findById(batchProductId)

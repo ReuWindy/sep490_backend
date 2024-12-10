@@ -73,6 +73,28 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setReceiptDate(new Date());
         receipt.setReceiptType(ReceiptType.IMPORT);
         receipt.setDocument("N/A");
+        receipt.setReceiptReason("Nhập từ nhà cung cấp");
+        receipt.setBatch(batch);
+        receipt.setIsPay(false);
+
+        warehouseReceiptRepository.save(receipt);
+        batch.setWarehouseReceipt(receipt);
+        batchRepository.save(batch);
+        return receipt;
+    }
+
+    @Override
+    public WarehouseReceipt createImportWarehouseReceiptFromProduction(String batchCode) {
+        Batch batch = batchRepository.findByBatchCode(batchCode);
+        if (batch == null) {
+            throw new RuntimeException("Không tìm thấy lô hàng!!");
+        }
+
+        WarehouseReceipt receipt = new WarehouseReceipt();
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.IMPORT);
+        receipt.setDocument("N/A");
+        receipt.setReceiptReason("Nhập từ kho sản xuất");
         receipt.setBatch(batch);
         receipt.setIsPay(false);
 
@@ -108,7 +130,26 @@ public class WarehouseReceiptServiceImpl implements WarehouseReceiptService {
         receipt.setReceiptType(ReceiptType.EXPORT);
         receipt.setDocument("N/A");
         receipt.setBatch(batch);
-        receipt.setReceiptReason("Sản xuất");
+        receipt.setReceiptReason("N/A");
+        receipt.setIsPay(false);
+
+        warehouseReceiptRepository.save(receipt);
+        return receipt;
+    }
+
+    @Override
+    public WarehouseReceipt createExportWarehouseReceiptForProduction(String batchCode) {
+        Batch batch = batchRepository.findByBatchCode(batchCode);
+        if (batch == null) {
+            throw new RuntimeException("Batch Not Found!!");
+        }
+
+        WarehouseReceipt receipt = new WarehouseReceipt();
+        receipt.setReceiptDate(new Date());
+        receipt.setReceiptType(ReceiptType.EXPORT);
+        receipt.setDocument("N/A");
+        receipt.setBatch(batch);
+        receipt.setReceiptReason("Xuất kho để sản xuất");
         receipt.setIsPay(false);
 
         warehouseReceiptRepository.save(receipt);

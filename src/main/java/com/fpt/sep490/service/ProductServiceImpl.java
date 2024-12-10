@@ -254,7 +254,7 @@ public class ProductServiceImpl implements ProductService {
                             .supplierId(findSupplierIdByName(getCellValue(row.getCell(6))))
                             .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(7))))
                             .build();
-
+                    product.setUnitOfMeasureId(1L);
                     productList.add(product);
                 }
             }
@@ -325,7 +325,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         batch.setBatchProducts(batchProducts);
-        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceipt(batch.getBatchCode()));
+        batch.setWarehouseReceipt(warehouseReceiptService.createImportWarehouseReceiptFromProduction(batch.getBatchCode()));
         batchRepository.save(batch);
 
         return new ArrayList<>(batchProducts);

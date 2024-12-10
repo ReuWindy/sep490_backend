@@ -1,24 +1,36 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.Enum.ReceiptType;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
-import com.fpt.sep490.model.BatchProduct;
-import com.fpt.sep490.model.ProductWarehouse;
+import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.BatchProductRepository;
+import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
+import com.fpt.sep490.security.service.UserService;
+import com.fpt.sep490.utils.RandomBatchCodeGenerator;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     private final BatchProductRepository batchProductRepository;
     private final ProductWareHouseRepository productWareHouseRepository;
+    private final UserService userService;
+    private final BatchRepository batchRepository;
+    private final WarehouseReceiptService warehouseReceiptService;
 
-    public ProductWarehouseServiceImpl(BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository) {
+    public ProductWarehouseServiceImpl(BatchProductRepository batchProductRepository, ProductWareHouseRepository productWareHouseRepository, UserService userService, BatchRepository batchRepository, WarehouseReceiptService warehouseReceiptService) {
         this.batchProductRepository = batchProductRepository;
         this.productWareHouseRepository = productWareHouseRepository;
+        this.userService = userService;
+        this.batchRepository = batchRepository;
+        this.warehouseReceiptService = warehouseReceiptService;
     }
 
     @Override
@@ -93,8 +105,51 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
                     + productWarehouse.getQuantity() + ", số lượng yêu cầu: " + quantity);
         }
 
-        productWarehouse.setQuantity(productWarehouse.getQuantity() - quantity);
+        Batch batch = new Batch();
+        batch.setBatchStatus("Chờ xác nhận");
+        batch.setImportDate(new Date());
+        batch.setReceiptType(ReceiptType.EXPORT);
+        batch = createNewBatch(batch);
+        BatchProduct batchProduct = getBatchProduct(quantity, productWarehouse, batch);
+        batchProduct.setBatch(batch);
+        batchProductRepository.save(batchProduct);
+        batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceiptForProduction(batch.getBatchCode()));
 
+        productWarehouse.setQuantity(productWarehouse.getQuantity() - quantity);
         productWareHouseRepository.save(productWarehouse);
+    }
+
+    private Batch createNewBatch(Batch batch) {
+        batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userService.findByUsername(username);
+        if(user == null){
+            throw new RuntimeException("Lỗi : không tìm thấy thông tin người dùng!");
+        }
+        batch.setBatchCreator(user);
+        try {
+            batch = batchRepository.save(batch);
+            return batch;
+        }catch (Exception e){
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!"+ e.getMessage());
+        }
+    }
+
+    private static BatchProduct getBatchProduct(int quantity, ProductWarehouse productWarehouse, Batch batch) {
+        Product product = productWarehouse.getProduct();
+
+        BatchProduct batchProduct = new BatchProduct();
+        batchProduct.setProduct(product);
+        batchProduct.setQuantity(quantity);
+        batchProduct.setPrice(0);
+        batchProduct.setWeightPerUnit(productWarehouse.getWeightPerUnit());
+        batchProduct.setWeight(productWarehouse.getWeightPerUnit() * quantity);
+        batchProduct.setUnit(productWarehouse.getUnit());
+        batchProduct.setWarehouseId((long) productWarehouse.getWarehouse().getId());
+        batchProduct.setDescription("Xuất: Lô hàng của sản phẩm: " + product.getName());
+        batchProduct.setBatch(batch);
+        return batchProduct;
     }
 }

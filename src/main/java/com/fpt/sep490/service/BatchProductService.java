@@ -11,7 +11,7 @@ import java.util.List;
 public interface BatchProductService {
     BatchProduct createBatchProduct(BatchProductDto batchProductDto, String batchId);
 
-    List<BatchProduct> getBatchProductByProductId(Long id);
+    List<BatchProductDto> getBatchProductByProductId(Long id);
 
     List<BatProductViewDto> getBatchProductByBatchCode(String batchCode);
     List<BatchProduct> getBatchProductByBatchCodeV2(String batchCode);
