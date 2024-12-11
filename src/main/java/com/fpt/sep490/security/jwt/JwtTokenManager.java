@@ -4,8 +4,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fpt.sep490.model.Employee;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
+import com.fpt.sep490.repository.EmployeeRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -22,10 +24,23 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtTokenManager {
     private final JwtProperties jwtProperties;
+    private final EmployeeRepository employeeRepository;
 
     public String generateToken(User user) {
         final String username = user.getUsername();
         final UserType userType = user.getUserType();
+        final Employee emp = employeeRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Employee Role Not Found"));
+        final String epmRole = emp.getRole().getEmployeeRole().getRoleName();
+        if(epmRole.equals("WAREHOUSE_MANAGER"))
+        {
+            return JWT.create()
+                    .withSubject(username)
+                    .withIssuer(jwtProperties.getIssuer())
+                    .withClaim("role", epmRole)
+                    .withIssuedAt(new Date())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
+                    .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
+        }
         return JWT.create()
                 .withSubject(username)
                 .withIssuer(jwtProperties.getIssuer())
