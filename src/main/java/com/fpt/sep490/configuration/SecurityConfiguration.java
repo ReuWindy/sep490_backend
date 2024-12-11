@@ -41,7 +41,7 @@ public class SecurityConfiguration {
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**",
                                                 "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
     List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "products/admin/createProduct", "products/import/preview", "products/import/excel",
-                                                "products/import/previewFromProduction", "products//export/preview", "products/admin/products", "products/admin/order/products", "products/"
+                                                "products/import/previewFromProduction", "products/export/preview", "products/admin/products", "products/admin/order/products", "products/"
                                                 ,"products/admin/createProduct", "products/admin/updateProduct", "products/delete/{id}", "products/", "products/enable/{id}");
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {

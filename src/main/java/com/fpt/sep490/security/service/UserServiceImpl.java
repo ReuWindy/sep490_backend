@@ -319,4 +319,9 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         return userRepository.findUserByEmail(email);
     }
+
+    @Override
+    public Employee findEmployeeByUsername(String username) {
+        return employeeRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy người dùng!"));
+    }
 }
