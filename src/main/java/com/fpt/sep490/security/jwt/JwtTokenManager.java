@@ -29,17 +29,19 @@ public class JwtTokenManager {
     public String generateToken(User user) {
         final String username = user.getUsername();
         final UserType userType = user.getUserType();
-        final Employee emp = employeeRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Employee Role Not Found"));
-        final String epmRole = emp.getRole().getEmployeeRole().getRoleName();
-        if(epmRole.equals("WAREHOUSE_MANAGER"))
-        {
-            return JWT.create()
-                    .withSubject(username)
-                    .withIssuer(jwtProperties.getIssuer())
-                    .withClaim("role", epmRole)
-                    .withIssuedAt(new Date())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
-                    .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
+        if(userType.toString().equals("ROLE_EMPLOYEE")){
+            final Employee emp = employeeRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Employee Role Not Found"));
+            final String epmRole = emp.getRole().getEmployeeRole().getRoleName();
+            if(epmRole.equals("WAREHOUSE_MANAGER"))
+            {
+                return JWT.create()
+                        .withSubject(username)
+                        .withIssuer(jwtProperties.getIssuer())
+                        .withClaim("role", epmRole)
+                        .withIssuedAt(new Date())
+                        .withExpiresAt(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
+                        .sign(Algorithm.HMAC256(jwtProperties.getSecretKey().getBytes()));
+            }
         }
         return JWT.create()
                 .withSubject(username)
