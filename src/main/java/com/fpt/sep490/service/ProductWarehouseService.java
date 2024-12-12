@@ -1,10 +1,12 @@
 package com.fpt.sep490.service;
 
+import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
 import com.fpt.sep490.model.ProductWarehouse;
 import org.springframework.data.domain.Page;
 
+import java.util.Date;
 import java.util.List;
 
 public interface ProductWarehouseService {
@@ -13,6 +15,8 @@ public interface ProductWarehouseService {
     ProductWarehouse getById(long id);
 
     List<ProductWarehouseDto> getAllProducts();
+
+    Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long warehouseId, int pageNumber, int pageSize);
 
     List<ProductWarehouseDto> getAllIngredients();
 
