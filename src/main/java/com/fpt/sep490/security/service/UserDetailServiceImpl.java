@@ -33,11 +33,12 @@ public class UserDetailServiceImpl implements UserDetailsService {
             final String role = userService.findEmployeeByUsername(authenticatedUsername).getRole().getEmployeeRole().getRoleName();
             final SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority("ROLE_"+ role);
             return new User(authenticatedUsername, authenticatedPassword, Collections.singletonList(grantedAuthority));
+        }else{
+            final String authenticatedUsername = authenticatedUser.getUsername();
+            final String authenticatedPassword = authenticatedUser.getPassword();
+            final UserType userType = authenticatedUser.getUserType();
+            final SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(userType.name());
+            return new User(authenticatedUsername, authenticatedPassword, Collections.singletonList(grantedAuthority));
         }
-        final String authenticatedUsername = authenticatedUser.getUsername();
-        final String authenticatedPassword = authenticatedUser.getPassword();
-        final UserType userType = authenticatedUser.getUserType();
-        final SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(userType.name());
-        return new User(authenticatedUsername, authenticatedPassword, Collections.singletonList(grantedAuthority));
     }
 }

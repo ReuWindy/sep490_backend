@@ -29,7 +29,7 @@ public class JwtTokenManager {
     public String generateToken(User user) {
         final String username = user.getUsername();
         final UserType userType = user.getUserType();
-        if(userType.toString().equals("ROLE_EMPLOYEE")){
+        while(userType.toString().equals("ROLE_EMPLOYEE")){
             final Employee emp = employeeRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Employee Role Not Found"));
             final String epmRole = emp.getRole().getEmployeeRole().getRoleName();
             if(epmRole.equals("WAREHOUSE_MANAGER"))

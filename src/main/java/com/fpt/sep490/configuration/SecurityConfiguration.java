@@ -57,9 +57,10 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                         .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
-                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN")
-                        .requestMatchers((warehouseManager.toArray(new String[0]))).hasAnyRole("WAREHOUSE_MANAGER")
-                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
+                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN")
+                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN"))
+//                        .requestMatchers((warehouseManager.toArray(new String[0]))).hasAnyRole("WAREHOUSE_MANAGER"))
+
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
