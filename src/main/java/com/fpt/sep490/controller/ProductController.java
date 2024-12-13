@@ -8,6 +8,7 @@ import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.ProductService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -21,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -314,6 +316,17 @@ public class ProductController {
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @GetMapping("/generateTemplate")
+    public ResponseEntity<?> generateExcelTemplate(HttpServletResponse response) throws IOException {
+        try{
+            productService.createExcelTemplate(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }catch (Exception e){
+            final ApiExceptionResponse res = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
     }
 }
