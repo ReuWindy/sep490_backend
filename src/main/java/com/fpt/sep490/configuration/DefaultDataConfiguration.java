@@ -115,19 +115,4 @@ public class DefaultDataConfiguration {
             }
         };
     }
-
-//    @Bean
-//    public CommandLineRunner createDefaultRoles() {
-//        return args -> {
-//            EmployeeRole porter = new EmployeeRole();
-//            porter.setRoleName("PORTER");
-//            employeeRoleRepository.save(porter);
-//            EmployeeRole driver = new EmployeeRole();
-//            driver.setRoleName("DRIVER");
-//            employeeRoleRepository.save(driver);
-//            EmployeeRole warehouseManager = new EmployeeRole();
-//            warehouseManager.setRoleName("WAREHOUSE_MANAGER");
-//            employeeRoleRepository.save(warehouseManager);
-//        };
-//    }
 }

@@ -2,6 +2,7 @@ package com.fpt.sep490.security.service;
 
 import com.fpt.sep490.dto.PasswordRequest;
 import com.fpt.sep490.dto.UserDto;
+import com.fpt.sep490.model.Employee;
 import com.fpt.sep490.model.User;
 import com.fpt.sep490.model.UserType;
 import com.fpt.sep490.security.dto.AuthenticatedUserDto;
@@ -35,4 +36,6 @@ public interface UserService {
     User findByPhoneNumber(String phoneNumber);
 
     User findByEmail(String email);
+
+    Employee findEmployeeByUsername(String username);
 }

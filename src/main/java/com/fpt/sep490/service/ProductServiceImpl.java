@@ -7,8 +7,11 @@ import com.fpt.sep490.repository.*;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.RandomBatchCodeGenerator;
 import com.fpt.sep490.utils.RandomProductCodeGenerator;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -210,7 +215,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
-        if(productDto.getPrice() < 0){
+        if (productDto.getPrice() < 0) {
             throw new RuntimeException("Lỗi: Giá của sản phẩm phải là số dương");
         }
         product.setPrice(productDto.getPrice());
@@ -231,8 +236,8 @@ public class ProductServiceImpl implements ProductService {
         product.setUpdateAt(new Date());
         try {
             return productRepository.save(product);
-        }catch (Exception e){
-            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: "+ e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: " + e.getMessage());
         }
     }
 
@@ -264,6 +269,69 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return productList;
+    }
+
+    @Override
+    public void createExcelTemplate(HttpServletResponse response) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Nhập Hàng");
+
+            String[] headers = {"Tên", "Giá Nhập", "Số Lượng", "Khối lượng mỗi đơn vị", "Đơn vị", "Danh mục", "Nhà cung cấp", "Kho hàng"};
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+
+            addDropdownToColumn2(sheet, 4, getUnitsFromDatabase());  // Unit column (column index 4)
+            addDropdownToColumn2(sheet, 5, getCategoriesFromDatabase());  // Category column (column index 5)
+            addDropdownToColumn2(sheet, 6, getSuppliersFromDatabase());  // Supplier column (column index 6)
+            addDropdownToColumn2(sheet, 7, getWarehousesFromDatabase());  // Warehouse column (column index 7)
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=Product_Import_Template.xlsx");
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException("Error while creating Excel template: " + e.getMessage(), e);
+        }
+    }
+
+    private void addDropdownToColumn2(Sheet sheet, int column, List<String> options) {
+        if (options.isEmpty()) {
+            throw new RuntimeException("Dropdown options list is empty for column: " + column);
+        }
+
+        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
+
+        CellRangeAddressList addressList = new CellRangeAddressList(1, 100, column, column);
+
+        DataValidationConstraint constraint = validationHelper.createExplicitListConstraint(
+                options.toArray(new String[0]));
+
+        DataValidation dataValidation = validationHelper.createValidation(constraint, addressList);
+        dataValidation.setShowErrorBox(true);
+        sheet.addValidationData(dataValidation);
+    }
+
+    private List<String> getUnitsFromDatabase() {
+        return List.of("Bao", "Túi");
+    }
+
+    private List<String> getCategoriesFromDatabase() {
+        return categoryRepository.findAllCategoryNames();
+    }
+
+    private List<String> getSuppliersFromDatabase() {
+        return supplierRepository.findAllSupplierNames();
+    }
+
+    private List<String> getWarehousesFromDatabase() {
+        return warehouseRepository.findAllWarehouseNames();
     }
 
     private String findCategoryIdByName(String categoryName) {
@@ -368,15 +436,15 @@ public class ProductServiceImpl implements ProductService {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
-        if(user == null){
+        if (user == null) {
             throw new RuntimeException("Lỗi : không tìm thấy thông tin người dùng!");
         }
         batch.setBatchCreator(user);
         try {
             batch = batchRepository.save(batch);
             return batch;
-        }catch (Exception e){
-            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!"+ e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!" + e.getMessage());
         }
     }
 
@@ -540,7 +608,7 @@ public class ProductServiceImpl implements ProductService {
         batchProduct.setBatch(batch);
         return batchProduct;
     }
-    
+
     private Product findOrCreateProduct(importProductDto dto) {
         Optional<Product> existingProduct = productRepository.findByNameAndCategoryIdAndSupplierId(dto.getName(),
                 Long.valueOf(dto.getCategoryId()), dto.getSupplierId());
@@ -586,7 +654,7 @@ public class ProductServiceImpl implements ProductService {
             product.setIsDeleted(false);
 
             Supplier supplier = supplierRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp mặc định" ));
+                    .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp mặc định"));
 
             Category category = categoryRepository.findById(Long.valueOf(dto.getCategoryId()))
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy danh mục với id: " + dto.getCategoryId()));
