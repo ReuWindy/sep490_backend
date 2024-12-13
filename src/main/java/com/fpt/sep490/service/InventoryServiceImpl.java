@@ -208,7 +208,10 @@ public class InventoryServiceImpl implements InventoryService {
                 batchRepository.delete(importBatch);
             }
             return "Xác nhận phiếu kiểm kho và cập nhật số lượng thành công !";
-        } catch (Exception e) {
+        } catch (RuntimeException e){
+            throw new RuntimeException("Lỗi: Không tìm thấy sản phẩm phù hợp trong kho");
+        }
+        catch (Exception e) {
             throw new RuntimeException("Xảy ra lỗi trong quá trình xác nhận phiếu kiểm kho !");
         }
     }

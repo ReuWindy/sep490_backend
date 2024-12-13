@@ -10,6 +10,7 @@ import com.fpt.sep490.utils.RandomProductCodeGenerator;
 import jakarta.validation.constraints.NotBlank;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -145,7 +146,7 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierNameAndNotNull(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         Customer customer = getCustomerByUsername(username);
         return products.map(product -> toProductDto(product, customer));
@@ -652,24 +653,25 @@ public class ProductServiceImpl implements ProductService {
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
 
-        if (product.getCategory() != null) {
-            productDto.setCategoryId(product.getCategory().getId());
-            productDto.setCategoryName(product.getCategory().getName());
-        }
-        if (product.getSupplier() != null) {
-            productDto.setSupplierId(product.getSupplier().getId());
-        }
-        if (product.getUnitOfMeasure() != null) {
-            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-        }
-        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-        if (productPrice != null) {
-            productDto.setCustomerPrice(productPrice.getUnit_price());
-        } else {
-            productDto.setCustomerPrice(product.getPrice());
-        }
-        productDto.setUnitWeightPairsList(unitWeightPairs);
-        return productDto;
+            if (product.getCategory() != null) {
+                productDto.setCategoryId(product.getCategory().getId());
+                productDto.setCategoryName(product.getCategory().getName());
+            }
+            if (product.getSupplier() != null) {
+                productDto.setSupplierId(product.getSupplier().getId());
+            }
+            if (product.getUnitOfMeasure() != null) {
+                productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+            }
+            ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+            ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
+            if (productPrice != null) {
+                productDto.setCustomerPrice(productPrice.getUnit_price());
+            } else {
+                productDto.setCustomerPrice(defaultPrice.getUnit_price());
+            }
+            productDto.setUnitWeightPairsList(unitWeightPairs);
+            return productDto;
     }
 
     private ProductDto toProductDto(Product product) {

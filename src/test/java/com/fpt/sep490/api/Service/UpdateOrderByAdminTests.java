@@ -115,7 +115,7 @@ public class UpdateOrderByAdminTests {
     public void OrderService_UpdateOrder_FailWhenNotEnoughStock() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         productWarehouse.setQuantity(50);  // Mock insufficient stock
-
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
                 .thenReturn(List.of(productWarehouse));
 
@@ -129,6 +129,7 @@ public class UpdateOrderByAdminTests {
     @Test
     public void OrderService_UpdateOrder_SuccessStatusChange() {
         adminOrderDto.setStatus(StatusEnum.CANCELED); // Same status as before
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         Order result = orderService.updateOrderByAdmin(1L, adminOrderDto,"testUser");
@@ -150,6 +151,7 @@ public class UpdateOrderByAdminTests {
     @Test
     public void OrderService_UpdateOrder_FailWhenStatusIsNull() {
         adminOrderDto.setStatus(null);
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -162,6 +164,7 @@ public class UpdateOrderByAdminTests {
     @Test
     public void OrderService_UpdateOrder_FailWhenCanNotFindProductInWarehouse() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
                 .thenReturn(Collections.emptyList()); // No product found in warehouse
 
@@ -175,6 +178,7 @@ public class UpdateOrderByAdminTests {
     @Test
     public void OrderService_UpdateOrder_FailWhenRequiredQuantityIsNegative() {
         orderDetail.setQuantity(-10); // Negative quantity
+        when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
