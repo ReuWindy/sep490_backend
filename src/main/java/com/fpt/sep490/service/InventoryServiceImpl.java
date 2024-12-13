@@ -174,9 +174,6 @@ public class InventoryServiceImpl implements InventoryService {
                     batchProduct.setDescription("Sản phẩm dư trong quá trình kiểm kho");
                     importBatchProducts.add(batchProduct);
                 }
-
-                productWarehouse.setQuantity(detail.getQuantity());
-                productWareHouseRepository.save(productWarehouse);
             }
             if (!exportBatchProducts.isEmpty()) {
                 exportBatch.setBatchProducts(exportBatchProducts);

@@ -1,6 +1,8 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.ReceiptType;
+import com.fpt.sep490.dto.AdminProductDto;
+import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
 import com.fpt.sep490.model.*;
@@ -9,6 +11,10 @@ import com.fpt.sep490.repository.BatchRepository;
 import com.fpt.sep490.repository.ProductWareHouseRepository;
 import com.fpt.sep490.security.service.UserService;
 import com.fpt.sep490.utils.RandomBatchCodeGenerator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -64,6 +70,35 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
             productWarehouseDto.add(ProductWarehouseDto.toDto(pw));
         }
         return productWarehouseDto;
+    }
+
+    @Override
+    public Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long warehouseId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        ProductWarehouseSpecification productSpecs = new ProductWarehouseSpecification();
+        Specification<ProductWarehouse> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, warehouseId);
+        Page<ProductWarehouse> products = productWareHouseRepository.findAll(specification, pageable);
+        return products.map(this::toDto);
+    }
+
+    private ProductWarehouseDto toDto(ProductWarehouse productWarehouse) {
+        ProductWarehouseDto dto = new ProductWarehouseDto();
+        dto.setId(productWarehouse.getId());
+        dto.setPrice(productWarehouse.getImportPrice());
+        dto.setWeight(productWarehouse.getWeight());
+        dto.setUnit(productWarehouse.getUnit());
+        dto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
+        dto.setQuantity(productWarehouse.getQuantity());
+        ProductDto productDto = new ProductDto();
+        productDto.setCategoryName(productWarehouse.getProduct().getCategory().getName());
+        productDto.setSupplierName(productWarehouse.getProduct().getSupplier().getName());
+        productDto.setId(productWarehouse.getProduct().getId());
+        productDto.setProductCode(productWarehouse.getProduct().getProductCode());
+        productDto.setName(productWarehouse.getProduct().getName());
+        productDto.setDescription(productWarehouse.getProduct().getDescription());
+        productDto.setDeleted(productWarehouse.getProduct().getIsDeleted());
+        dto.setProduct(productDto);
+        return dto;
     }
 
     @Override
