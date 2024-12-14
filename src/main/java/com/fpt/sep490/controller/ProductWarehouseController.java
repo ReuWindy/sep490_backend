@@ -1,14 +1,21 @@
 package com.fpt.sep490.controller;
 
+import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.ProductWarehouse;
 import com.fpt.sep490.service.ProductWarehouseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -38,6 +45,19 @@ public class ProductWarehouseController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Not Found!!", HttpStatus.NOT_FOUND, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @GetMapping("/getAllProductsWarehouse")
+    public ResponseEntity<PagedModel<EntityModel<ProductWarehouseDto>>> getAllProductsWarehouse(
+            @RequestParam(required = false) String productCode,
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) Long warehouseId,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            PagedResourcesAssembler<ProductWarehouseDto> pagedResourcesAssembler) {
+        Page<ProductWarehouseDto> productPage = productWarehouseService.getProductWarehousesByFilter(productCode, productName, warehouseId, pageNumber, pageSize);
+        PagedModel<EntityModel<ProductWarehouseDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/getAllIngredients")

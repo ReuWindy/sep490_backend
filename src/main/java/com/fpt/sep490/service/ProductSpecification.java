@@ -84,6 +84,38 @@ public class ProductSpecification {
         };
     }
 
+    public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierNameAndNotNull(String name, String productCode, String categoryName, String supplierName) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (name != null && !name.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            }
+            if (productCode != null && !productCode.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            }
+            if (categoryName != null && !categoryName.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
+            }
+            if (supplierName != null && !supplierName.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
+            }
+            predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
+            predicates.add(criteriaBuilder.greaterThan(root.get("price"), 0));
+            Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
+            Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán Hàng");
+            if (    (name == null || name.isEmpty()) &&
+                    (productCode == null || productCode.isEmpty()) &&
+                    (categoryName == null || categoryName.isEmpty()) &&
+                    (supplierName == null || supplierName.isEmpty())) {
+                predicates.add(warehouseNamePredicate);
+            } else {
+                predicates.add(criteriaBuilder.or(criteriaBuilder.isNull(productWarehouseJoin), warehouseNamePredicate));
+            }
+            query.distinct(true);
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 
     private static List<Order> getSortByField(Root<Product> root, CriteriaBuilder criteriaBuilder, String priceOrder, String sortDirection) {
         List<Order> orders = new ArrayList<>();

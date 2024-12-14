@@ -13,6 +13,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -150,7 +151,7 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, String username, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecification = new ProductSpecification();
-        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName(name, productCode, categoryName, supplierName);
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierNameAndNotNull(name, productCode, categoryName, supplierName);
         Page<Product> products = productRepository.findAll(specification, pageable);
         Customer customer = getCustomerByUsername(username);
         return products.map(product -> toProductDto(product, customer));
@@ -271,11 +272,68 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ExportProductDto> readExcelFileExport(MultipartFile file) {
+        List<ExportProductDto> productList = new ArrayList<>();
+
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    ExportProductDto product = ExportProductDto.builder()
+                            .productName(getCellValue(row.getCell(0)))
+                            .quantity(Integer.parseInt(getCellValue(row.getCell(1))))
+                            .weightPerUnit(Double.parseDouble(getCellValue(row.getCell(2))))
+                            .unit(getCellValue(row.getCell(3)))
+                            .categoryId(findCategoryIdByName(getCellValue(row.getCell(4))))
+                            .supplierId(findSupplierIdByName(getCellValue(row.getCell(5))))
+                            .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(6))))
+                            .build();
+                    productList.add(product);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
+        }
+        return productList;
+    }
+
+    @Override
     public void createExcelTemplate(HttpServletResponse response) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Nhập Hàng");
 
             String[] headers = {"Tên", "Giá Nhập", "Số Lượng", "Khối lượng mỗi đơn vị", "Đơn vị", "Danh mục", "Nhà cung cấp", "Kho hàng"};
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+
+            addDropdownToColumn2(sheet, 4, getUnitsFromDatabase());  // Unit column (column index 4)
+            addDropdownToColumn2(sheet, 5, getCategoriesFromDatabase());  // Category column (column index 5)
+            addDropdownToColumn2(sheet, 6, getSuppliersFromDatabase());  // Supplier column (column index 6)
+            addDropdownToColumn2(sheet, 7, getWarehousesFromDatabase());  // Warehouse column (column index 7)
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=Product_Import_Template.xlsx");
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException("Error while creating Excel template: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void createExcelTemplateExport(HttpServletResponse response) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Xuất Hàng");
+
+            String[] headers = {"Tên", "Số Lượng", "Khối lượng mỗi đơn vị", "Đơn vị", "Danh mục", "Nhà cung cấp", "Kho hàng"};
 
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
@@ -476,8 +534,8 @@ public class ProductServiceImpl implements ProductService {
                 Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
 
-                ProductWarehouse productWarehouse = productWareHouseRepository.findByProductNameAndUnitAndWeightPerUnitAndWarehouseId(
-                                batchProduct.getProduct().getName(),
+                ProductWarehouse productWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
+                                batchProduct.getProduct(),
                                 batchProduct.getUnit(),
                                 batchProduct.getWeightPerUnit(),
                                 batchProduct.getWarehouseId())
@@ -486,12 +544,13 @@ public class ProductServiceImpl implements ProductService {
                             Product product = newProductWarehouse.getProduct();
                             product.setImportPrice(batchProduct.getPrice());
                             product.setUpdateAt(new Date());
-                            productRepository.save(newProductWarehouse.getProduct()); // Save product first
+                            productRepository.save(newProductWarehouse.getProduct());
                             return newProductWarehouse;
                         });
                 Product product = productWarehouse.getProduct();
                 product.setImportPrice(batchProduct.getPrice());
                 product.setUpdateAt(new Date());
+                productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
                 productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
@@ -519,13 +578,14 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public String prepareExportProduct(List<ExportProductDto> exportProductDtoList) {
+    public List<BatchProduct> prepareExportProduct(List<ExportProductDto> exportProductDtoList) {
         Batch batch = new Batch();
         batch.setBatchStatus("Chờ xác nhận");
         batch.setImportDate(new Date());
         batch.setReceiptType(ReceiptType.EXPORT);
         batch = createNewBatch(batch);
 
+        Set<BatchProduct> batchProducts = new HashSet<>();
         for (ExportProductDto dto : exportProductDtoList) {
             if (dto.getQuantity() <= 0) {
                 throw new RuntimeException("Lỗi: Số lượng không thể <= 0");
@@ -540,6 +600,7 @@ public class ProductServiceImpl implements ProductService {
                 ProductWarehouse productWarehouse = p.get();
                 BatchProduct batchProduct = getBatchProduct(dto, productWarehouse, batch);
                 batchProduct.setBatch(batch);
+                batchProducts.add(batchProduct);
                 batchProductRepository.save(batchProduct);
             } else {
                 batchRepository.delete(batch);
@@ -547,7 +608,7 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         batch.setWarehouseReceipt(warehouseReceiptService.createExportWarehouseReceipt(batch.getBatchCode()));
-        return "Ok";
+        return new ArrayList<>(batchProducts);
     }
 
     @Override
@@ -720,24 +781,25 @@ public class ProductServiceImpl implements ProductService {
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
 
-        if (product.getCategory() != null) {
-            productDto.setCategoryId(product.getCategory().getId());
-            productDto.setCategoryName(product.getCategory().getName());
-        }
-        if (product.getSupplier() != null) {
-            productDto.setSupplierId(product.getSupplier().getId());
-        }
-        if (product.getUnitOfMeasure() != null) {
-            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-        }
-        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-        if (productPrice != null) {
-            productDto.setCustomerPrice(productPrice.getUnit_price());
-        } else {
-            productDto.setCustomerPrice(product.getPrice());
-        }
-        productDto.setUnitWeightPairsList(unitWeightPairs);
-        return productDto;
+            if (product.getCategory() != null) {
+                productDto.setCategoryId(product.getCategory().getId());
+                productDto.setCategoryName(product.getCategory().getName());
+            }
+            if (product.getSupplier() != null) {
+                productDto.setSupplierId(product.getSupplier().getId());
+            }
+            if (product.getUnitOfMeasure() != null) {
+                productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+            }
+            ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+            ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
+            if (productPrice != null) {
+                productDto.setCustomerPrice(productPrice.getUnit_price());
+            } else {
+                productDto.setCustomerPrice(defaultPrice.getUnit_price());
+            }
+            productDto.setUnitWeightPairsList(unitWeightPairs);
+            return productDto;
     }
 
     private ProductDto toProductDto(Product product) {

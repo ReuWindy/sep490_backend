@@ -111,7 +111,7 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
     public void InventoryService_ConfirmAndAddSelectedProductToInventory_ProductNotFoundInWarehouse() {
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(inventory));
         when(productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                1L, 1L, "box", 10.0))
+                anyLong(), anyLong(), anyString(), anyLong()))
                 .thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () ->
@@ -125,9 +125,6 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
     public void InventoryService_ConfirmAndAddSelectedProductToInventory_InventoryDetailNotFound() {
         inventory.getInventoryDetails().clear(); // Xóa chi tiết để giả lập không tìm thấy
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(inventory));
-        when(productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                1L, 1L, "box", 10.0))
-                .thenReturn(Optional.of(productWarehouse));
 
         Exception exception = assertThrows(RuntimeException.class, () ->
                 inventoryService.confirmAndAddSelectedProductToInventory(1L, inventoryDto)
@@ -177,9 +174,6 @@ public class ConfirmAndAddSelectedProductToInventoryTests {
     @Test
     public void InventoryService_ConfirmAndAddSelectedProductToInventory_SaveInventoryFailure() {
         when(inventoryRepository.findById(1L)).thenReturn(Optional.of(inventory));
-        when(productWareHouseRepository.findByProductIdAndWarehouseIdAndUnitAndWeightPerUnit(
-                1L, 1L, "box", 10.0))
-                .thenReturn(Optional.of(productWarehouse));
         doThrow(new RuntimeException("Save failed")).when(inventoryRepository).save(any(Inventory.class));
 
         Exception exception = assertThrows(RuntimeException.class, () ->

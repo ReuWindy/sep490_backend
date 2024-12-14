@@ -127,7 +127,7 @@ public class PrepareExportProductTests {
                 .thenReturn(Optional.of(new ProductWarehouse(1l, 100,150.0,200.0,500.0,5.0,"kg",product,warehouse))); // Sản phẩm có trong kho
 
         // Act
-        String result = productService.prepareExportProduct(exportProductDtoList);
+        List<BatchProduct> result = productService.prepareExportProduct(exportProductDtoList);
 
         // Assert
         assertEquals("Ok", result);
@@ -181,7 +181,7 @@ public class PrepareExportProductTests {
         when(warehouseReceiptService.createExportWarehouseReceipt(anyString())).thenReturn(warehouseReceipt); // Chấp nhận bất kỳ đối số nào
 
         // Act
-        String result = productService.prepareExportProduct(exportProductDtoList);
+        List<BatchProduct> result = productService.prepareExportProduct(exportProductDtoList);
 
         // Assert
         assertEquals("Ok", result);

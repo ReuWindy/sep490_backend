@@ -73,8 +73,8 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}/order-summary")
-    public ResponseEntity<CustomerOrderSummaryDTO> getCustomerOrderSummary(@PathVariable("id") long customerId) {
-        CustomerOrderSummaryDTO summaryDTO = customerService.getCustomerOrderSummaryById(customerId);
+    public ResponseEntity<?> getCustomerOrderSummary(@PathVariable("id") long customerId) {
+        List<CustomerOrderSummaryDTO> summaryDTO = customerService.getCustomerOrderSummaryById(customerId);
         return ResponseEntity.ok(summaryDTO);
     }
 
