@@ -70,8 +70,8 @@ public class SecurityConfiguration {
                 .httpBasic(Customizer.withDefaults())
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration();
-//                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("https://camgaothanhquang.com/")); // ## for production
-                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000")); // ## for development
+                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("https://camgaothanhquang.com/")); // ## for production
+//                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000")); // ## for development
                     corsConfiguration.setAllowedMethods(List.of(
                             RequestMethod.GET.name(),
                             RequestMethod.POST.name(),
