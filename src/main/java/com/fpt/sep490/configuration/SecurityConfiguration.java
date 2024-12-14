@@ -40,9 +40,9 @@ public class SecurityConfiguration {
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**",
                                                 "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
-    List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "products/admin/createProduct", "products/import/preview", "products/import/excel",
-                                                "products/import/previewFromProduction", "products/export/preview", "products/admin/products", "products/admin/order/products", "products/"
-                                                ,"products/admin/createProduct", "products/admin/updateProduct", "products/delete/{id}", "products/", "products/enable/{id}");
+    List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "/products/admin/createProduct", "/products/import/preview", "/products/import/excel",
+                                                "/products/import/previewFromProduction", "/products/export/preview", "/products/admin/products", "/products/admin/order/products", "/products/"
+                                                ,"/products/admin/createProduct", "/products/admin/updateProduct", "/products/delete/*", "/products/", "/products/enable/*", "/order/admin/orders", "/customer/");
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -57,9 +57,9 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                         .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
-                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN")
-                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN"))
-//                        .requestMatchers((warehouseManager.toArray(new String[0]))).hasAnyRole("WAREHOUSE_MANAGER"))
+                        .requestMatchers(warehouseManager.toArray(new String[0])).hasAnyRole("WAREHOUSE_MANAGER","ADMIN")
+                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
 
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
