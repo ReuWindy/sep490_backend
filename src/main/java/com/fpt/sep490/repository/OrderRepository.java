@@ -42,13 +42,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         """, nativeQuery = true)
     List<Object[]> findIncomeSummary();
 
-    @Query("""
-    SELECT 
-        COUNT(o), 
-        SUM(o.remainingAmount), 
-        (SELECT o2 FROM Order o2 WHERE o2.customer.id = :customerId ORDER BY o2.orderDate DESC LIMIT 1)
-    FROM Order o 
-    WHERE o.customer.id = :customerId
-""")
-    Object[] getOrderSummaryByCustomerId(@Param("customerId") long customerId);
+    @Query(value = """
+    SELECT
+        COUNT(o.id) AS order_count,
+        SUM(o.remaining_amount) AS total_remaining_amount,
+        (SELECT o2.id 
+         FROM orders o2 
+         WHERE o2.customer_id = :customerId 
+         ORDER BY o2.order_date DESC 
+         LIMIT 1) AS latest_order_id,
+        (SELECT o2.order_date 
+         FROM orders o2 
+         WHERE o2.customer_id = :customerId 
+         ORDER BY o2.order_date DESC 
+         LIMIT 1) AS latest_order_date
+    FROM orders o
+    WHERE o.customer_id = :customerId
+    """, nativeQuery = true)
+    List<Object[]> getOrderSummaryByCustomerId(@Param("customerId") long customerId);
 }
