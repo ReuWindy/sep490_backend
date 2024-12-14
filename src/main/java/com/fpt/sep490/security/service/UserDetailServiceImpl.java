@@ -11,7 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -27,15 +29,15 @@ public class UserDetailServiceImpl implements UserDetailsService {
         if (Objects.isNull(authenticatedUser)) {
             throw new UsernameNotFoundException(USERNAME_OR_PASSWORD_INVALID);
         }
+        final String authenticatedUsername = authenticatedUser.getUsername();
+        final String authenticatedPassword = authenticatedUser.getPassword();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         if(authenticatedUser.getUserType().equals(UserType.ROLE_EMPLOYEE)) {
-            final String authenticatedUsername = authenticatedUser.getUsername();
-            final String authenticatedPassword = authenticatedUser.getPassword();
             final String role = userService.findEmployeeByUsername(authenticatedUsername).getRole().getEmployeeRole().getRoleName();
-            final SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority("ROLE_"+ role);
-            return new User(authenticatedUsername, authenticatedPassword, Collections.singletonList(grantedAuthority));
+            authorities.add(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_"+ role));
+            return new User(authenticatedUsername, authenticatedPassword, authorities);
         }else{
-            final String authenticatedUsername = authenticatedUser.getUsername();
-            final String authenticatedPassword = authenticatedUser.getPassword();
             final UserType userType = authenticatedUser.getUserType();
             final SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(userType.name());
             return new User(authenticatedUsername, authenticatedPassword, Collections.singletonList(grantedAuthority));

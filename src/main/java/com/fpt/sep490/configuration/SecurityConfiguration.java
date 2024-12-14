@@ -34,15 +34,20 @@ public class SecurityConfiguration {
                                                  "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/order/customer/**","/ws/**", "/transaction/createTransaction",
                                                  "/user/**", "/employees/**", "/actuator/**", "/categories/all", "/products/customer/products", "/logout/**"
                                                 ,"/ws/**");
-    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/**");
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/*");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**",
                                                 "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
-    List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "products/admin/createProduct", "products/import/preview", "products/import/excel",
-                                                "products/import/previewFromProduction", "products/export/preview", "products/admin/products", "products/admin/order/products", "products/"
-                                                ,"products/admin/createProduct", "products/admin/updateProduct", "products/delete/{id}", "products/", "products/enable/{id}");
+    List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "/products/admin/createProduct", "/products/import/preview", "/products/import/excel",
+            "/products/import/previewFromProduction", "/products/export/preview", "/products/admin/products", "/products/admin/order/products", "/products/", "/products/admin/createProduct",
+            "/products/admin/updateProduct", "/products/delete/*", "/products/", "/products/enable/*", "/order/admin/orders", "/customer/",
+            "/order/details/*", "/order/admin/UpdateOrderDetail/*", "/order/admin/UpdateOrder/*", "/WarehouseReceipt/", "/order/admin/CreateOrder", "/suppliers/all", "/warehouses/all",
+            "/batchproducts/batchCode/*", "/batchproducts/update/*", "/batches/batchCode/*", "/inventory/getAll", "/inventory/createInventory", "/inventory/delete/*", "/inventory/getInventory/*", "/productwarehouse/getAllProductsWarehouse",
+            "/productionOrder/getAll", "/productionOrder/getById/*", "/productionOrder/getWithFilter", "/productionOrder/createProductionOrder", "/productionOrder/update/*", "/productionOrder/finishProduction/*",
+            "/productwarehouse/getAllIngredients");
+
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -57,15 +62,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                         .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
-                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN")
-                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN"))
-//                        .requestMatchers((warehouseManager.toArray(new String[0]))).hasAnyRole("WAREHOUSE_MANAGER"))
+                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN", "WAREHOUSE_MANAGER")
+                        .requestMatchers(warehouseManager.toArray(new String[0])).hasAnyRole("WAREHOUSE_MANAGER","ADMIN")
+                        .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
 
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
+//                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("https://camgaothanhquang.com/")); // ## for production
+                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000")); // ## for development
                     corsConfiguration.setAllowedMethods(List.of(
                             RequestMethod.GET.name(),
                             RequestMethod.POST.name(),
