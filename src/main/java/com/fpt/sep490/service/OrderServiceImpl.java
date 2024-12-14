@@ -97,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
                 .deposit(adminOrderDto.getDeposit())
                 .orderPhone(adminOrderDto.getOrderPhone())
                 .orderAddress(adminOrderDto.getOrderAddress())
-                .remainingAmount(adminOrderDto.getRemainingAmount())
+                .remainingAmount(adminOrderDto.getTotalAmount())
                 .status(StatusEnum.PENDING)
                 .build();
         double totalAmount = 0.0;
@@ -131,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount += totalPrice;
         }
         order.setTotalAmount(totalAmount);
+        order.setRemainingAmount(totalAmount);
         order.setOrderDetails(orderDetails);
         try {
             orderRepository.save(order);
@@ -190,6 +191,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount += totalPrice;
         }
         order.setTotalAmount(totalAmount);
+        order.setRemainingAmount(totalAmount);
         order.setOrderDetails(orderDetails);
         try {
             orderRepository.save(order);

@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                                                  "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/order/customer/**","/ws/**", "/transaction/createTransaction",
                                                  "/user/**", "/employees/**", "/actuator/**", "/categories/all", "/products/customer/products", "/logout/**"
                                                 ,"/ws/**");
-    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/**");
+    List<String> customerEndpoints = Arrays.asList("/products/customer/products", "/order/history/**","/order/customer/CreateOrder","/order/details/*");
     List<String> adminEndpoints = Arrays.asList("/suppliers/**", "/categories/**", "/batches/**", "/batchproducts/**","/products/**",
                                                 "/WarehouseReceipt/**", "/employeerole/**","/ReceiptVoucher/**", "/ExpenseVoucher/**",
                                                 "/news/", "/unitOfMeasures/**", "/productwarehouse/**", "/order/**",
@@ -62,8 +62,8 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(httpRequestsMatcher -> httpRequestsMatcher
                         .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
+                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN", "WAREHOUSE_MANAGER")
                         .requestMatchers(warehouseManager.toArray(new String[0])).hasAnyRole("WAREHOUSE_MANAGER","ADMIN")
-                        .requestMatchers(customerEndpoints.toArray(new String[0])).hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers(adminEndpoints.toArray(new String[0])).hasRole("ADMIN"))
 
                 .formLogin(Customizer.withDefaults())
