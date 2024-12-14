@@ -3,9 +3,11 @@ package com.fpt.sep490.service;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.BatchProduct;
 import com.fpt.sep490.model.Product;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -47,4 +49,6 @@ public interface ProductService {
     Product enableProduct(Long id);
 
     List<importProductDto> readExcelFile(MultipartFile file);
+
+    void createExcelTemplate(HttpServletResponse response) throws IOException;
 }

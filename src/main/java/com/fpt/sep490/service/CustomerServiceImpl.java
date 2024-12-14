@@ -64,17 +64,19 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerOrderSummaryDTO getCustomerOrderSummaryById(long customerId) {
         Object[] result = orderRepository.getOrderSummaryByCustomerId(customerId);
 
-        if (result != null) {
-            int totalOrders = ((Number) result[0]).intValue();
-            double totalRemainingDeposit = ((Number) result[1]).doubleValue();
+        if (result != null && result.length > 1) {
+            Number totalOrders = (Number) result[0];
+            Number totalRemainingDeposit = (Number) result[1];
 
-            return CustomerOrderSummaryDTO.builder()
-                    .totalOrders(totalOrders)
-                    .totalRemainingDeposit(totalRemainingDeposit)
-                    .build();
+            if (totalOrders != null && totalRemainingDeposit != null) {
+                return CustomerOrderSummaryDTO.builder()
+                        .totalOrders(totalOrders.intValue())
+                        .totalRemainingDeposit(totalRemainingDeposit.doubleValue())
+                        .build();
+            }
         }
 
-        throw new RuntimeException("Không tìm thấy người dùng");
+        throw new RuntimeException("Không tìm thấy các giá trị này");
     }
 
     @Override
