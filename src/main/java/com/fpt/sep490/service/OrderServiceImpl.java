@@ -283,7 +283,9 @@ public class OrderServiceImpl implements OrderService {
             for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
                 boolean found = false;
                 for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
-                    if (detailDto.getProductId().equals(updatedDetail.getProduct().getId())) {
+                    if (detailDto.getProductId().equals(updatedDetail.getProduct().getId()) &&
+                        detailDto.getProductUnit().equals(updatedDetail.getProductUnit()) &&
+                        detailDto.getWeightPerUnit() == updatedDetail.getWeightPerUnit() ) {
                         found = true;
                         if(detailDto.getQuantity() < 0){
                             throw new RuntimeException("Số lượng sản phẩm không được âm: Product ID " + detailDto.getProductId());
