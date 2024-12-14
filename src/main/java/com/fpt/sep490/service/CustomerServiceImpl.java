@@ -61,22 +61,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerOrderSummaryDTO getCustomerOrderSummaryById(long customerId) {
-        Object[] result = orderRepository.getOrderSummaryByCustomerId(customerId);
-
-        if (result != null && result.length > 1) {
-            Number totalOrders = (Number) result[0];
-            Number totalRemainingDeposit = (Number) result[1];
-
-            if (totalOrders != null && totalRemainingDeposit != null) {
-                return CustomerOrderSummaryDTO.builder()
-                        .totalOrders(totalOrders.intValue())
-                        .totalRemainingDeposit(totalRemainingDeposit.doubleValue())
-                        .build();
-            }
-        }
-
-        throw new RuntimeException("Không tìm thấy các giá trị này");
+    public List<CustomerOrderSummaryDTO> getCustomerOrderSummaryById(long customerId) {
+        List<Object[]> result = orderRepository.getOrderSummaryByCustomerId(customerId);
+        return result.stream().map(
+                row -> new CustomerOrderSummaryDTO(
+                        ((Number) row[0]).intValue(),
+                        ((Number) row[1]).doubleValue(),
+                        (Date) row[3]
+                )
+        ).toList();
     }
 
     @Override

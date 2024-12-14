@@ -42,7 +42,7 @@ public interface ProductService {
 
     String confirmAndExportProducts(Long batchId, List<ExportProductDto> exportProductDtos);
 
-    String prepareExportProduct(List<ExportProductDto> exportProductDtoList);
+    List<BatchProduct> prepareExportProduct(List<ExportProductDto> exportProductDtoList);
 
     Product disableProduct(Long id);
 
@@ -50,5 +50,9 @@ public interface ProductService {
 
     List<importProductDto> readExcelFile(MultipartFile file);
 
+    List<ExportProductDto> readExcelFileExport(MultipartFile file);
+
     void createExcelTemplate(HttpServletResponse response) throws IOException;
+
+    void createExcelTemplateExport(HttpServletResponse response) throws IOException;
 }

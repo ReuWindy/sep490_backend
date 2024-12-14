@@ -108,9 +108,28 @@ public class ProductController {
             List<BatchProduct> importList = productService.previewBatchProducts(importProductDtoList);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT_EXCEL", "Import lô hàng từ file Excel bởi: " + username);
+            userActivityService.logAndNotifyAdmin(username, "IMPORT_PRODUCT_EXCEL", "Nhập lô hàng từ file Excel bởi: " + username);
             messagingTemplate.convertAndSend("/topic/products", "Lô hàng nhập kho từ file Excel vừa được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.CREATED).body(importList);
+        } catch (RuntimeException e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse("Lỗi khi đọc file Excel.", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/export/excel")
+    public ResponseEntity<?> exportProductFromExcel(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
+        try {
+            List<ExportProductDto> exportProductDtoList = productService.readExcelFileExport(file);
+            List<BatchProduct> exportList = productService.prepareExportProduct(exportProductDtoList);
+            String token = jwtTokenManager.resolveTokenFromCookie(request);
+            String username = jwtTokenManager.getUsernameFromToken(token);
+            userActivityService.logAndNotifyAdmin(username, "EXPORT_PRODUCT_EXCEL", "Xuất lô hàng từ file Excel bởi: " + username);
+            messagingTemplate.convertAndSend("/topic/products", "Lô hàng nhập kho từ file Excel vừa được tạo bởi người dùng: " + username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(exportList);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -155,12 +174,12 @@ public class ProductController {
     @PostMapping("/export/preview")
     public ResponseEntity<?> prepareExportProduct(HttpServletRequest request, @Valid @RequestBody List<ExportProductDto> exportProductDtoList) {
         try {
-            String message = productService.prepareExportProduct(exportProductDtoList);
+            List<BatchProduct> exportList = productService.prepareExportProduct(exportProductDtoList);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "PREPARE_EXPORT_PRODUCT", "Tạo lô hàng xuất kho bởi " + username);
             messagingTemplate.convertAndSend("/topic/products", "Bản xem trước cho 1 lô hàng xuất kho mới vừa được tạo bởi người dùng: " + username);
-            return ResponseEntity.status(HttpStatus.CREATED).body(message);
+            return ResponseEntity.status(HttpStatus.CREATED).body(exportList);
         } catch (RuntimeException e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -323,6 +342,17 @@ public class ProductController {
     public ResponseEntity<?> generateExcelTemplate(HttpServletResponse response) throws IOException {
         try{
             productService.createExcelTemplate(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }catch (Exception e){
+            final ApiExceptionResponse res = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+        }
+    }
+
+    @GetMapping("/generateExportTemplate")
+    public ResponseEntity<?> generateExcelTemplateExport(HttpServletResponse response) throws IOException {
+        try{
+            productService.createExcelTemplateExport(response);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }catch (Exception e){
             final ApiExceptionResponse res = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());

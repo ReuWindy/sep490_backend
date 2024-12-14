@@ -23,5 +23,5 @@ public interface CustomerService {
 
     Page<User> getCustomerByFilter(String fullName, String email, String phone, int pageNumber, int pageSize);
 
-    CustomerOrderSummaryDTO getCustomerOrderSummaryById(long customerId);
+    List<CustomerOrderSummaryDTO> getCustomerOrderSummaryById(long customerId);
 }
