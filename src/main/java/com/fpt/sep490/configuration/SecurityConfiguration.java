@@ -41,8 +41,13 @@ public class SecurityConfiguration {
                                                 "/customer/**", "/contracts/**", "/warehouses/**", "/price/**", "/employees/**",
                                                 "/transaction/**","/inventory/**", "/finishedProduct/**", "/productionOrder/**", "/user-activities/**");
     List<String> warehouseManager = Arrays.asList("/categories/**", "/products/admin/products", "/products/admin/createProduct", "/products/import/preview", "/products/import/excel",
-                                                "/products/import/previewFromProduction", "/products/export/preview", "/products/admin/products", "/products/admin/order/products", "/products/"
-                                                ,"/products/admin/createProduct", "/products/admin/updateProduct", "/products/delete/*", "/products/", "/products/enable/*", "/order/admin/orders", "/customer/");
+            "/products/import/previewFromProduction", "/products/export/preview", "/products/admin/products", "/products/admin/order/products", "/products/", "/products/admin/createProduct",
+            "/products/admin/updateProduct", "/products/delete/*", "/products/", "/products/enable/*", "/order/admin/orders", "/customer/",
+            "/order/details/*", "/order/admin/UpdateOrderDetail/*", "/order/admin/UpdateOrder/*", "/WarehouseReceipt/", "/order/admin/CreateOrder", "/suppliers/all", "/warehouses/all",
+            "/batchproducts/batchCode/*", "/batchproducts/update/*", "/batches/batchCode/*", "/inventory/getAll", "/inventory/createInventory", "/inventory/delete/*", "/inventory/getInventory/*", "/productwarehouse/getAllProductsWarehouse",
+            "/productionOrder/getAll", "/productionOrder/getById/*", "/productionOrder/getWithFilter", "/productionOrder/createProductionOrder", "/productionOrder/update/*", "/productionOrder/finishProduction/*",
+            "/productwarehouse/getAllIngredients");
+
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
