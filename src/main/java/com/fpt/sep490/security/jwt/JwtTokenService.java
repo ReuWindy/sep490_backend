@@ -58,7 +58,8 @@ public class JwtTokenService {
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
-        response.addCookie(cookie);
+        cookie.setDomain("localhost");
+        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=.camgaothanhquang.com; Max-Age=604800; HttpOnly; Secure; SameSite=None");
         log.info("{} has successfully logged in!", user.getUsername());
         if(user.getUserType() == UserType.ROLE_EMPLOYEE){
             return new EmployeeLoginResponse(token, user.getUserType(), user.getUsername(), user.getId(), employee.getRole().getEmployeeRole().getRoleName());
@@ -88,7 +89,7 @@ public class JwtTokenService {
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
-        response.addCookie(cookie);
+        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=.camgaothanhquang.com; Max-Age=0; HttpOnly; Secure; SameSite=None");
 
         log.info("User has successfully logged out!");
 
