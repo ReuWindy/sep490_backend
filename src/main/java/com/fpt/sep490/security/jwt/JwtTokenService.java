@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -27,6 +28,9 @@ public class JwtTokenService {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final EmployeeService employeeService;
+
+    @Value("${app.cookie.domain}")
+    private String cookieDomain;
 
     public LoginResponse getLoginResponse(LoginRequest loginRequest, HttpServletResponse response) {
 
@@ -59,8 +63,7 @@ public class JwtTokenService {
         cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setDomain("localhost");
-        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=.camgaothanhquang.com; Max-Age=604800; HttpOnly; Secure; SameSite=None"); // ## For production
-//        response.addCookie(cookie); // ## For development
+        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=" + cookieDomain + "; Max-Age=604800; HttpOnly; Secure; SameSite=None"); // ## For production
         log.info("{} has successfully logged in!", user.getUsername());
         if(user.getUserType() == UserType.ROLE_EMPLOYEE){
             return new EmployeeLoginResponse(token, user.getUserType(), user.getUsername(), user.getId(), employee.getRole().getEmployeeRole().getRoleName());
@@ -90,8 +93,7 @@ public class JwtTokenService {
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
-        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=.camgaothanhquang.com; Max-Age=0; HttpOnly; Secure; SameSite=None"); // ## For production
-//        response.addCookie(cookie); // ## For development
+        response.setHeader("Set-Cookie", "token=" + token + "; Path=/; Domain=" + cookieDomain + "; Max-Age=0; HttpOnly; Secure; SameSite=None"); // ## For production
         log.info("User has successfully logged out!");
 
         return new LogoutResponse("You have logged out successfully.");

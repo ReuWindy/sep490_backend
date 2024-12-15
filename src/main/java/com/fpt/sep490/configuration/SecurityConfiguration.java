@@ -1,6 +1,7 @@
 package com.fpt.sep490.configuration;
 
 import com.fpt.sep490.security.jwt.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +26,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${app.allowOrigin.url}")
+    String allowedOrigin;
 
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -70,8 +74,7 @@ public class SecurityConfiguration {
                 .httpBasic(Customizer.withDefaults())
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("https://camgaothanhquang.com/")); // ## for production
-//                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000")); // ## for development
+                    corsConfiguration.setAllowedOriginPatterns(Collections.singletonList(allowedOrigin));
                     corsConfiguration.setAllowedMethods(List.of(
                             RequestMethod.GET.name(),
                             RequestMethod.POST.name(),
