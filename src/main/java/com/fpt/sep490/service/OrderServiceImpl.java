@@ -253,7 +253,7 @@ public class OrderServiceImpl implements OrderService {
                         detailDto.getWeightPerUnit() == updatedDetail.getWeightPerUnit() ) {
                         found = true;
                         if(detailDto.getQuantity() < 0){
-                            throw new RuntimeException("Số lượng sản phẩm không được âm: Product ID " + detailDto.getProductId());
+                            throw new RuntimeException("Số lượng của sản phẩm " + detailDto.getName() + "không được âm");
                         }
                         updatedDetail.setQuantity(detailDto.getQuantity());
                         double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
@@ -267,10 +267,10 @@ public class OrderServiceImpl implements OrderService {
                 }
                 if(!found){
                     Product product = productRepository.findById(detailDto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + detailDto.getProductId()));
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm : " + detailDto.getName()));
 
                     if (detailDto.getQuantity() <= 0) {
-                        throw new RuntimeException("Số lượng sản phẩm không được âm hoặc bằng 0 khi thêm mới: Product ID " + detailDto.getProductId());
+                        throw new RuntimeException("Số lượng sản phẩm " + detailDto.getName() +" không được âm hoặc bằng 0 khi thêm mới!");
                     }
 
                     OrderDetail newDetail = new OrderDetail();
@@ -296,7 +296,7 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(updatedOrder);
             return updatedOrder;
         }catch (Exception e){
-            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" + e.getMessage());
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" );
         }
     }
 
@@ -512,7 +512,7 @@ public class OrderServiceImpl implements OrderService {
             }
             int availableQuantity = productWarehouses.stream().mapToInt(ProductWarehouse::getQuantity).sum();
             if(availableQuantity < requiredQuantity){
-                throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
+                throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm : " + orderDetail.getProduct().getName());
             }
         }
     }
