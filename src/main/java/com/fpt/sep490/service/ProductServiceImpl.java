@@ -139,10 +139,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
+    public Page<AdminProductDto> getProductByFilterForAdmin(String productCode, String productName, Long categoryId, Long supplierId, String batchCode, Long warehouseId, Date importDate, String productQuantity, String sortDirection, String priceOrder, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductSpecification productSpecs = new ProductSpecification();
-        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, warehouseId, batchCode, importDate, priceOrder, sortDirection);
+        Specification<Product> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, categoryId, supplierId, warehouseId, batchCode, importDate, priceOrder, sortDirection);
         Page<Product> products = productRepository.findAll(specification, pageable);
         return products.map(this::convertToAdminProductDto);
     }
