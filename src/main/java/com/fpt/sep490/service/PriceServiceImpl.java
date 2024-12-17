@@ -129,11 +129,13 @@ public class PriceServiceImpl implements PriceService {
             if (existingProductPrice.isPresent()) {
                 productPrice = existingProductPrice.get();
                 productPrice.setUnit_price(updateUnitPrice);
+                updatedProduct.setPrice(updateUnitPrice);
             } else {
                 productPrice = new ProductPrice();
                 productPrice.setUnit_price(updateUnitPrice);
                 productPrice.setProduct(updatedProduct);
                 productPrice.setPrice(updatedPrice);
+                updatedProduct.setPrice(updateUnitPrice);
             }
             updatedProductPriceDto.add(productPriceRepository.save(productPrice));
         }

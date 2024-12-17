@@ -38,7 +38,7 @@ public class UpdateTransactionTests {
     @BeforeEach
     void setUp() {
 
-        // Tạo dữ liệu giả cho TransactionDto
+
         transactionDto = new TransactionDto();
         transactionDto.setId(1L);
         transactionDto.setReceiptVoucherId(1L);
@@ -46,14 +46,14 @@ public class UpdateTransactionTests {
         transactionDto.setTransactionDate(new Date());
         transactionDto.setPaymentMethod("Credit Card");
 
-        // Tạo dữ liệu giả cho Transaction
+
         existingTransaction = new Transaction();
         existingTransaction.setId(1L);
         existingTransaction.setAmount(500.0);
         existingTransaction.setTransactionDate(new Date());
         existingTransaction.setPaymentMethod("Cash");
 
-        // Tạo dữ liệu giả cho ReceiptVoucher
+
         receiptVoucher = new ReceiptVoucher();
         receiptVoucher.setId(1L);
         receiptVoucher.setPaidAmount(1000.0);
@@ -99,7 +99,7 @@ public class UpdateTransactionTests {
 
     @Test
     public void TransactionService_UpdateTransaction_TransactionExpired() {
-        // Cập nhật thời gian giao dịch đã quá 3 ngày
+
         transactionDto.setTransactionDate(new Date(System.currentTimeMillis() - (4L * 24 * 60 * 60 * 1000)));
 
         when(transactionRepository.findById(anyLong())).thenReturn(Optional.of(existingTransaction));
