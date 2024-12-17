@@ -131,7 +131,7 @@ public class OrderController {
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdAdminOrder.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(createdAdminOrder);
         }catch (Exception e) {
-            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
@@ -146,7 +146,7 @@ public class OrderController {
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdCustomerOrder.getId() + " đã được tạo bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(createdCustomerOrder);
         }catch (Exception e) {
-            final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
@@ -161,7 +161,7 @@ public class OrderController {
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e) {
-            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
@@ -176,7 +176,7 @@ public class OrderController {
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e){
-            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
@@ -191,7 +191,7 @@ public class OrderController {
             messagingTemplate.convertAndSend("/topic/orders", "Chi tiết đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e) {
-            final ApiExceptionResponse response = new ApiExceptionResponse("Updated Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

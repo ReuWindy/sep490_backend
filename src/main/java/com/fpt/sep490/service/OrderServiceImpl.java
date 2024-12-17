@@ -86,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderRepository.findAll(spec, pageable);
     }
-
+    @Transactional
     @Override
     public Order createAdminOrder(AdminOrderDto adminOrderDto) {
         Customer customer = customerRepository.findById(adminOrderDto.getCustomerId()).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
@@ -97,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
                 .deposit(adminOrderDto.getDeposit())
                 .orderPhone(adminOrderDto.getOrderPhone())
                 .orderAddress(adminOrderDto.getOrderAddress())
-                .remainingAmount(adminOrderDto.getRemainingAmount())
+                .remainingAmount(adminOrderDto.getTotalAmount())
                 .status(StatusEnum.PENDING)
                 .build();
         double totalAmount = 0.0;
@@ -131,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount += totalPrice;
         }
         order.setTotalAmount(totalAmount);
+        order.setRemainingAmount(totalAmount);
         order.setOrderDetails(orderDetails);
         try {
             orderRepository.save(order);
@@ -147,6 +148,7 @@ public class OrderServiceImpl implements OrderService {
         return order;
     }
 
+    @Transactional
     @Override
     public Order createCustomerOrder(CustomerOrderDto customerOrderDto) {
         Customer customer = customerRepository.findById(customerOrderDto.getCustomerId()).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
@@ -190,6 +192,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount += totalPrice;
         }
         order.setTotalAmount(totalAmount);
+        order.setRemainingAmount(totalAmount);
         order.setOrderDetails(orderDetails);
         try {
             orderRepository.save(order);
@@ -218,60 +221,22 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Không tìm thấy người dùng");
         }
         if (status != null) {
+
+            if(status == StatusEnum.CONFIRMED){
+                validateProductQuantity(updatedOrder);
+            }
+            if (status == StatusEnum.IN_PROCESS) {
+                processOrder(updatedOrder);
+            }
             updatedOrder.setStatus(status);
             updatedOrder.setCreateBy(user.getFullName());
-            if (status == StatusEnum.IN_PROCESS) {
-                Set<OrderDetail> orderDetails = updatedOrder.getOrderDetails();
-                for (OrderDetail orderDetail : orderDetails) {
-                    long productId = orderDetail.getProduct().getId();
-                    String unit = orderDetail.getProductUnit();
-                    double weightPerUnit = orderDetail.getWeightPerUnit();
-                    int requiredQuantity = orderDetail.getQuantity();
-                    if (requiredQuantity < 0) {
-                        throw new RuntimeException("Số lượng sản phẩm phải là số dương");
-                    }
-                    List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
-                            productId, unit, weightPerUnit
-                    );
-                    if (warehouses.isEmpty()) {
-                        throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
-                    }
-                    for (ProductWarehouse warehouse : warehouses) {
-                        int availableQuantity = warehouse.getQuantity();
-                        if (requiredQuantity <= 0) break;
-
-                        if (availableQuantity >= requiredQuantity) {
-                            // Trừ toàn bộ số lượng từ kho hiện tại
-                            warehouse.setQuantity(availableQuantity - requiredQuantity);
-                            productWareHouseRepository.save(warehouse);
-                            requiredQuantity = 0;
-                        } else {
-                            // Trừ toàn bộ số lượng khả dụng từ kho hiện tại, chuyển phần còn lại sang kho tiếp theo
-                            requiredQuantity -= availableQuantity;
-                            warehouse.setQuantity(0);
-                            productWareHouseRepository.save(warehouse);
-                        }
-                    }
-                    // Kiểm tra nếu không đủ hàng trong tất cả các kho
-                    if (requiredQuantity > 0) {
-                        throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm có id: " + productId);
-                    }
-                }
-
-                WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
-                warehouseReceipt.setOrder(updatedOrder);
-                warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
-                warehouseReceipt.setReceiptDate(new Date());
-                warehouseReceipt.setReceiptReason("Xuất kho để bán");
-                warehouseReceiptRepository.save(warehouseReceipt);
-                orderRepository.save(updatedOrder);
-            }
         } else {
             throw new RuntimeException("Xảy ra lỗi không cập nhật trạng thái đơn hàng!");
         }
         return updatedOrder;
     }
 
+    @Transactional
     @Override
     public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
@@ -288,7 +253,7 @@ public class OrderServiceImpl implements OrderService {
                         detailDto.getWeightPerUnit() == updatedDetail.getWeightPerUnit() ) {
                         found = true;
                         if(detailDto.getQuantity() < 0){
-                            throw new RuntimeException("Số lượng sản phẩm không được âm: Product ID " + detailDto.getProductId());
+                            throw new RuntimeException("Số lượng của sản phẩm " + detailDto.getName() + "không được âm");
                         }
                         updatedDetail.setQuantity(detailDto.getQuantity());
                         double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
@@ -302,10 +267,10 @@ public class OrderServiceImpl implements OrderService {
                 }
                 if(!found){
                     Product product = productRepository.findById(detailDto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + detailDto.getProductId()));
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm : " + detailDto.getName()));
 
                     if (detailDto.getQuantity() <= 0) {
-                        throw new RuntimeException("Số lượng sản phẩm không được âm hoặc bằng 0 khi thêm mới: Product ID " + detailDto.getProductId());
+                        throw new RuntimeException("Số lượng sản phẩm " + detailDto.getName() +" không được âm hoặc bằng 0 khi thêm mới!");
                     }
 
                     OrderDetail newDetail = new OrderDetail();
@@ -331,7 +296,7 @@ public class OrderServiceImpl implements OrderService {
             orderRepository.save(updatedOrder);
             return updatedOrder;
         }catch (Exception e){
-            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" + e.getMessage());
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" );
         }
     }
 
@@ -528,5 +493,68 @@ public class OrderServiceImpl implements OrderService {
                 .userPerform(userPerform)
                 .build();
         orderActivityRepository.save(activity);
+    }
+    private void validateProductQuantity(Order order){
+        Set<OrderDetail> orderDetails = order.getOrderDetails();
+        for(OrderDetail orderDetail : orderDetails){
+            long productId = orderDetail.getProduct().getId();
+            String unit = orderDetail.getProductUnit();
+            double weightPerUnit = orderDetail.getWeightPerUnit();
+            int requiredQuantity = orderDetail.getQuantity();
+            if(requiredQuantity <0){
+                throw new RuntimeException("Số lượng sản phẩm phải là số dương");
+            }
+            List<ProductWarehouse> productWarehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
+                    productId, unit, weightPerUnit
+            );
+            if(productWarehouses.isEmpty()){
+                throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
+            }
+            int availableQuantity = productWarehouses.stream().mapToInt(ProductWarehouse::getQuantity).sum();
+            if(availableQuantity < requiredQuantity){
+                throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm : " + orderDetail.getProduct().getName());
+            }
+        }
+    }
+
+    private void processOrder(Order order){
+        Set<OrderDetail> orderDetails = order.getOrderDetails();
+        for (OrderDetail orderDetail : orderDetails) {
+            long productId = orderDetail.getProduct().getId();
+            String unit = orderDetail.getProductUnit();
+            double weightPerUnit = orderDetail.getWeightPerUnit();
+            int requiredQuantity = orderDetail.getQuantity();
+            if (requiredQuantity < 0) {
+                throw new RuntimeException("Số lượng sản phẩm phải là số dương");
+            }
+            List<ProductWarehouse> warehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
+                    productId, unit, weightPerUnit
+            );
+            if (warehouses.isEmpty()) {
+                throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
+            }
+            for (ProductWarehouse warehouse : warehouses) {
+                int availableQuantity = warehouse.getQuantity();
+                if (requiredQuantity <= 0) break;
+
+                if (availableQuantity >= requiredQuantity) {
+                    warehouse.setQuantity(availableQuantity - requiredQuantity);
+                    productWareHouseRepository.save(warehouse);
+                    requiredQuantity = 0;
+                } else {
+                    requiredQuantity -= availableQuantity;
+                    warehouse.setQuantity(0);
+                    productWareHouseRepository.save(warehouse);
+                }
+            }
+        }
+
+        WarehouseReceipt warehouseReceipt = new WarehouseReceipt();
+        warehouseReceipt.setOrder(order);
+        warehouseReceipt.setReceiptType(ReceiptType.EXPORT);
+        warehouseReceipt.setReceiptDate(new Date());
+        warehouseReceipt.setReceiptReason("Xuất kho để bán");
+        warehouseReceiptRepository.save(warehouseReceipt);
+        orderRepository.save(order);
     }
 }
