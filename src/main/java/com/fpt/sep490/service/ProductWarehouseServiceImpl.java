@@ -73,10 +73,10 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
     }
 
     @Override
-    public Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long warehouseId, int pageNumber, int pageSize) {
+    public Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long categoryId, Long supplierId, Long warehouseId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         ProductWarehouseSpecification productSpecs = new ProductWarehouseSpecification();
-        Specification<ProductWarehouse> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, warehouseId);
+        Specification<ProductWarehouse> specification = productSpecs.hasProductCodeOrProductNameOrBatchCodeOrImportDate(productCode, productName, categoryId, supplierId, warehouseId);
         Page<ProductWarehouse> products = productWareHouseRepository.findAll(specification, pageable);
         return products.map(this::toDto);
     }

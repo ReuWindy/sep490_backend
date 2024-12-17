@@ -16,7 +16,7 @@ public interface ProductWarehouseService {
 
     List<ProductWarehouseDto> getAllProducts();
 
-    Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long warehouseId, int pageNumber, int pageSize);
+    Page<ProductWarehouseDto> getProductWarehousesByFilter(String productCode, String productName, Long categoryId, Long supplierId, Long warehouseId, int pageNumber, int pageSize);
 
     List<ProductWarehouseDto> getAllIngredients();
 
