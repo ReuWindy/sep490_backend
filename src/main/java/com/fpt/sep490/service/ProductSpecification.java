@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ProductSpecification {
     public Specification<Product> hasProductCodeOrProductNameOrBatchCodeOrImportDate(
-            String productCode, String productName, Long warehouseId,
+            String productCode, String productName, Long categoryId, Long supplierId, Long warehouseId,
             String batchCode, Date importDate, String priceOrder, String sortDirection) {
 
         return (root, query, criteriaBuilder) -> {
@@ -23,6 +23,16 @@ public class ProductSpecification {
 
             if (productName != null && !productName.isEmpty()) {
                 predicates.add(criteriaBuilder.like(root.get("name"), "%" + productName + "%"));
+            }
+
+            if (categoryId != null) {
+                Join<Product, Category> categoryJoin = root.join("category");
+                predicates.add(criteriaBuilder.equal(categoryJoin.get("id"), categoryId));
+            }
+
+            if (supplierId != null) {
+                Join<Product, Supplier> supplierJoin = root.join("supplier");
+                predicates.add(criteriaBuilder.equal(supplierJoin.get("id"), supplierId));
             }
 
             if (batchCode != null && !batchCode.isEmpty()) {

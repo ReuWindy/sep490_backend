@@ -230,6 +230,8 @@ public class ProductController {
     public ResponseEntity<PagedModel<EntityModel<AdminProductDto>>> adminProductPage(
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String productName,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long supplierId,
             @RequestParam(required = false) String batchCode,
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date importDate,
@@ -239,7 +241,7 @@ public class ProductController {
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<AdminProductDto> pagedResourcesAssembler) {
-        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, batchCode, warehouseId, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
+        Page<AdminProductDto> productPage = productService.getProductByFilterForAdmin(productCode, productName, categoryId, supplierId, batchCode, warehouseId, importDate, productQuantity, sortDirection, priceOrder, pageNumber, pageSize);
         PagedModel<EntityModel<AdminProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
