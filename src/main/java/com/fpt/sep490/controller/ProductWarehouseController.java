@@ -52,10 +52,12 @@ public class ProductWarehouseController {
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) Long warehouseId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long supplierId,
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             PagedResourcesAssembler<ProductWarehouseDto> pagedResourcesAssembler) {
-        Page<ProductWarehouseDto> productPage = productWarehouseService.getProductWarehousesByFilter(productCode, productName, warehouseId, pageNumber, pageSize);
+        Page<ProductWarehouseDto> productPage = productWarehouseService.getProductWarehousesByFilter(productCode, productName, categoryId, supplierId, warehouseId, pageNumber, pageSize);
         PagedModel<EntityModel<ProductWarehouseDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
         return ResponseEntity.ok(pagedModel);
     }
