@@ -2,8 +2,10 @@ package com.fpt.sep490.api.Service;
 
 import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.TransactionDto;
+import com.fpt.sep490.model.Order;
 import com.fpt.sep490.model.ReceiptVoucher;
 import com.fpt.sep490.model.Transaction;
+import com.fpt.sep490.repository.OrderRepository;
 import com.fpt.sep490.repository.ReceiptVoucherRepository;
 import com.fpt.sep490.repository.TransactionRepository;
 import com.fpt.sep490.service.TransactionServiceImpl;
@@ -32,6 +34,10 @@ public class CreateTransactionByAdminTests {
     private ReceiptVoucher receiptVoucher;
     @Mock
     private ReceiptVoucherRepository receiptVoucherRepository;
+    @Mock
+    private Order order;
+    @Mock
+    private OrderRepository orderRepository;
     @InjectMocks
     private TransactionServiceImpl transactionService;
 
@@ -50,6 +56,10 @@ public class CreateTransactionByAdminTests {
         receiptVoucher.setPaidAmount(500.0);
         receiptVoucher.setTotalAmount(2000.0);
         receiptVoucher.setRemainAmount(1500.0);
+        receiptVoucher.setOrder(order);
+
+        order = new Order();
+        order.setRemainingAmount(1500.0);
     }
 
     @Test

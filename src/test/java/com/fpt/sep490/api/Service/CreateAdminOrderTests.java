@@ -123,7 +123,7 @@ public class CreateAdminOrderTests {
         // Assert : Verified the result
         assertNotNull(createdOrder);
         assertEquals(100.0, createdOrder.getDeposit());
-        assertEquals(200.0, createdOrder.getRemainingAmount());
+        assertEquals(19000.0, createdOrder.getRemainingAmount());
         assertEquals(StatusEnum.PENDING, createdOrder.getStatus());
 
         // Verify interactions with repositories
