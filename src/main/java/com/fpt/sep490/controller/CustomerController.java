@@ -93,7 +93,7 @@ public class CustomerController {
             messagingTemplate.convertAndSend("/topic/customers", "Khách hàng với tên " + existingCustomer.getFullName() + " đã được cập nhật bởi người dùng: " + username);
             return ResponseEntity.status(HttpStatus.OK).body(existingCustomer);
         }catch( Exception e ) {
-            final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

@@ -184,14 +184,14 @@ public class ProductServiceImpl implements ProductService {
         createdProduct.setPrice(productDto.getPrice());
         createdProduct.setProductCode(RandomProductCodeGenerator.generateProductCode());
         Category category = categoryRepository.findById(productDto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục!"));
 
         if (!category.getActive()) {
             throw new RuntimeException("Danh mục đã bị vô hiệu hóa, Vui lòng chọn danh mục khác");
         }
 
         Supplier supplier = supplierRepository.findById(productDto.getSupplierId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp!"));
 
         if (!supplier.isActive()) {
             throw new RuntimeException("Nhà cung cấp đã bị vô hiệu hóa, Vui lòng chọn nhà cung cấp khác");
@@ -199,8 +199,12 @@ public class ProductServiceImpl implements ProductService {
 
         createdProduct.setSupplier(supplier);
         createdProduct.setCategory(category);
-        productRepository.save(createdProduct);
-        return createdProduct;
+        try {
+            productRepository.save(createdProduct);
+            return createdProduct;
+        }catch (Exception e){
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo sản phẩm mới!");
+        }
     }
 
     @Override
@@ -237,7 +241,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             return productRepository.save(product);
         } catch (Exception e) {
-            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm: " + e.getMessage());
+            throw new RuntimeException("Xảy ra lỗi trong quá trình tạo mới sản phẩm!");
         }
     }
 

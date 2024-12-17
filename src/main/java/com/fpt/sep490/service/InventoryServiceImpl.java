@@ -118,9 +118,9 @@ public class InventoryServiceImpl implements InventoryService {
                             && d.getUnit().equals(detail.getUnit())
                             && d.getWeightPerUnit() == detail.getWeightPerUnit())
                     .findFirst()
-                    .orElse(null);   // Không tạo mới, nếu không tìm thấy thì bỏ qua
+                    .orElse(null);
 
-            // Nếu tìm thấy InventoryDetail, cập nhật nó
+
             if (inventoryDetail != null) {
                 int discrepancy = detail.getQuantity() - detail.getSystemQuantity();
                 inventoryDetail.setQuantity(detail.getQuantity());
@@ -128,7 +128,7 @@ public class InventoryServiceImpl implements InventoryService {
                 inventoryDetail.setSystemQuantity(detail.getSystemQuantity());
                 inventoryDetail.setQuantity_discrepancy(discrepancy);
             } else {
-                // Nếu không tìm thấy InventoryDetail tương ứng, có thể bỏ qua hoặc báo lỗi
+
                 throw new RuntimeException("Lỗi: Không tìm thấy chi tiết kiểm kho phù hợp.");
             }
 

@@ -84,12 +84,13 @@ public class EmployeeController {
 
     @PostMapping("/updateEmployee")
     public ResponseEntity<?> updateEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        Employee updatedEmployee = employeeService.updateEmployee(employeeDTO);
-        if (updatedEmployee != null) {
+        try {
+            Employee updatedEmployee = employeeService.updateEmployee(employeeDTO);
             return ResponseEntity.status(HttpStatus.OK).body(updatedEmployee);
+        }catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        final ApiExceptionResponse response = new ApiExceptionResponse("Update failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @GetMapping("/salary")
