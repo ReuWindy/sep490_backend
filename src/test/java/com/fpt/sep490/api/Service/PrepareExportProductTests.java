@@ -130,7 +130,7 @@ public class PrepareExportProductTests {
         List<BatchProduct> result = productService.prepareExportProduct(exportProductDtoList);
 
         // Assert
-        assertEquals("Ok", result);
+        assertNotNull(result);
         verify(batchRepository, times(1)).save(any(Batch.class)); // Kiểm tra xem batch có được lưu không
         verify(batchRepository, times(0)).delete(any(Batch.class)); // Kiểm tra xem batch không bị xóa
     }
@@ -184,7 +184,7 @@ public class PrepareExportProductTests {
         List<BatchProduct> result = productService.prepareExportProduct(exportProductDtoList);
 
         // Assert
-        assertEquals("Ok", result);
+        assertNotNull(result);
         verify(warehouseReceiptService, times(1)).createExportWarehouseReceipt(anyString()); // Kiểm tra tạo receipt
         assertNotNull(batch.getWarehouseReceipt()); // Kiểm tra xem warehouseReceipt có được gán cho batch
     }

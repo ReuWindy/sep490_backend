@@ -113,8 +113,11 @@ public class UpdateOrderByAdminTests {
 
     @Test
     public void OrderService_UpdateOrder_FailWhenNotEnoughStock() {
+
+        productWarehouse.setQuantity(10);  // Mock insufficient stock
+        adminOrderDto.setStatus(StatusEnum.CONFIRMED);
+
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        productWarehouse.setQuantity(50);  // Mock insufficient stock
         when(userRepository.findByUsername(anyString())).thenReturn(mockUser);
         when(productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(anyLong(), anyString(), anyDouble()))
                 .thenReturn(List.of(productWarehouse));
@@ -123,7 +126,7 @@ public class UpdateOrderByAdminTests {
             orderService.updateOrderByAdmin(1L, adminOrderDto,"testUser");
         });
 
-        assertEquals("Không đủ hàng có sẵn cho sản phẩm có id: " + order.getOrderDetails().iterator().next().getId(), exception.getMessage());
+        assertEquals("Không đủ hàng có sẵn cho sản phẩm : " + order.getOrderDetails().iterator().next().getProduct().getName(), exception.getMessage());
     }
 
     @Test
