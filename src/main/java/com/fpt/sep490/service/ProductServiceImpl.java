@@ -544,6 +544,7 @@ public class ProductServiceImpl implements ProductService {
                             Product product = newProductWarehouse.getProduct();
                             product.setImportPrice(batchProduct.getPrice());
                             product.setUpdateAt(new Date());
+
                             productRepository.save(newProductWarehouse.getProduct());
                             return newProductWarehouse;
                         });
@@ -566,7 +567,7 @@ public class ProductServiceImpl implements ProductService {
 
     private static ProductWarehouse getProductWarehouse(BatchProduct batchProduct, Warehouse warehouse) {
         ProductWarehouse productWarehouse = new ProductWarehouse();
-        productWarehouse.setQuantity(batchProduct.getQuantity());
+        productWarehouse.setQuantity(0);
         productWarehouse.setImportPrice(batchProduct.getPrice());
         productWarehouse.setWeightPerUnit(batchProduct.getWeightPerUnit());
         productWarehouse.setWeight(batchProduct.getWeight());
