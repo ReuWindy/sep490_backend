@@ -788,6 +788,7 @@ public class ProductServiceImpl implements ProductService {
             }
             if (product.getSupplier() != null) {
                 productDto.setSupplierId(product.getSupplier().getId());
+                productDto.setSupplierName(product.getSupplier().getName());
             }
             if (product.getUnitOfMeasure() != null) {
                 productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
