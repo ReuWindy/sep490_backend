@@ -5,6 +5,7 @@ import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Category;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
 import com.fpt.sep490.service.CategoryService;
+import com.fpt.sep490.service.NotificationService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
@@ -27,12 +28,14 @@ public class CategoryController {
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
-    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
+    public CategoryController(CategoryService categoryService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate, NotificationService notificationService) {
         this.categoryService = categoryService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/all")
@@ -92,6 +95,7 @@ public class CategoryController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_CATEGORY", "Tạo danh mục: " + createdCategory.getName() + " by " + username);
             messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được tạo bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã tạo danh mục: "+ createdCategory.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -107,6 +111,7 @@ public class CategoryController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CATEGORY", "Update category: " + updatedCategory.getName() + " by " + username);
             messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã cập nhật danh mục: "+ updatedCategory.getName());
             return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -135,6 +140,7 @@ public class CategoryController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_CATEGORY", "Ẩn danh mục " + category.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được ẩn bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã ẩn danh mục: "+ category.getName());
             return ResponseEntity.status(HttpStatus.OK).body(category);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -150,6 +156,7 @@ public class CategoryController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_CATEGORY", "Kích hoạt danh mục " + category.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/categories", "Danh mục " + category.getName() + " đã được kích hoạt bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã kích hoạt danh mục: "+ category.getName());
             return ResponseEntity.status(HttpStatus.OK).body(category);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());

@@ -514,7 +514,6 @@ public class ProductServiceImpl implements ProductService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng với id:" + batchId));
 
-        // Step 1: Create the selection map and check for duplicate keys
         Map<String, BatchProductSelection> selectionMap = new HashMap<>();
         for (BatchProductSelection selection : batchProductSelections) {
             String key = selection.getProductId() + "-" + selection.getUnit() + "-" + selection.getWeighPerUnit() + "-" + selection.getSupplierId();
@@ -538,26 +537,14 @@ public class ProductServiceImpl implements ProductService {
                 Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
 
-                ProductWarehouse productWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
-                                batchProduct.getProduct(),
-                                batchProduct.getUnit(),
-                                batchProduct.getWeightPerUnit(),
-                                batchProduct.getWarehouseId())
-                        .orElseGet(() -> {
-                            ProductWarehouse newProductWarehouse = getProductWarehouse(batchProduct, warehouse);
-                            Product product = newProductWarehouse.getProduct();
-                            product.setImportPrice(batchProduct.getPrice());
-                            product.setUpdateAt(new Date());
-
-                            productRepository.save(newProductWarehouse.getProduct());
-                            return newProductWarehouse;
-                        });
+                ProductWarehouse productWarehouse = getProductWarehouse(batchProduct, warehouse);
                 Product product = productWarehouse.getProduct();
                 product.setImportPrice(batchProduct.getPrice());
                 product.setUpdateAt(new Date());
+
+                productRepository.save(product);
                 productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
-                productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
             }
         }
@@ -568,6 +555,7 @@ public class ProductServiceImpl implements ProductService {
 
         return batch.getBatchCode();
     }
+
 
     private static ProductWarehouse getProductWarehouse(BatchProduct batchProduct, Warehouse warehouse) {
         ProductWarehouse productWarehouse = new ProductWarehouse();

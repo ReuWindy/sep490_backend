@@ -8,6 +8,7 @@ import com.fpt.sep490.model.Customer;
 import com.fpt.sep490.model.Price;
 import com.fpt.sep490.model.ProductPrice;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
+import com.fpt.sep490.service.NotificationService;
 import com.fpt.sep490.service.PriceService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +33,14 @@ public class PriceController {
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
-    public PriceController(PriceService priceService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
+    public PriceController(PriceService priceService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate, NotificationService notificationService) {
         this.priceService = priceService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/all")
@@ -70,6 +73,7 @@ public class PriceController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ADD_PRICE", "Giá " + request.getName() + "đã được tạo bởi người dùng:" + username);
             messagingTemplate.convertAndSend("/topic/prices", "Giá " + request.getName() + " đã được tạo bởi người dùng: " + username);
+            notificationService.saveNotification(username + "đã tạo bảng giá mới có id là: " + createdPrice.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdPrice);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse("Add Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -85,6 +89,7 @@ public class PriceController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_PRICE", "Cập nhật giá " + request.getName() + " bởi " + username);
             messagingTemplate.convertAndSend("/topic/prices", "Cập nhật giá " + request.getName() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + "đã cập nhật bảng giá có id là: " + updatedPrice.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(updatedPrice);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -100,6 +105,7 @@ public class PriceController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CUSTOMER_PRICE", "Cập nhật Bảng giá cho khách hàng" + " bởi " + username);
             messagingTemplate.convertAndSend("/topic/prices", "Bảng giá cho khách hàng" + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + "đã cập nhật bảng giá khách hàng");
             return ResponseEntity.status(HttpStatus.OK).body(updatedPriceCustomers);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -115,6 +121,7 @@ public class PriceController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_PRICE_ADMIN", "Cập nhật Bảng giá cho sản phẩm" + " bởi " + username);
             messagingTemplate.convertAndSend("/topic/prices", "Bảng giá cho sản phẩm " + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + "đã cập nhật bảng giá các sản phẩm");
             return ResponseEntity.status(HttpStatus.OK).body(updatedProductPrice);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse("Update Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -130,6 +137,7 @@ public class PriceController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DELETE_PRICE", "Xoá Bảng giá: " + priceId + " by " + username);
             messagingTemplate.convertAndSend("/topic/prices", "Bảng giá " + priceId + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + "đã xoá bảng giá có id là: " + priceId);
             return ResponseEntity.status(HttpStatus.OK).body("Xóa giá thành công!");
         } catch (RuntimeException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy giá phù hợp!");

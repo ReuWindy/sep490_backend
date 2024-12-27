@@ -3,6 +3,7 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Supplier;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
+import com.fpt.sep490.service.NotificationService;
 import com.fpt.sep490.service.SupplierService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,12 +27,14 @@ public class SupplierController {
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
-    public SupplierController(SupplierService supplierService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
+    public SupplierController(SupplierService supplierService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate, NotificationService notificationService) {
         this.supplierService = supplierService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/all")
@@ -80,6 +83,7 @@ public class SupplierController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_SUPPLIER", "Tạo mới nhà cung cấp " + createdSupplier.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + createdSupplier.getId() + " đã được tạo bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã tạo nhà cung cấp với tên: " + createdSupplier.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSupplier);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -95,6 +99,7 @@ public class SupplierController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_SUPPLIER", "Cập nhật nhà cung cấp " + updatedSupplier.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + updatedSupplier.getId() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã cập nhật nhà cung cấp với tên: " + updatedSupplier.getName());
             return ResponseEntity.status(HttpStatus.OK).body(updatedSupplier);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -133,6 +138,7 @@ public class SupplierController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "DISABLE_SUPPLIER", "Ẩn nhà cung cấp " + supplier.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + supplier.getName() + " đã được tạo ẩn người dùng: " + username);
+            notificationService.saveNotification(username+ " đã ẩn nhà cung cấp với tên: " + supplier.getName());
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -148,6 +154,7 @@ public class SupplierController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "ENABLE_SUPPLIER", "Kích hoạt nhà cung cấp " + supplier.getName() + " bởi người dùng: " + username);
             messagingTemplate.convertAndSend("/topic/suppliers", "Nhà cung cấp " + supplier.getName() + " đã được kích hoạt bởi người dùng: " + username);
+            notificationService.saveNotification(username+ " đã kích hoạt nhà cung cấp với tên: " + supplier.getName());
             return ResponseEntity.status(HttpStatus.OK).body(supplier);
         } catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
