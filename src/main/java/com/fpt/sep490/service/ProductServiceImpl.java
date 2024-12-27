@@ -42,8 +42,9 @@ public class ProductServiceImpl implements ProductService {
     private final UserService userService;
     private final CustomerRepository customerRepository;
     private final ProductPriceRepository productPriceRepository;
+    private final PriceRepository priceRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, ProductPriceRepository productPriceRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, ProductPriceRepository productPriceRepository,PriceRepository priceRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -57,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.productPriceRepository = productPriceRepository;
+        this.priceRepository = priceRepository;
     }
 
     @Override
@@ -524,7 +526,7 @@ public class ProductServiceImpl implements ProductService {
 
             selectionMap.put(key, selection);
         }
-
+        Price defaultPrice = priceRepository.findById(1L).orElseThrow(null);
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
 
@@ -541,11 +543,17 @@ public class ProductServiceImpl implements ProductService {
                 Product product = productWarehouse.getProduct();
                 product.setImportPrice(batchProduct.getPrice());
                 product.setUpdateAt(new Date());
-
-                productRepository.save(product);
                 productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
+
+                ProductPrice newProductPrice = new ProductPrice();
+                newProductPrice.setPrice(defaultPrice);
+                newProductPrice.setProduct(product);
+                newProductPrice.setUnit_price(productWarehouse.getImportPrice() + 200);
+                product.setPrice(productWarehouse.getImportPrice() + 200);
+                productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
+                productPriceRepository.save(newProductPrice);
             }
         }
 
@@ -816,6 +824,7 @@ public class ProductServiceImpl implements ProductService {
         }
         if (product.getSupplier() != null) {
             productDto.setSupplierId(product.getSupplier().getId());
+            productDto.setSupplierName(product.getSupplier().getName());
         }
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
