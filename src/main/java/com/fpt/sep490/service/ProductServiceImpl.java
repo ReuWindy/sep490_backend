@@ -545,15 +545,9 @@ public class ProductServiceImpl implements ProductService {
                 product.setUpdateAt(new Date());
                 productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
-
-                ProductPrice newProductPrice = new ProductPrice();
-                newProductPrice.setPrice(defaultPrice);
-                newProductPrice.setProduct(product);
-                newProductPrice.setUnit_price(productWarehouse.getImportPrice() + 200);
-                product.setPrice(productWarehouse.getImportPrice() + 200);
+                handleProductPrice(product, batchProduct.getPrice(), batchProduct.getUnit(), batchProduct.getWeightPerUnit());
                 productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
-                productPriceRepository.save(newProductPrice);
             }
         }
 
@@ -768,12 +762,36 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDto toProductDto(Product product, Customer customer) {
+//        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+//                .map(pw -> new UnitWeightPairs(
+//                        pw.getUnit(),
+//                        pw.getWeightPerUnit(),
+//                        pw.getQuantity()
+//                )).collect(Collectors.groupingBy(
+//                        pair-> new AbstractMap.SimpleEntry<>(pair.getProductUnit(),pair.getWeightPerUnit()),
+//                        Collectors.summingInt(UnitWeightPairs::getQuantity)
+//                ))
+//                .entrySet().stream()
+//                .map(entry -> new UnitWeightPairs(entry.getKey().getKey(), entry.getKey().getValue(), entry.getValue()))
+//                .collect(Collectors.toSet());
+
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
                 .map(pw -> new UnitWeightPairs(
                         pw.getUnit(),
                         pw.getWeightPerUnit(),
                         pw.getQuantity()
-                )).collect(Collectors.toSet());
+                )).collect(Collectors.toMap(
+                        pw -> new AbstractMap.SimpleEntry<>(pw.getProductUnit(), pw.getWeightPerUnit()),
+                        UnitWeightPairs::getQuantity,
+                        Integer::sum
+                ))
+                .entrySet().stream()
+                .map(entry -> new UnitWeightPairs(
+                        entry.getKey().getKey(),
+                        entry.getKey().getValue(),
+                        entry.getValue()))
+                .collect(Collectors.toSet());
+
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -805,12 +823,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDto toProductDto(Product product) {
+//        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+//                .map(pw -> new UnitWeightPairs(
+//                        pw.getUnit(),
+//                        pw.getWeightPerUnit(),
+//                        pw.getQuantity()
+//                )).collect(Collectors.toSet());
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
                 .map(pw -> new UnitWeightPairs(
                         pw.getUnit(),
                         pw.getWeightPerUnit(),
                         pw.getQuantity()
-                )).collect(Collectors.toSet());
+                )).collect(Collectors.toMap(
+                        pw -> new AbstractMap.SimpleEntry<>(pw.getProductUnit(), pw.getWeightPerUnit()),
+                        UnitWeightPairs::getQuantity,
+                        Integer::sum
+                ))
+                .entrySet().stream()
+                .map(entry -> new UnitWeightPairs(entry.getKey().getKey(),
+                        entry.getKey().getValue(),
+                        entry.getValue()))
+                .collect(Collectors.toSet());
+
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -878,5 +912,23 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
         productToEnable.setIsDeleted(false);
         return productToEnable;
+    }
+
+    private void handleProductPrice(Product product, double newImportPrice, String unit, double weightPerUnit){
+        double sellingPrice = newImportPrice + 200;
+        Price defaultPrice = priceRepository.findById(1L).orElse(null);
+        ProductPrice productPrices = productPriceRepository.findByPriceIdAndProductId(defaultPrice.getId(), product.getId()).orElse(null);
+        if(productPrices == null){
+            ProductPrice newProductPrice = new ProductPrice();
+                newProductPrice.setPrice(defaultPrice);
+                newProductPrice.setProduct(product);
+                newProductPrice.setUnit_price(sellingPrice);
+                product.setPrice(sellingPrice);
+                productPriceRepository.save(newProductPrice);
+        }else{
+            productPrices.setUnit_price(sellingPrice);
+            product.setPrice(sellingPrice);
+            productPriceRepository.save(productPrices);
+        }
     }
 }
