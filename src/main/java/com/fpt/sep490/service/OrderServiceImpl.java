@@ -224,10 +224,9 @@ public class OrderServiceImpl implements OrderService {
 
             if(status == StatusEnum.CONFIRMED){
                 validateProductQuantity(updatedOrder);
-            }
-            if (status == StatusEnum.IN_PROCESS) {
                 processOrder(updatedOrder);
             }
+
             updatedOrder.setStatus(status);
             updatedOrder.setCreateBy(user.getFullName());
         } else {

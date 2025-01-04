@@ -19,8 +19,6 @@ public class ProductWarehouse {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "batch_code")
-    private String batchCode;
 
     @Column(name = "product_quantity")
     private Integer quantity;
