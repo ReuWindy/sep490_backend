@@ -32,6 +32,8 @@ public interface ProductService {
 
     Page<ProductDto> getProductByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize);
 
+    Page<ProductDto> getProductAndIngredientByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize);
+
     Product createCustomerProduct(ProductDto productDto);
 
     List<BatchProduct> previewBatchProducts(List<importProductDto> ImportProductDtoList);
@@ -50,9 +52,5 @@ public interface ProductService {
 
     List<importProductDto> readExcelFile(MultipartFile file);
 
-    List<ExportProductDto> readExcelFileExport(MultipartFile file);
-
-    void createExcelTemplate(HttpServletResponse response) throws IOException;
-
-    void createExcelTemplateExport(HttpServletResponse response) throws IOException;
+    void createExcelTemplate(HttpServletResponse response, AdminOrderDto adminOrderDto) throws IOException;
 }

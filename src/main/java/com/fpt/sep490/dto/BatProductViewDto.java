@@ -14,6 +14,9 @@ public class BatProductViewDto {
     private int quantity;
     private boolean added;
     private int categoryId;
+    private String categoryName;
+    private String supplierName;
+    private String warehouseName;
     private long supplierId;
     private long warehouseId;
     private String description;

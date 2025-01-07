@@ -53,6 +53,7 @@ public class BatchProductServiceImpl implements BatchProductService {
                 batchProductDto.setUnit(batchProduct.getUnit());
                 batchProductDto.setDescription(batchProduct.getDescription());
                 batchProductDto.setQuantity(batchProduct.getQuantity());
+                batchProductDto.setDate(String.valueOf(batchProduct.getBatch().getImportDate()));
                 batchProductDto.setWeight(batchProduct.getWeight());
                 batchProductDto.setBatchCode(batchProduct.getBatch().getBatchCode());
                 batchProductDto.setReceiptType(String.valueOf(batchProduct.getBatch().getReceiptType()));
@@ -85,7 +86,9 @@ public class BatchProductServiceImpl implements BatchProductService {
         dto.setQuantity(batchProduct.getQuantity());
         dto.setDescription(batchProduct.getDescription());
         dto.setCategoryId(Math.toIntExact(batchProduct.getProduct().getCategory().getId()));
+        dto.setCategoryName(batchProduct.getProduct().getCategory().getName());
         dto.setSupplierId(batchProduct.getProduct().getSupplier().getId());
+        dto.setSupplierName(batchProduct.getProduct().getSupplier().getName());
         dto.setWarehouseId(batchProduct.getWarehouseId());
         return dto;
     }

@@ -10,10 +10,8 @@ import com.fpt.sep490.utils.RandomProductCodeGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,8 +20,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,9 +40,10 @@ public class ProductServiceImpl implements ProductService {
     private final WarehouseReceiptService warehouseReceiptService;
     private final UserService userService;
     private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
     private final ProductPriceRepository productPriceRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, ProductPriceRepository productPriceRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, OrderRepository orderRepository, ProductPriceRepository productPriceRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -56,6 +56,7 @@ public class ProductServiceImpl implements ProductService {
         this.userService = userService;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
         this.productPriceRepository = productPriceRepository;
     }
 
@@ -173,6 +174,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<ProductDto> getProductAndIngredientByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        ProductSpecification productSpecification = new ProductSpecification();
+        Specification<Product> specification = productSpecification.hasNameOrProductCodeOrCategoryNameOrSupplierName2(name, productCode, categoryName, supplierName);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        if (id != null) {
+            Customer customer = customerRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+            return products.map(product -> toProductDto(product, customer));
+        } else {
+            return products.map(this::toProductDto);
+        }
+    }
+
+    @Override
     public Product createCustomerProduct(ProductDto productDto) {
         Product createdProduct = new Product();
         createdProduct.setCreateAt(new Date());
@@ -202,7 +218,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             productRepository.save(createdProduct);
             return createdProduct;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Xảy ra lỗi trong quá trình tạo sản phẩm mới!");
         }
     }
@@ -253,147 +269,154 @@ public class ProductServiceImpl implements ProductService {
             Sheet sheet = workbook.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
+                if (Double.parseDouble(getCellValue(row.getCell(2))) <= 0) {
+                    throw new RuntimeException("Lỗi ở dòng " + i + ": Giá nhập phải lớn hơn 0");
+                }
+                if (Double.parseDouble(getCellValue(row.getCell(5))) <= 0) {
+                    throw new RuntimeException("Lỗi ở dòng " + i + ": Trọng lượng phải lớn hơn 0");
+                }
+                if (Integer.parseInt(getCellValue(row.getCell(9))) < 0) {
+                    throw new RuntimeException("Lỗi ở dòng " + i + ": Số lượng phải là số nguyên dương");
+                }
                 if (row != null) {
-                    importProductDto product = importProductDto.builder()
-                            .name(getCellValue(row.getCell(0)))
-                            .importPrice(Double.parseDouble(getCellValue(row.getCell(1))))
-                            .quantity(Integer.parseInt(getCellValue(row.getCell(2))))
-                            .weightPerUnit(Double.parseDouble(getCellValue(row.getCell(3))))
+                    String productCode = getCellValue(row.getCell(0));
+                    Product product = productRepository.findByProductCode(productCode).orElseThrow(() -> new RuntimeException("Không tồn tại sản phẩm với mã: " + productCode));
+                    importProductDto importProduct = importProductDto.builder()
+                            .name(product.getName())
+                            .importPrice(Double.parseDouble(getCellValue(row.getCell(2))))
+                            .quantity(Integer.parseInt(getCellValue(row.getCell(9))))
                             .unit(getCellValue(row.getCell(4)))
-                            .categoryId(findCategoryIdByName(getCellValue(row.getCell(5))))
-                            .supplierId(findSupplierIdByName(getCellValue(row.getCell(6))))
-                            .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(7))))
+                            .weightPerUnit(Double.parseDouble(getCellValue(row.getCell(5))))
+                            .categoryId(findCategoryIdByName(getCellValue(row.getCell(6))))
+                            .supplierId(findSupplierIdByName(getCellValue(row.getCell(7))))
+                            .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(8))))
+                            .unitOfMeasureId(1L)
                             .build();
-                    product.setUnitOfMeasureId(1L);
-                    productList.add(product);
+                    productList.add(importProduct);
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
 
         return productList;
     }
 
-    @Override
-    public List<ExportProductDto> readExcelFileExport(MultipartFile file) {
-        List<ExportProductDto> productList = new ArrayList<>();
-
-        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0);
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row != null) {
-                    ExportProductDto product = ExportProductDto.builder()
-                            .productName(getCellValue(row.getCell(0)))
-                            .quantity(Integer.parseInt(getCellValue(row.getCell(1))))
-                            .weightPerUnit(Double.parseDouble(getCellValue(row.getCell(2))))
-                            .unit(getCellValue(row.getCell(3)))
-                            .categoryId(findCategoryIdByName(getCellValue(row.getCell(4))))
-                            .supplierId(findSupplierIdByName(getCellValue(row.getCell(5))))
-                            .warehouseId(findWarehouseIdByName(getCellValue(row.getCell(6))))
-                            .build();
-                    productList.add(product);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
-        }
-        return productList;
-    }
 
     @Override
-    public void createExcelTemplate(HttpServletResponse response) throws IOException {
+    public void createExcelTemplate(HttpServletResponse response, AdminOrderDto adminOrderDto) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Nhập Hàng");
-
-            String[] headers = {"Tên", "Giá Nhập", "Số Lượng", "Khối lượng mỗi đơn vị", "Đơn vị", "Danh mục", "Nhà cung cấp", "Kho hàng"};
-
+            String[] headers = {"Mã", "Tên", "Giá Nhập", "Số Lượng mong muốn", "Quy cách", "Trọng lượng (kg)", "Danh mục", "Nhà cung cấp", "Kho hàng", "Số lượng thực tế"};
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
+                headerRow.createCell(i).setCellValue(headers[i]);
             }
 
-            addDropdownToColumn2(sheet, 4, getUnitsFromDatabase());  // Unit column (column index 4)
-            addDropdownToColumn2(sheet, 5, getCategoriesFromDatabase());  // Category column (column index 5)
-            addDropdownToColumn2(sheet, 6, getSuppliersFromDatabase());  // Supplier column (column index 6)
-            addDropdownToColumn2(sheet, 7, getWarehousesFromDatabase());  // Warehouse column (column index 7)
+            CellStyle unlockedCellStyle = workbook.createCellStyle();
+            unlockedCellStyle.setLocked(false);
+
+            int rowIndex = 1;
+            for (OrderDetailDto orderDetailDto : adminOrderDto.getOrderDetails()) {
+                Product product = productRepository.findById(orderDetailDto.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại, mã sản phẩm: " + orderDetailDto.getProductId()));
+
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(product.getProductCode());
+                row.createCell(1).setCellValue(product.getName());
+                Cell priceCell = row.createCell(2);
+                priceCell.setCellValue(product.getImportPrice());
+                priceCell.setCellStyle(unlockedCellStyle);
+
+                row.createCell(3).setCellValue(orderDetailDto.getQuantity());
+                row.createCell(4).setCellValue(orderDetailDto.getProductUnit());
+                row.createCell(5).setCellValue(orderDetailDto.getWeightPerUnit());
+                row.createCell(6).setCellValue(product.getCategory() != null ? product.getCategory().getName() : "N/A");
+                row.createCell(7).setCellValue(product.getSupplier() != null ? product.getSupplier().getName() : "N/A");
+
+                if (!product.getProductWarehouses().isEmpty()) {
+                    ProductWarehouse firstProductWarehouse = new ArrayList<>(product.getProductWarehouses()).get(0);
+                    row.createCell(8).setCellValue(firstProductWarehouse.getWarehouse().getName());
+                }
+
+                Cell quantityCell = row.createCell(9);
+                quantityCell.setCellValue(0);
+                quantityCell.setCellStyle(unlockedCellStyle);
+            }
 
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=Product_Import_Template.xlsx");
-            workbook.write(response.getOutputStream());
-        } catch (IOException e) {
-            throw new RuntimeException("Error while creating Excel template: " + e.getMessage(), e);
-        }
-    }
+            sheet.protectSheet("password");
 
-    @Override
-    public void createExcelTemplateExport(HttpServletResponse response) throws IOException {
-        try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Xuất Hàng");
+            CellRangeAddressList priceRange = new CellRangeAddressList(1, rowIndex - 1, 2, 2);
+            DataValidationHelper validationHelper = sheet.getDataValidationHelper();
+            DataValidationConstraint priceConstraint = validationHelper.createNumericConstraint(
+                    DataValidationConstraint.ValidationType.DECIMAL,
+                    DataValidationConstraint.OperatorType.GREATER_OR_EQUAL,
+                    "0",
+                    null
+            );
+            DataValidation priceValidation = validationHelper.createValidation(priceConstraint, priceRange);
+            priceValidation.setShowErrorBox(true);
+            priceValidation.createErrorBox("Lỗi nhập liệu", "Chỉ được nhập số thập phân không âm.");
+            sheet.addValidationData(priceValidation);
 
-            String[] headers = {"Tên", "Số Lượng", "Khối lượng mỗi đơn vị", "Đơn vị", "Danh mục", "Nhà cung cấp", "Kho hàng"};
-
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-            }
-
-            addDropdownToColumn2(sheet, 4, getUnitsFromDatabase());  // Unit column (column index 4)
-            addDropdownToColumn2(sheet, 5, getCategoriesFromDatabase());  // Category column (column index 5)
-            addDropdownToColumn2(sheet, 6, getSuppliersFromDatabase());  // Supplier column (column index 6)
-            addDropdownToColumn2(sheet, 7, getWarehousesFromDatabase());  // Warehouse column (column index 7)
-
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
+            CellRangeAddressList quantityRange = new CellRangeAddressList(1, rowIndex - 1, 9, 9);
+            DataValidationConstraint quantityConstraint = validationHelper.createNumericConstraint(
+                    DataValidationConstraint.ValidationType.INTEGER,
+                    DataValidationConstraint.OperatorType.GREATER_OR_EQUAL,
+                    "0",
+                    null
+            );
+            DataValidation quantityValidation = validationHelper.createValidation(quantityConstraint, quantityRange);
+            quantityValidation.setShowErrorBox(true);
+            quantityValidation.createErrorBox("Lỗi nhập liệu", "Chỉ được nhập số nguyên không âm.");
+            sheet.addValidationData(quantityValidation);
 
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=Product_Import_Template.xlsx");
+            String currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            response.setHeader("Content-Disposition", "attachment; filename=PhieuNhapHang_" + currentDateTime + ".xlsx");
             workbook.write(response.getOutputStream());
+            response.flushBuffer();
         } catch (IOException e) {
-            throw new RuntimeException("Error while creating Excel template: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi khi tạo file Excel: " + e.getMessage(), e);
         }
     }
 
-    private void addDropdownToColumn2(Sheet sheet, int column, List<String> options) {
-        if (options.isEmpty()) {
-            throw new RuntimeException("Dropdown options list is empty for column: " + column);
-        }
+//    private void addDropdownToColumn2(Sheet sheet, int column, List<String> options) {
+//        if (options.isEmpty()) {
+//            throw new RuntimeException("Dropdown options list is empty for column: " + column);
+//        }
+//
+//        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
+//
+//        CellRangeAddressList addressList = new CellRangeAddressList(1, 100, column, column);
+//
+//        DataValidationConstraint constraint = validationHelper.createExplicitListConstraint(
+//                options.toArray(new String[0]));
+//
+//        DataValidation dataValidation = validationHelper.createValidation(constraint, addressList);
+//        dataValidation.setShowErrorBox(true);
+//        sheet.addValidationData(dataValidation);
+//    }
 
-        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
-
-        CellRangeAddressList addressList = new CellRangeAddressList(1, 100, column, column);
-
-        DataValidationConstraint constraint = validationHelper.createExplicitListConstraint(
-                options.toArray(new String[0]));
-
-        DataValidation dataValidation = validationHelper.createValidation(constraint, addressList);
-        dataValidation.setShowErrorBox(true);
-        sheet.addValidationData(dataValidation);
-    }
-
-    private List<String> getUnitsFromDatabase() {
-        return List.of("Bao", "Túi");
-    }
-
-    private List<String> getCategoriesFromDatabase() {
-        return categoryRepository.findAllCategoryNames();
-    }
-
-    private List<String> getSuppliersFromDatabase() {
-        return supplierRepository.findAllSupplierNames();
-    }
-
-    private List<String> getWarehousesFromDatabase() {
-        return warehouseRepository.findAllWarehouseNames();
-    }
+//    private List<String> getUnitsFromDatabase() {
+//        return List.of("Bao", "Túi");
+//    }
+//
+//    private List<String> getCategoriesFromDatabase() {
+//        return categoryRepository.findAllCategoryNames();
+//    }
+//
+//    private List<String> getSuppliersFromDatabase() {
+//        return supplierRepository.findAllSupplierNames();
+//    }
+//
+//    private List<String> getWarehousesFromDatabase() {
+//        return warehouseRepository.findAllWarehouseNames();
+//    }
 
     private String findCategoryIdByName(String categoryName) {
         return categoryRepository.findByName(categoryName)
@@ -786,25 +809,25 @@ public class ProductServiceImpl implements ProductService {
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
 
-            if (product.getCategory() != null) {
-                productDto.setCategoryId(product.getCategory().getId());
-                productDto.setCategoryName(product.getCategory().getName());
-            }
-            if (product.getSupplier() != null) {
-                productDto.setSupplierId(product.getSupplier().getId());
-            }
-            if (product.getUnitOfMeasure() != null) {
-                productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-            }
-            ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-            ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
-            if (productPrice != null) {
-                productDto.setCustomerPrice(productPrice.getUnit_price());
-            } else {
-                productDto.setCustomerPrice(defaultPrice.getUnit_price());
-            }
-            productDto.setUnitWeightPairsList(unitWeightPairs);
-            return productDto;
+        if (product.getCategory() != null) {
+            productDto.setCategoryId(product.getCategory().getId());
+            productDto.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getSupplier() != null) {
+            productDto.setSupplierId(product.getSupplier().getId());
+        }
+        if (product.getUnitOfMeasure() != null) {
+            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+        }
+        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+        ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
+        if (productPrice != null) {
+            productDto.setCustomerPrice(productPrice.getUnit_price());
+        } else {
+            productDto.setCustomerPrice(defaultPrice.getUnit_price());
+        }
+        productDto.setUnitWeightPairsList(unitWeightPairs);
+        return productDto;
     }
 
     private ProductDto toProductDto(Product product) {
@@ -870,7 +893,12 @@ public class ProductServiceImpl implements ProductService {
     public Product disableProduct(Long id) {
         Product productToDisable = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-        productToDisable.setIsDeleted(true);
+        boolean status = orderRepository.existsOrderWithStatus();
+        if (status) {
+            throw new RuntimeException("Hiện đang có đơn hàng đang được xử lý! Vui lòng thử lại sau.");
+        } else {
+            productToDisable.setIsDeleted(true);
+        }
         return productToDisable;
     }
 

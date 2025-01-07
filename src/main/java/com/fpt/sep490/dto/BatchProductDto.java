@@ -14,6 +14,7 @@ public class BatchProductDto {
     private String unit;
     private String batchCode;
     private String description;
+    private String date;
     private Long batchId;
     private Long productId;
     private Long discountId;
