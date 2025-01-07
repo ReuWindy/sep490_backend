@@ -42,8 +42,9 @@ public class ProductServiceImpl implements ProductService {
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final ProductPriceRepository productPriceRepository;
+    private final PriceRepository priceRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, OrderRepository orderRepository, ProductPriceRepository productPriceRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, OrderRepository orderRepository, ProductPriceRepository productPriceRepository, PriceRepository priceRepository) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -58,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
         this.productPriceRepository = productPriceRepository;
+        this.priceRepository = priceRepository;
     }
 
     @Override
@@ -537,7 +539,6 @@ public class ProductServiceImpl implements ProductService {
         Batch batch = batchRepository.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy lô hàng với id:" + batchId));
 
-        // Step 1: Create the selection map and check for duplicate keys
         Map<String, BatchProductSelection> selectionMap = new HashMap<>();
         for (BatchProductSelection selection : batchProductSelections) {
             String key = selection.getProductId() + "-" + selection.getUnit() + "-" + selection.getWeighPerUnit() + "-" + selection.getSupplierId();
@@ -548,7 +549,7 @@ public class ProductServiceImpl implements ProductService {
 
             selectionMap.put(key, selection);
         }
-
+        Price defaultPrice = priceRepository.findById(1L).orElseThrow(null);
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
 
@@ -561,25 +562,13 @@ public class ProductServiceImpl implements ProductService {
                 Warehouse warehouse = warehouseRepository.findById(batchProduct.getWarehouseId())
                         .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy kho hàng với Id: " + batchProduct.getWarehouseId()));
 
-                ProductWarehouse productWarehouse = productWareHouseRepository.findByProductAndUnitAndWeightPerUnitAndWarehouseId(
-                                batchProduct.getProduct(),
-                                batchProduct.getUnit(),
-                                batchProduct.getWeightPerUnit(),
-                                batchProduct.getWarehouseId())
-                        .orElseGet(() -> {
-                            ProductWarehouse newProductWarehouse = getProductWarehouse(batchProduct, warehouse);
-                            Product product = newProductWarehouse.getProduct();
-                            product.setImportPrice(batchProduct.getPrice());
-                            product.setUpdateAt(new Date());
-
-                            productRepository.save(newProductWarehouse.getProduct());
-                            return newProductWarehouse;
-                        });
+                ProductWarehouse productWarehouse = getProductWarehouse(batchProduct, warehouse);
                 Product product = productWarehouse.getProduct();
                 product.setImportPrice(batchProduct.getPrice());
                 product.setUpdateAt(new Date());
                 productWarehouse.setQuantity(productWarehouse.getQuantity() + batchProduct.getQuantity());
                 productWarehouse.setImportPrice(batchProduct.getPrice());
+                handleProductPrice(product, batchProduct.getPrice(), batchProduct.getUnit(), batchProduct.getWeightPerUnit());
                 productRepository.save(product);
                 productWareHouseRepository.save(productWarehouse);
             }
@@ -591,6 +580,7 @@ public class ProductServiceImpl implements ProductService {
 
         return batch.getBatchCode();
     }
+
 
     private static ProductWarehouse getProductWarehouse(BatchProduct batchProduct, Warehouse warehouse) {
         ProductWarehouse productWarehouse = new ProductWarehouse();
@@ -795,12 +785,36 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDto toProductDto(Product product, Customer customer) {
+//        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+//                .map(pw -> new UnitWeightPairs(
+//                        pw.getUnit(),
+//                        pw.getWeightPerUnit(),
+//                        pw.getQuantity()
+//                )).collect(Collectors.groupingBy(
+//                        pair-> new AbstractMap.SimpleEntry<>(pair.getProductUnit(),pair.getWeightPerUnit()),
+//                        Collectors.summingInt(UnitWeightPairs::getQuantity)
+//                ))
+//                .entrySet().stream()
+//                .map(entry -> new UnitWeightPairs(entry.getKey().getKey(), entry.getKey().getValue(), entry.getValue()))
+//                .collect(Collectors.toSet());
+
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
                 .map(pw -> new UnitWeightPairs(
                         pw.getUnit(),
                         pw.getWeightPerUnit(),
                         pw.getQuantity()
-                )).collect(Collectors.toSet());
+                )).collect(Collectors.toMap(
+                        pw -> new AbstractMap.SimpleEntry<>(pw.getProductUnit(), pw.getWeightPerUnit()),
+                        UnitWeightPairs::getQuantity,
+                        Integer::sum
+                ))
+                .entrySet().stream()
+                .map(entry -> new UnitWeightPairs(
+                        entry.getKey().getKey(),
+                        entry.getKey().getValue(),
+                        entry.getValue()))
+                .collect(Collectors.toSet());
+
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -809,34 +823,51 @@ public class ProductServiceImpl implements ProductService {
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
 
-        if (product.getCategory() != null) {
-            productDto.setCategoryId(product.getCategory().getId());
-            productDto.setCategoryName(product.getCategory().getName());
-        }
-        if (product.getSupplier() != null) {
-            productDto.setSupplierId(product.getSupplier().getId());
-        }
-        if (product.getUnitOfMeasure() != null) {
-            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-        }
-        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-        ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
-        if (productPrice != null) {
-            productDto.setCustomerPrice(productPrice.getUnit_price());
-        } else {
-            productDto.setCustomerPrice(defaultPrice.getUnit_price());
-        }
-        productDto.setUnitWeightPairsList(unitWeightPairs);
-        return productDto;
+            if (product.getCategory() != null) {
+                productDto.setCategoryId(product.getCategory().getId());
+                productDto.setCategoryName(product.getCategory().getName());
+            }
+            if (product.getSupplier() != null) {
+                productDto.setSupplierId(product.getSupplier().getId());
+                productDto.setSupplierName(product.getSupplier().getName());
+            }
+            if (product.getUnitOfMeasure() != null) {
+                productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+            }
+            ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+            ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
+            if (productPrice != null) {
+                productDto.setCustomerPrice(productPrice.getUnit_price());
+            } else {
+                productDto.setCustomerPrice(defaultPrice.getUnit_price());
+            }
+            productDto.setUnitWeightPairsList(unitWeightPairs);
+            return productDto;
     }
 
     private ProductDto toProductDto(Product product) {
+//        Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
+//                .map(pw -> new UnitWeightPairs(
+//                        pw.getUnit(),
+//                        pw.getWeightPerUnit(),
+//                        pw.getQuantity()
+//                )).collect(Collectors.toSet());
         Set<UnitWeightPairs> unitWeightPairs = product.getProductWarehouses().stream()
                 .map(pw -> new UnitWeightPairs(
                         pw.getUnit(),
                         pw.getWeightPerUnit(),
                         pw.getQuantity()
-                )).collect(Collectors.toSet());
+                )).collect(Collectors.toMap(
+                        pw -> new AbstractMap.SimpleEntry<>(pw.getProductUnit(), pw.getWeightPerUnit()),
+                        UnitWeightPairs::getQuantity,
+                        Integer::sum
+                ))
+                .entrySet().stream()
+                .map(entry -> new UnitWeightPairs(entry.getKey().getKey(),
+                        entry.getKey().getValue(),
+                        entry.getValue()))
+                .collect(Collectors.toSet());
+
         ProductDto productDto = new ProductDto();
         productDto.setId(product.getId());
         productDto.setProductCode(product.getProductCode());
@@ -851,6 +882,7 @@ public class ProductServiceImpl implements ProductService {
         }
         if (product.getSupplier() != null) {
             productDto.setSupplierId(product.getSupplier().getId());
+            productDto.setSupplierName(product.getSupplier().getName());
         }
         if (product.getUnitOfMeasure() != null) {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
@@ -908,5 +940,23 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
         productToEnable.setIsDeleted(false);
         return productToEnable;
+    }
+
+    private void handleProductPrice(Product product, double newImportPrice, String unit, double weightPerUnit){
+        double sellingPrice = newImportPrice + 200;
+        Price defaultPrice = priceRepository.findById(1L).orElse(null);
+        ProductPrice productPrices = productPriceRepository.findByPriceIdAndProductId(defaultPrice.getId(), product.getId()).orElse(null);
+        if(productPrices == null){
+            ProductPrice newProductPrice = new ProductPrice();
+                newProductPrice.setPrice(defaultPrice);
+                newProductPrice.setProduct(product);
+                newProductPrice.setUnit_price(sellingPrice);
+                product.setPrice(sellingPrice);
+                productPriceRepository.save(newProductPrice);
+        }else{
+            productPrices.setUnit_price(sellingPrice);
+            product.setPrice(sellingPrice);
+            productPriceRepository.save(productPrices);
+        }
     }
 }

@@ -19,6 +19,7 @@ public class ProductWarehouse {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @Column(name = "product_quantity")
     private Integer quantity;
 

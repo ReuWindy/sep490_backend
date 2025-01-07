@@ -4,6 +4,7 @@ import com.fpt.sep490.dto.*;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
 import com.fpt.sep490.model.Order;
 import com.fpt.sep490.security.jwt.JwtTokenManager;
+import com.fpt.sep490.service.NotificationService;
 import com.fpt.sep490.service.OrderService;
 import com.fpt.sep490.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,12 +30,14 @@ public class OrderController {
     private final JwtTokenManager jwtTokenManager;
     private final UserActivityService userActivityService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
-    public OrderController(OrderService orderService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate) {
+    public OrderController(OrderService orderService, JwtTokenManager jwtTokenManager, UserActivityService userActivityService, SimpMessagingTemplate messagingTemplate, NotificationService notificationService) {
         this.orderService = orderService;
         this.jwtTokenManager = jwtTokenManager;
         this.userActivityService = userActivityService;
         this.messagingTemplate = messagingTemplate;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/history/{customerId}")
@@ -127,8 +130,9 @@ public class OrderController {
             Order createdAdminOrder = orderService.createAdminOrder(adminOrderDto);
             String token = jwtTokenManager.resolveTokenFromCookie(request);
             String username = jwtTokenManager.getUsernameFromToken(token);
-            userActivityService.logAndNotifyAdmin(username, "CREATE_ADMIN_ORDER", "Tạo danh mục: " + createdAdminOrder.getId() + " by " + username);
+            userActivityService.logAndNotifyAdmin(username, "CREATE_ADMIN_ORDER", "Tạo đơn hàng: " + createdAdminOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdAdminOrder.getId() + " đã được tạo bởi người dùng: " + username);
+            notificationService.saveNotification(username+ " đã tạo đơn hàng cho khách hàng: "+ createdAdminOrder.getCustomer().getFullName());
             return ResponseEntity.status(HttpStatus.OK).body(createdAdminOrder);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -144,6 +148,7 @@ public class OrderController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "CREATE_CUSTOMER_ORDER", "Tạo đơn hàng: " + createdCustomerOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + createdCustomerOrder.getId() + " đã được tạo bởi người dùng: " + username);
+            notificationService.saveNotification("Khách hàng " + createdCustomerOrder.getCustomer().getFullName()+ " đã tạo đơn hàng có mã: " + createdCustomerOrder.getOrderCode());
             return ResponseEntity.status(HttpStatus.OK).body(createdCustomerOrder);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -159,6 +164,7 @@ public class OrderController {
             Order updatedOrder = orderService.updateOrderByAdmin(orderId, adminOrderDto, username);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_ADMIN_ORDER", "Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã cập nhật đơn hàng có mã: " + updatedOrder.getOrderCode());
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -174,6 +180,7 @@ public class OrderController {
             Order updatedOrder = orderService.updateOrderByCustomer(orderId, adminOrderDto);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_CUSTOMER_ORDER","Cập nhật đơn hàng: " + updatedOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification("Khách hàng " + updatedOrder.getCustomer().getFullName()+ " đã cập nhật đơn hàng có mã: " + updatedOrder.getOrderCode());
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e){
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
@@ -189,6 +196,7 @@ public class OrderController {
             String username = jwtTokenManager.getUsernameFromToken(token);
             userActivityService.logAndNotifyAdmin(username, "UPDATE_ADMIN_ORDER-DETAILS", "Cập nhật chi tiết đơn hàng: " + updatedOrder.getId() + " by " + username);
             messagingTemplate.convertAndSend("/topic/orders", "Chi tiết đơn hàng " + updatedOrder.getId() + " đã được cập nhật bởi người dùng: " + username);
+            notificationService.saveNotification(username + " đã cập nhật chi tiết đơn hàng có mã: " + updatedOrder.getOrderCode());
             return ResponseEntity.status(HttpStatus.OK).body(updatedOrder);
         }catch (Exception e) {
             final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
