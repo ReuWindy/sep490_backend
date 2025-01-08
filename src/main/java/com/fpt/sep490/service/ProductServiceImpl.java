@@ -823,26 +823,32 @@ public class ProductServiceImpl implements ProductService {
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
 
-            if (product.getCategory() != null) {
-                productDto.setCategoryId(product.getCategory().getId());
-                productDto.setCategoryName(product.getCategory().getName());
-            }
-            if (product.getSupplier() != null) {
-                productDto.setSupplierId(product.getSupplier().getId());
-                productDto.setSupplierName(product.getSupplier().getName());
-            }
-            if (product.getUnitOfMeasure() != null) {
-                productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
-            }
-            ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-            ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
-            if (productPrice != null) {
-                productDto.setCustomerPrice(productPrice.getUnit_price());
-            } else {
-                productDto.setCustomerPrice(defaultPrice.getUnit_price());
-            }
-            productDto.setUnitWeightPairsList(unitWeightPairs);
-            return productDto;
+        Optional<Double> latestImportPrice = product.getBatchProducts().stream()
+                .filter(batchProduct -> batchProduct.getBatch() != null && batchProduct.getBatch().getImportDate() != null)
+                .max(Comparator.comparing(batchProduct -> batchProduct.getBatch().getImportDate()))
+                .map(BatchProduct::getPrice);
+        latestImportPrice.ifPresent(productDto::setImportPrice);
+
+        if (product.getCategory() != null) {
+            productDto.setCategoryId(product.getCategory().getId());
+            productDto.setCategoryName(product.getCategory().getName());
+        }
+        if (product.getSupplier() != null) {
+            productDto.setSupplierId(product.getSupplier().getId());
+            productDto.setSupplierName(product.getSupplier().getName());
+        }
+        if (product.getUnitOfMeasure() != null) {
+            productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
+        }
+        ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
+        ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
+        if (productPrice != null) {
+            productDto.setCustomerPrice(productPrice.getUnit_price());
+        } else {
+            productDto.setCustomerPrice(defaultPrice.getUnit_price());
+        }
+        productDto.setUnitWeightPairsList(unitWeightPairs);
+        return productDto;
     }
 
     private ProductDto toProductDto(Product product) {
@@ -875,6 +881,11 @@ public class ProductServiceImpl implements ProductService {
         productDto.setDescription(product.getDescription());
         productDto.setPrice(product.getPrice());
         productDto.setImage(product.getImage());
+        Optional<Double> latestImportPrice = product.getBatchProducts().stream()
+                .filter(batchProduct -> batchProduct.getBatch() != null && batchProduct.getBatch().getImportDate() != null)
+                .max(Comparator.comparing(batchProduct -> batchProduct.getBatch().getImportDate()))
+                .map(BatchProduct::getPrice);
+        latestImportPrice.ifPresent(productDto::setImportPrice);
 
         if (product.getCategory() != null) {
             productDto.setCategoryId(product.getCategory().getId());
@@ -925,8 +936,7 @@ public class ProductServiceImpl implements ProductService {
     public Product disableProduct(Long id) {
         Product productToDisable = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-        boolean status = orderRepository.existsOrderWithStatus();
-        if (status) {
+        if (orderRepository.existsOrderWithProductIdAndStatus(id) > 0) {
             throw new RuntimeException("Hiện đang có đơn hàng đang được xử lý! Vui lòng thử lại sau.");
         } else {
             productToDisable.setIsDeleted(true);
@@ -942,18 +952,18 @@ public class ProductServiceImpl implements ProductService {
         return productToEnable;
     }
 
-    private void handleProductPrice(Product product, double newImportPrice, String unit, double weightPerUnit){
+    private void handleProductPrice(Product product, double newImportPrice, String unit, double weightPerUnit) {
         double sellingPrice = newImportPrice + 200;
         Price defaultPrice = priceRepository.findById(1L).orElse(null);
         ProductPrice productPrices = productPriceRepository.findByPriceIdAndProductId(defaultPrice.getId(), product.getId()).orElse(null);
-        if(productPrices == null){
+        if (productPrices == null) {
             ProductPrice newProductPrice = new ProductPrice();
-                newProductPrice.setPrice(defaultPrice);
-                newProductPrice.setProduct(product);
-                newProductPrice.setUnit_price(sellingPrice);
-                product.setPrice(sellingPrice);
-                productPriceRepository.save(newProductPrice);
-        }else{
+            newProductPrice.setPrice(defaultPrice);
+            newProductPrice.setProduct(product);
+            newProductPrice.setUnit_price(sellingPrice);
+            product.setPrice(sellingPrice);
+            productPriceRepository.save(newProductPrice);
+        } else {
             productPrices.setUnit_price(sellingPrice);
             product.setPrice(sellingPrice);
             productPriceRepository.save(productPrices);

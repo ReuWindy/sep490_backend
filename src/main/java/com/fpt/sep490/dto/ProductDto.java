@@ -20,6 +20,7 @@ public class ProductDto {
     private String productCode;
     private String description;
     private double price;
+    private double importPrice;
     private String image;
     @NotNull(message = "Vui lòng chọn danh mục")
     private Long categoryId;

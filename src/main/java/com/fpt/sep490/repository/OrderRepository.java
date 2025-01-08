@@ -20,11 +20,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByOrderDate(@Param("date") LocalDate date);
 
     @Query(value = """
-            SELECT COUNT(o.id) > 0
-            FROM orders o
-            WHERE o.status IN ('IN_PROCESS', 'CONFIRMED', 'PENDING')
+                SELECT COUNT(o.id) > 0
+                FROM orders o
+                JOIN order_details od ON o.id = od.order_id
+                WHERE od.product_id = :productId
+                  AND o.status IN ('IN_PROCESS', 'CONFIRMED', 'PENDING')
             """, nativeQuery = true)
-    boolean existsOrderWithStatus();
+    int existsOrderWithProductIdAndStatus(@Param("productId") Long productId);
 
     @Query(value = """
             SELECT 
