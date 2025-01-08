@@ -44,4 +44,20 @@ public class OrderDetailDto {
     @NotNull(message = "Giá không được null")
     @DecimalMin(value = "0", message = "Giá phải là số dương.")
     private double totalPrice;
+
+    private String supplierName;
+
+    private int remainQuantity;
+
+    public OrderDetailDto(Long productId, String name, String description, int quantity, double unitPrice, double weightPerUnit, String productUnit, Double discount, double totalPrice) {
+        this.productId = productId;
+        this.name = name;
+        this.description = description;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.weightPerUnit = weightPerUnit;
+        this.productUnit = productUnit;
+        this.discount = discount;
+        this.totalPrice = totalPrice;
+    }
 }
