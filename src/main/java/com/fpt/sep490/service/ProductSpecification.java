@@ -94,6 +94,27 @@ public class ProductSpecification {
         };
     }
 
+    public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName2(String name, String productCode, String categoryName, String supplierName) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (name != null && !name.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            }
+            if (productCode != null && !productCode.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            }
+            if (categoryName != null && !categoryName.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
+            }
+            if (supplierName != null && !supplierName.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
+            }
+            predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierNameAndNotNull(String name, String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
