@@ -457,7 +457,9 @@ public class OrderServiceImpl implements OrderService {
                         orderDetail.getWeightPerUnit(),
                         orderDetail.getProductUnit(),
                         orderDetail.getDiscount(),
-                        orderDetail.getTotalPrice()
+                        orderDetail.getTotalPrice(),
+                        orderDetail.getProduct().getSupplier().getName(),
+                        getRemainingQuantity(orderDetail)
                 ))
                 .collect(Collectors.toSet());
         orderDTO.setOrderDetails(orderDetailDtos);
@@ -558,5 +560,11 @@ public class OrderServiceImpl implements OrderService {
         warehouseReceipt.setReceiptReason("Xuất kho để bán");
         warehouseReceiptRepository.save(warehouseReceipt);
         orderRepository.save(order);
+    }
+
+    private int getRemainingQuantity(OrderDetail orderDetail){
+        return orderDetail.getProduct().getProductWarehouses().stream().filter(
+                pw -> pw.getWeightPerUnit() == orderDetail.getWeightPerUnit()
+        ).mapToInt(ProductWarehouse::getQuantity).sum();
     }
 }
