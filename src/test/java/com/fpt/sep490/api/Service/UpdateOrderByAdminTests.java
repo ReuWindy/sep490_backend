@@ -115,7 +115,7 @@ public class UpdateOrderByAdminTests {
     public void OrderService_UpdateOrder_FailWhenNotEnoughStock() {
 
         productWarehouse.setQuantity(10);  // Mock insufficient stock
-        adminOrderDto.setStatus(StatusEnum.CONFIRMED);
+        adminOrderDto.setStatus(StatusEnum.IN_PROCESS);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(userRepository.findByUsername(anyString())).thenReturn(mockUser);

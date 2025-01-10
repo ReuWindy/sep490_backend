@@ -549,7 +549,7 @@ public class ProductServiceImpl implements ProductService {
 
             selectionMap.put(key, selection);
         }
-        Price defaultPrice = priceRepository.findById(1L).orElseThrow(null);
+
         for (BatchProduct batchProduct : batch.getBatchProducts()) {
             String key = batchProduct.getProduct().getId() + "-" + batchProduct.getUnit() + "-" + batchProduct.getWeightPerUnit() + "-" + batchProduct.getProduct().getSupplier().getId();
 

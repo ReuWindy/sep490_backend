@@ -35,6 +35,10 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
     @Mock
     private BatchProductRepository batchProductRepository;
     @Mock
+    private PriceRepository priceRepository;
+    @Mock
+    private ProductPriceRepository productPriceRepository;
+    @Mock
     private Batch batch;
     @Mock
     private Product product;
@@ -99,10 +103,11 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
     @Test
     public void ProductService_ConfirmAndAddSelectedProductToWarehouse_SuccessfulAddition() {
         long batchId = 1L;
-
+        Price defaultPrice = new Price();
 
         when(batchRepository.findById(batchId)).thenReturn(Optional.of(batch));
         when(warehouseRepository.findById(1L)).thenReturn(Optional.of(new Warehouse()));
+        when(priceRepository.findById(any())).thenReturn(Optional.of(defaultPrice));
 
         // Execute
         String result = productService.confirmAndAddSelectedProductToWarehouse(batchId, batchProductSelections);
@@ -152,7 +157,7 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
     public void ProductService_ConfirmAndSelectedProductToWarehouse_WarehouseIdNotFound(){
         long batchId = 1L;
         when(batchRepository.findById(batchId)).thenReturn(Optional.of(batch));
-        when(warehouseRepository.findById(1L)).thenReturn(Optional.empty());
+        when(warehouseRepository.findById(any())).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, ()->{
             productService.confirmAndAddSelectedProductToWarehouse(batchId, batchProductSelections);
@@ -192,6 +197,17 @@ public class ConfirmAndAddSelectedProductToWarehouseTests {
 
         assertEquals(1, violations.size());
         assertEquals("Id nhà cung cấp phải là số dương.", violations.iterator().next().getMessage());
+    }
+
+    @Test
+    public void ProductService_ConfirmAndSelectedProductToWarehouse_BatchProductSelectionsUnitContainSpecialCharacters(){
+        long batchId = 1L;
+        selection.setUnit("@#$!@#!@$");
+
+        Set<ConstraintViolation<BatchProductSelection>> violations = validator.validate(batchProductSelections.get(0));
+
+        assertEquals(1, violations.size());
+        assertEquals("Loại đóng gói chỉ có thể bao gồm các ký tự chữ, số và khoảng trắng.", violations.iterator().next().getMessage());
     }
 
 }
