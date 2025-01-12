@@ -139,6 +139,14 @@ public class EmployeeServiceImpl implements EmployeeService {
     public User deleteEmployee(Long id) {
         User employeeToDisable = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+        if(employeeToDisable instanceof Employee employee){
+            Set<DayActive> dayActives = employee.getDayActives();
+            for (DayActive dayActive : dayActives) {
+               if(!dayActive.isSpend()){
+                   throw new RuntimeException("Nhân viên đang còn ngày công chưa trả, vui vòng thử lại sau");
+               }
+            }
+        }
         employeeToDisable.setActive(false);
         userRepository.save(employeeToDisable);
         return employeeToDisable;
