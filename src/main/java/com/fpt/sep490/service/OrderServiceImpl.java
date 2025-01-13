@@ -109,9 +109,9 @@ public class OrderServiceImpl implements OrderService {
                     detailDto.getWeightPerUnit(),
                     detailDto.getProductUnit()
             ).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
-            if (product.getQuantity() < detailDto.getQuantity()) {
-                throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
-            }
+//            if (product.getQuantity() < detailDto.getQuantity()) {
+//                throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
+//            }
             double discount = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
             double customerUnitPrice = getCustomUnitPrice(customer, product.getProduct(), detailDto.getUnitPrice());
             double discountUnitPrice = customerUnitPrice - discount;
