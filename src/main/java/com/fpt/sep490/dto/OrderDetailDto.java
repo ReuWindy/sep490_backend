@@ -49,6 +49,10 @@ public class OrderDetailDto {
 
     private int remainQuantity;
 
+    private Integer inProgressOrder;
+
+    private Integer missingQuantity;
+
     public OrderDetailDto(Long productId, String name, String description, int quantity, double unitPrice, double weightPerUnit, String productUnit, Double discount, double totalPrice) {
         this.productId = productId;
         this.name = name;
