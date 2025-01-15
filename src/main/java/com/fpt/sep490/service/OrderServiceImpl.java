@@ -574,7 +574,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private int getMissingQuantity(Long productId, OrderDetail od){
-        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED, StatusEnum.IN_PROCESS);
+        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
         int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
                 pw -> pw.getWeightPerUnit() == od.getWeightPerUnit()
