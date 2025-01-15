@@ -584,6 +584,6 @@ public class OrderServiceImpl implements OrderService {
             orderQuantity += orderDetail.getQuantity();
         }
 
-        return remainQuantity - orderQuantity;
+        return (orderQuantity + od.getQuantity()) - remainQuantity;
     }
 }
