@@ -568,7 +568,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private int getInProgressOrder(Long productId){
-        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED, StatusEnum.IN_PROCESS);
+        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
         return orderDetails.size();
     }
