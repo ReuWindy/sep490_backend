@@ -91,10 +91,10 @@ public class UserServiceImpl implements UserService {
             u.setAddress(userDto.getAddress());
             u.setImage(userDto.getImage());
             u.setFullName(userDto.getName());
+            return userRepository.save(u);
         }catch (Exception e) {
             throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình cập nhật hồ sơ người dùng!");
         }
-        return null;
     }
 
     @Override
