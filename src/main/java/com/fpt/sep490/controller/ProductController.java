@@ -271,6 +271,20 @@ public class ProductController {
         return ResponseEntity.ok(pagedModel);
     }
 
+    @GetMapping("/admin/order/missingProducts")
+    public ResponseEntity<PagedModel<EntityModel<MissingProductDto>>> adminMissingProductPage(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String productCode,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String supplierName,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            PagedResourcesAssembler<MissingProductDto> pagedResourcesAssembler) {
+        Page<MissingProductDto> productPage = productService.getMissingProductsByFilter(name, productCode, categoryName, supplierName, pageNumber, pageSize);
+        PagedModel<EntityModel<MissingProductDto>> pagedModel = pagedResourcesAssembler.toModel(productPage);
+        return ResponseEntity.ok(pagedModel);
+    }
+
     @PostMapping("/admin/createProduct")
     public ResponseEntity<?> createCustomerProduct(HttpServletRequest request, @RequestBody ProductDto productDto) {
         try {
