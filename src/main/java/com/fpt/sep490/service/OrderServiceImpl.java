@@ -86,6 +86,7 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderRepository.findAll(spec, pageable);
     }
+
     @Transactional
     @Override
     public Order createAdminOrder(AdminOrderDto adminOrderDto) {
@@ -222,7 +223,7 @@ public class OrderServiceImpl implements OrderService {
         }
         if (status != null) {
 
-            if( status == StatusEnum.IN_PROCESS){
+            if (status == StatusEnum.IN_PROCESS) {
                 validateProductQuantity(updatedOrder);
                 processOrder(updatedOrder);
             }
@@ -240,49 +241,49 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderDetailByAdmin(long orderId, AdminOrderDto adminOrderDto) {
         Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
         double newDeposit = adminOrderDto.getDeposit();
-        if(newDeposit < 0 ){
+        if (newDeposit < 0) {
             throw new RuntimeException("Số tiền cọc không được âm!");
         }
         double updatedTotalAmount = 0.0;
-            for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
-                boolean found = false;
-                for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
-                    if (detailDto.getProductId().equals(updatedDetail.getProduct().getId()) &&
+        for (OrderDetailDto detailDto : adminOrderDto.getOrderDetails()) {
+            boolean found = false;
+            for (OrderDetail updatedDetail : updatedOrder.getOrderDetails()) {
+                if (detailDto.getProductId().equals(updatedDetail.getProduct().getId()) &&
                         detailDto.getProductUnit().equals(updatedDetail.getProductUnit()) &&
-                        detailDto.getWeightPerUnit() == updatedDetail.getWeightPerUnit() ) {
-                        found = true;
-                        if(detailDto.getQuantity() < 0){
-                            throw new RuntimeException("Số lượng của sản phẩm " + detailDto.getName() + "không được âm");
-                        }
-                        updatedDetail.setQuantity(detailDto.getQuantity());
-                        double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
-                        updatedDetail.setTotalPrice(updatedPrice);
-                        updatedTotalAmount += updatedPrice;
-                        if(detailDto.getQuantity() == 0){
-                            updatedOrder.getOrderDetails().remove(updatedDetail);
-                        }
-                        break;
+                        detailDto.getWeightPerUnit() == updatedDetail.getWeightPerUnit()) {
+                    found = true;
+                    if (detailDto.getQuantity() < 0) {
+                        throw new RuntimeException("Số lượng của sản phẩm " + detailDto.getName() + "không được âm");
                     }
-                }
-                if(!found){
-                    Product product = productRepository.findById(detailDto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm : " + detailDto.getName()));
-
-                    if (detailDto.getQuantity() <= 0) {
-                        throw new RuntimeException("Số lượng sản phẩm " + detailDto.getName() +" không được âm hoặc bằng 0 khi thêm mới!");
+                    updatedDetail.setQuantity(detailDto.getQuantity());
+                    double updatedPrice = updatedDetail.getUnitPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
+                    updatedDetail.setTotalPrice(updatedPrice);
+                    updatedTotalAmount += updatedPrice;
+                    if (detailDto.getQuantity() == 0) {
+                        updatedOrder.getOrderDetails().remove(updatedDetail);
                     }
-
-                    OrderDetail newDetail = new OrderDetail();
-                    newDetail.setOrder(updatedOrder);
-                    newDetail.setProduct(product);
-                    newDetail.setQuantity(detailDto.getQuantity());
-                    newDetail.setUnitPrice(product.getPrice());
-                    double totalPrice = product.getPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
-                    newDetail.setTotalPrice(totalPrice);
-                    updatedOrder.getOrderDetails().add(newDetail);
-                    updatedTotalAmount += totalPrice;
+                    break;
                 }
             }
+            if (!found) {
+                Product product = productRepository.findById(detailDto.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm : " + detailDto.getName()));
+
+                if (detailDto.getQuantity() <= 0) {
+                    throw new RuntimeException("Số lượng sản phẩm " + detailDto.getName() + " không được âm hoặc bằng 0 khi thêm mới!");
+                }
+
+                OrderDetail newDetail = new OrderDetail();
+                newDetail.setOrder(updatedOrder);
+                newDetail.setProduct(product);
+                newDetail.setQuantity(detailDto.getQuantity());
+                newDetail.setUnitPrice(product.getPrice());
+                double totalPrice = product.getPrice() * detailDto.getQuantity() * detailDto.getWeightPerUnit();
+                newDetail.setTotalPrice(totalPrice);
+                updatedOrder.getOrderDetails().add(newDetail);
+                updatedTotalAmount += totalPrice;
+            }
+        }
         updatedOrder.setTotalAmount(updatedTotalAmount);
         if (newDeposit > updatedTotalAmount) {
             throw new RuntimeException("Số tiền cọc không được lớn hơn tổng giá trị đơn hàng!");
@@ -291,11 +292,11 @@ public class OrderServiceImpl implements OrderService {
         updatedOrder.setOrderAddress(adminOrderDto.getOrderAddress());
         updatedOrder.setDeposit(newDeposit);
         updatedOrder.setRemainingAmount(updatedTotalAmount - newDeposit);
-        try{
+        try {
             orderRepository.save(updatedOrder);
             return updatedOrder;
-        }catch (Exception e){
-            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:" );
+        } catch (Exception e) {
+            throw new RuntimeException("Xảy ra lỗi trong quá trình cập nhật chi tiết đơn hàng:");
         }
     }
 
@@ -391,9 +392,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order updateOrderByCustomer(long orderId, AdminOrderDto adminOrderDto) {
-        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("không tìm thấy đơn hàng!"));
-        try{
-            if(updatedOrder.getStatus() == null){
+        Order updatedOrder = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("không tìm thấy đơn hàng!"));
+        try {
+            if (updatedOrder.getStatus() == null) {
                 throw new RuntimeException("Lỗi: trạng thái của đơn hàng không thể để trống!");
             }
             updatedOrder.setStatus(adminOrderDto.getStatus());
@@ -413,7 +414,7 @@ public class OrderServiceImpl implements OrderService {
             }
             orderRepository.save(updatedOrder);
             return updatedOrder;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Lỗi: xảy ra lỗi trong quá trình cập nhật đơn hàng !");
         }
     }
@@ -497,30 +498,31 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         orderActivityRepository.save(activity);
     }
-    private void validateProductQuantity(Order order){
+
+    private void validateProductQuantity(Order order) {
         Set<OrderDetail> orderDetails = order.getOrderDetails();
-        for(OrderDetail orderDetail : orderDetails){
+        for (OrderDetail orderDetail : orderDetails) {
             long productId = orderDetail.getProduct().getId();
             String unit = orderDetail.getProductUnit();
             double weightPerUnit = orderDetail.getWeightPerUnit();
             int requiredQuantity = orderDetail.getQuantity();
-            if(requiredQuantity <0){
+            if (requiredQuantity < 0) {
                 throw new RuntimeException("Số lượng sản phẩm phải là số dương");
             }
             List<ProductWarehouse> productWarehouses = productWareHouseRepository.findByProductIdAndUnitAndWeightPerUnit(
                     productId, unit, weightPerUnit
             );
-            if(productWarehouses.isEmpty()){
+            if (productWarehouses.isEmpty()) {
                 throw new RuntimeException("Không tìm thấy sản phẩm phù hợp trong kho!");
             }
             int availableQuantity = productWarehouses.stream().mapToInt(ProductWarehouse::getQuantity).sum();
-            if(availableQuantity < requiredQuantity){
+            if (availableQuantity < requiredQuantity) {
                 throw new RuntimeException("Không đủ hàng có sẵn cho sản phẩm : " + orderDetail.getProduct().getName());
             }
         }
     }
 
-    private void processOrder(Order order){
+    private void processOrder(Order order) {
         Set<OrderDetail> orderDetails = order.getOrderDetails();
         for (OrderDetail orderDetail : orderDetails) {
             long productId = orderDetail.getProduct().getId();
@@ -561,29 +563,51 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
-    private int getRemainingQuantity(OrderDetail orderDetail){
+    private int getRemainingQuantity(OrderDetail orderDetail) {
         return orderDetail.getProduct().getProductWarehouses().stream().filter(
                 pw -> pw.getWeightPerUnit() == orderDetail.getWeightPerUnit()
         ).mapToInt(ProductWarehouse::getQuantity).sum();
     }
 
-    private int getInProgressOrder(Long productId){
-        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED, StatusEnum.IN_PROCESS);
+    private int getInProgressOrder(Long productId) {
+        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
         return orderDetails.size();
     }
 
-    private int getMissingQuantity(Long productId, OrderDetail od){
+    public int getMissingQuantity(Long productId, OrderDetail od) {
         List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
         int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
-                pw -> pw.getWeightPerUnit() == od.getWeightPerUnit()
+                pw -> pw.getWeightPerUnit() == od.getWeightPerUnit() && Objects.equals(pw.getUnit(), od.getProductUnit())
         ).mapToInt(ProductWarehouse::getQuantity).sum();
         int orderQuantity = 0;
-        for (OrderDetail orderDetail: orderDetails) {
+        for (OrderDetail orderDetail : orderDetails) {
             orderQuantity += orderDetail.getQuantity();
         }
 
         return (orderQuantity + od.getQuantity()) - remainQuantity;
+    }
+
+    public int getMissingQuantity(OrderDetail od) {
+        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllInProgressOrder(statuses);
+        int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
+                pw -> pw.getWeightPerUnit() == od.getWeightPerUnit() && Objects.equals(pw.getUnit(), od.getProductUnit())
+        ).mapToInt(ProductWarehouse::getQuantity).sum();
+        int orderQuantity = 0;
+        for (OrderDetail orderDetail : orderDetails) {
+            orderQuantity += orderDetail.getQuantity();
+        }
+
+        return orderQuantity - remainQuantity;
+    }
+
+    public ProductWarehouse getProductWarehouse(OrderDetail od) {
+        return od.getProduct().getProductWarehouses().stream()
+                .filter(pw -> pw.getWeightPerUnit() == od.getWeightPerUnit()
+                        && Objects.equals(pw.getUnit(), od.getProductUnit()))
+                .findFirst()
+                .orElse(null);
     }
 }

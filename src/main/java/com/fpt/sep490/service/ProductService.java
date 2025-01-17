@@ -34,6 +34,8 @@ public interface ProductService {
 
     Page<ProductDto> getProductAndIngredientByFilterForCustomer(String name, String productCode, String categoryName, String supplierName, Long id, int pageNumber, int pageSize);
 
+    Page<MissingProductDto> getMissingProductsByFilter(String name, String productCode, String categoryName, String supplierName, int pageNumber, int pageSize);
+
     Product createCustomerProduct(ProductDto productDto);
 
     List<BatchProduct> previewBatchProducts(List<importProductDto> ImportProductDtoList);

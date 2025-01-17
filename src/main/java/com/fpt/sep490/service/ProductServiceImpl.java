@@ -1,6 +1,7 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.ReceiptType;
+import com.fpt.sep490.Enum.StatusEnum;
 import com.fpt.sep490.dto.*;
 import com.fpt.sep490.model.*;
 import com.fpt.sep490.repository.*;
@@ -12,6 +13,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -43,8 +45,10 @@ public class ProductServiceImpl implements ProductService {
     private final OrderRepository orderRepository;
     private final ProductPriceRepository productPriceRepository;
     private final PriceRepository priceRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final OrderServiceImpl orderService;
 
-    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, OrderRepository orderRepository, ProductPriceRepository productPriceRepository, PriceRepository priceRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, SupplierRepository supplierRepository, UnitOfMeasureRepository unitOfMeasureRepository, ProductWareHouseRepository productWareHouseRepository, WarehouseRepository warehouseRepository, CategoryRepository categoryRepository, BatchRepository batchRepository, BatchProductRepository batchProductRepository, WarehouseReceiptService warehouseReceiptService, UserService userService, UserRepository userRepository, CustomerRepository customerRepository, OrderRepository orderRepository, ProductPriceRepository productPriceRepository, PriceRepository priceRepository, OrderDetailRepository orderDetailRepository, OrderServiceImpl orderService) {
         this.productRepository = productRepository;
         this.supplierRepository = supplierRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
@@ -60,6 +64,8 @@ public class ProductServiceImpl implements ProductService {
         this.orderRepository = orderRepository;
         this.productPriceRepository = productPriceRepository;
         this.priceRepository = priceRepository;
+        this.orderDetailRepository = orderDetailRepository;
+        this.orderService = orderService;
     }
 
     @Override
@@ -191,6 +197,47 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Page<MissingProductDto> getMissingProductsByFilter(String name, String productCode, String categoryName, String supplierName, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
+
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllInProgressOrder(statuses);
+        Map<Long, MissingProductDto> missingProductMap = new HashMap<>();
+        for (OrderDetail orderDetail : orderDetails) {
+            int quantity = orderService.getMissingQuantity(orderDetail);
+            if (quantity > 0) {
+                ProductWarehouse productWarehouse = orderService.getProductWarehouse(orderDetail);
+                MissingProductDto missingProductDto = new MissingProductDto();
+                missingProductDto.setId(orderDetail.getProduct().getId());
+                missingProductDto.setName(orderDetail.getProduct().getName());
+                missingProductDto.setProductCode(orderDetail.getProduct().getProductCode());
+                missingProductDto.setCategoryId(orderDetail.getProduct().getCategory().getId());
+                missingProductDto.setCategoryName(orderDetail.getProduct().getCategory().getName());
+                missingProductDto.setSupplierId(orderDetail.getProduct().getSupplier().getId());
+                missingProductDto.setSupplierName(orderDetail.getProduct().getSupplier().getName());
+                missingProductDto.setImportPrice(productWarehouse.getImportPrice());
+                missingProductDto.setUnit(productWarehouse.getUnit());
+                missingProductDto.setWeightPerUnit(productWarehouse.getWeightPerUnit());
+                missingProductDto.setMissingQuantity(quantity);
+                missingProductMap.putIfAbsent(orderDetail.getProduct().getId(), missingProductDto);
+            }
+        }
+
+        List<MissingProductDto> filteredDtos = missingProductMap.values().stream()
+                .filter(dto -> (name == null || dto.getName().contains(name)) &&
+                        (productCode == null || dto.getProductCode().equalsIgnoreCase(productCode)) &&
+                        (categoryName == null || dto.getCategoryName().equalsIgnoreCase(categoryName)) &&
+                        (supplierName == null || dto.getSupplierName().equalsIgnoreCase(supplierName)))
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredDtos.size());
+        List<MissingProductDto> paginatedList = (start < filteredDtos.size()) ? filteredDtos.subList(start, end) : new ArrayList<>();
+
+        return new PageImpl<>(paginatedList, pageable, filteredDtos.size());
+    }
+
+    @Override
     public Product createCustomerProduct(ProductDto productDto) {
         Product createdProduct = new Product();
         createdProduct.setCreateAt(new Date());
@@ -266,7 +313,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<importProductDto> readExcelFile(MultipartFile file) {
         List<importProductDto> productList = new ArrayList<>();
-
+        int count = 0;
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -295,7 +342,11 @@ public class ProductServiceImpl implements ProductService {
                             .unitOfMeasureId(1L)
                             .build();
                     productList.add(importProduct);
+                    count += importProduct.getQuantity();
                 }
+            }
+            if (count <= 0) {
+                throw new RuntimeException("Số lượng sản phẩm trong phiếu nhập không hợp lệ! Vui lòng kiểm tra lại");
             }
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
@@ -590,7 +641,7 @@ public class ProductServiceImpl implements ProductService {
                 batchProduct.getUnit(),
                 batchProduct.getWeightPerUnit()
         );
-        if(existingProductWarehouse.isPresent()){
+        if (existingProductWarehouse.isPresent()) {
             return existingProductWarehouse.get();
         }
         ProductWarehouse productWarehouse = new ProductWarehouse();
