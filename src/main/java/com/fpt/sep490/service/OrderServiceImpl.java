@@ -140,11 +140,6 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             throw new RuntimeException("Xảy ra lỗi trong quá trình tạo đơn hàng!");
         }
-
-        Date currentDate = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentDate);
-        calendar.add(Calendar.MONTH, 1);
         logOrderActivity(order, customer.getName());
         return order;
     }
