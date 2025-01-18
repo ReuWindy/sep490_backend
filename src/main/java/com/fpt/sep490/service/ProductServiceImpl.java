@@ -902,11 +902,15 @@ public class ProductServiceImpl implements ProductService {
             productDto.setUnitOfMeasureId(product.getUnitOfMeasure().getId());
         }
         ProductPrice productPrice = productPriceRepository.findByPriceIdAndProductId(customer.getPrice().getId(), product.getId()).orElse(null);
-        ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElseThrow(null);
-        if (productPrice != null) {
-            productDto.setCustomerPrice(productPrice.getUnit_price());
+        ProductPrice defaultPrice = productPriceRepository.findByPriceIdAndProductId(1L, product.getId()).orElse(null);
+        if (defaultPrice == null) {
+            productDto.setCustomerPrice(0);
         } else {
-            productDto.setCustomerPrice(defaultPrice.getUnit_price());
+            if (productPrice != null) {
+                productDto.setCustomerPrice(productPrice.getUnit_price());
+            } else {
+                productDto.setCustomerPrice(defaultPrice.getUnit_price());
+            }
         }
         productDto.setUnitWeightPairsList(unitWeightPairs);
         return productDto;
