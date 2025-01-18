@@ -29,11 +29,11 @@ public interface EmployeeService {
 
     List<EmployeeWithDayActiveDTO> getEmployees(String role);
 
-    Employee createDayActive(long id, String date, int mass, String note);
+    Employee createDayActive(long id, String date, double mass, String note);
 
     void deleteDayActive(long id, String date);
 
-    Employee updateDayActive(long id, String date, int mass, String note);
+    Employee updateDayActive(long id, String date, double mass, String note);
 
     List<DayActive> getDayActiveByEmployeeId(long id, int month, int year);
 

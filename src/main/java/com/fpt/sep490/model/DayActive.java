@@ -21,7 +21,7 @@ public class DayActive {
     private Date dayActive;
 
     @Column(name = "mass")
-    private Integer mass;
+    private Double mass;
 
     @Column(name = "amount_per_mass")
     private Double amountPerMass;
