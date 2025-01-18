@@ -165,6 +165,9 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("Số lượng sản phẩm của đơn hàng không thể bằng 0 hoặc âm!");
             }
             Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!"));
+            if(product.getIsDeleted()){
+                throw new RuntimeException("Một số sản phẩm trong đơn hàng hiện đã ngừng bán, vui lòng thử lại sau!");
+            }
             DiscountDto discountDto = discountRepository.getByProductId(detailDto.getProductId());
             LocalDateTime today = LocalDateTime.now();
             double discountUnit = 0.0;
