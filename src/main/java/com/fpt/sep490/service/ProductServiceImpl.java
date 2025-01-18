@@ -204,7 +204,7 @@ public class ProductServiceImpl implements ProductService {
         List<OrderDetail> orderDetails = orderDetailRepository.findAllInProgressOrder(statuses);
         Map<Long, MissingProductDto> missingProductMap = new HashMap<>();
         for (OrderDetail orderDetail : orderDetails) {
-            int quantity = orderService.getMissingQuantity(orderDetail);
+            int quantity = orderService.getMissingQuantityByProduct(orderDetail.getProduct().getId(), orderDetail);
             if (quantity > 0) {
                 ProductWarehouse productWarehouse = orderService.getProductWarehouse(orderDetail);
                 MissingProductDto missingProductDto = new MissingProductDto();
@@ -827,10 +827,10 @@ public class ProductServiceImpl implements ProductService {
             dto.setProductQuantity(String.valueOf(
                     product.getProductWarehouses().iterator().next().getQuantity()));
         }
-        if (product.getSupplier() != null && product.getSupplier().isActive()) {
+        if (product.getSupplier() != null) {
             dto.setSupplierName(product.getSupplier().getName());
         }
-        if (product.getCategory() != null && product.getCategory().getActive()) {
+        if (product.getCategory() != null) {
             dto.setCategoryName(product.getCategory().getName());
         }
         List<ProductWarehouseDto> productWarehouseDtos = new ArrayList<>();

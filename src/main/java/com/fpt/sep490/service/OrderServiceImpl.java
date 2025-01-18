@@ -600,9 +600,9 @@ public class OrderServiceImpl implements OrderService {
         return (orderQuantity + od.getQuantity()) - remainQuantity;
     }
 
-    public int getMissingQuantity(OrderDetail od) {
+    public int getMissingQuantityByProduct(Long productId, OrderDetail od) {
         List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllInProgressOrder(statuses);
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
         int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
                 pw -> pw.getWeightPerUnit() == od.getWeightPerUnit() && Objects.equals(pw.getUnit(), od.getProductUnit())
         ).mapToInt(ProductWarehouse::getQuantity).sum();
