@@ -48,8 +48,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category createCategory(Category category) {
         Category newCategory = new Category();
+        Optional<Category> existingCategory = categoryRepository.findByName(category.getName());
         if (category.getName().isBlank()) {
             throw new RuntimeException("Tên danh mục không được trống");
+        }
+        if(existingCategory.isPresent()){
+            throw new RuntimeException("Danh mục với tên này đã tồn tại");
         }
         newCategory.setName(category.getName());
         newCategory.setDescription(category.getDescription());
