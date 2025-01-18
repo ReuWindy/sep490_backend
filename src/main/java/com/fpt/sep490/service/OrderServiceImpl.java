@@ -104,15 +104,15 @@ public class OrderServiceImpl implements OrderService {
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for (var detailDto : adminOrderDto.getOrderDetails()) {
+            if ( detailDto.getQuantity() <=0) {
+                throw new RuntimeException("Số lượng sản phẩm của đơn hàng không thể bằng 0 hoặc âm!");
+            }
             // Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(()->new RuntimeException("Không tìm thấy sản phẩm!"));
             ProductWarehouse product = productWareHouseRepository.findByProductIdAndWeightPerUnitAndUnit(
                     detailDto.getProductId(),
                     detailDto.getWeightPerUnit(),
                     detailDto.getProductUnit()
             ).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm tương ứng trong kho!"));
-//            if (product.getQuantity() < detailDto.getQuantity()) {
-//                throw new RuntimeException("Số lượng sản phẩm trong kho không đủ!");
-//            }
             double discount = (detailDto.getDiscount() != null ? detailDto.getDiscount() : 0.0);
             double customerUnitPrice = getCustomUnitPrice(customer, product.getProduct(), detailDto.getUnitPrice());
             double discountUnitPrice = customerUnitPrice - discount;
@@ -166,6 +166,9 @@ public class OrderServiceImpl implements OrderService {
         double totalAmount = 0.0;
         Set<OrderDetail> orderDetails = new HashSet<>();
         for (var detailDto : customerOrderDto.getOrderDetails()) {
+            if (detailDto.getQuantity() <= 0) {
+                throw new RuntimeException("Số lượng sản phẩm của đơn hàng không thể bằng 0 hoặc âm!");
+            }
             Product product = productRepository.findById(detailDto.getProductId()).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm!"));
             DiscountDto discountDto = discountRepository.getByProductId(detailDto.getProductId());
             LocalDateTime today = LocalDateTime.now();
