@@ -21,17 +21,17 @@ public class importProductDto {
     private String description;
 
     @NotNull(message = "Vui lòng điền giá nhập")
-    @DecimalMin(value = "0", message = "Giá nhập phải là số dương.")
+    @DecimalMin(value = "1", message = "Giá nhập phải là số dương lớn hơn 0.")
     private double importPrice;
 
     private String image;
 
     @NotNull(message = "Vui lòng điền số lượng")
-    @DecimalMin(value = "0", message = "Số lượng phải là số nguyên dương.")
+    @DecimalMin(value = "1", message = "Số lượng phải là số nguyên dương lớn hơn 0.")
     private int quantity;
 
     @NotNull(message = "Vui lòng điền trọng lượng cho quy cách")
-    @DecimalMin(value = "0", message = "Trọng lượng mỗi đơn vị phải là số dương.")
+    @DecimalMin(value = "1", message = "Trọng lượng mỗi đơn vị phải là số dương lớn hơn 0.")
     private double weightPerUnit;
 
     @NotBlank(message = "Đơn vị không được để trống")
