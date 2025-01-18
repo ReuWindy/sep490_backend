@@ -17,12 +17,12 @@ public class ProductSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            if (productCode != null && !productCode.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode.trim() + "%"));
             }
 
-            if (productName != null && !productName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("name"), "%" + productName + "%"));
+            if (productName != null && !productName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + productName.trim() + "%"));
             }
 
             if (categoryId != null) {
@@ -64,17 +64,17 @@ public class ProductSpecification {
     public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName(String name, String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (name != null && !name.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            if (name != null && !name.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name.trim() + "%"));
             }
-            if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            if (productCode != null && !productCode.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode.trim() + "%"));
             }
-            if (categoryName != null && !categoryName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
+            if (categoryName != null && !categoryName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName.trim() + "%"));
             }
-            if (supplierName != null && !supplierName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
+            if (supplierName != null && !supplierName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName.trim() + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
@@ -97,17 +97,17 @@ public class ProductSpecification {
     public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierName2(String name, String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (name != null && !name.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            if (name != null && !name.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name.trim() + "%"));
             }
-            if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            if (productCode != null && !productCode.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode.trim() + "%"));
             }
-            if (categoryName != null && !categoryName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
+            if (categoryName != null && !categoryName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName.trim() + "%"));
             }
-            if (supplierName != null && !supplierName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
+            if (supplierName != null && !supplierName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName.trim() + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
 
@@ -118,17 +118,17 @@ public class ProductSpecification {
     public Specification<Product> hasNameOrProductCodeOrCategoryNameOrSupplierNameAndNotNull(String name, String productCode, String categoryName, String supplierName) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (name != null && !name.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
+            if (name != null && !name.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("name"), "%" + name.trim() + "%"));
             }
-            if (productCode != null && !productCode.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode + "%"));
+            if (productCode != null && !productCode.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("productCode"), "%" + productCode.trim() + "%"));
             }
-            if (categoryName != null && !categoryName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName + "%"));
+            if (categoryName != null && !categoryName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("category").get("name"), "%" + categoryName.trim() + "%"));
             }
-            if (supplierName != null && !supplierName.isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName + "%"));
+            if (supplierName != null && !supplierName.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName.trim() + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
             predicates.add(criteriaBuilder.greaterThan(root.get("price"), 0));
