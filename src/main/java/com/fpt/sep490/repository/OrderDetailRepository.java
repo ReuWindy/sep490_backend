@@ -16,6 +16,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE DATE(o.orderDate) = DATE(:date) " +
+            "AND o.status IN ('COMPLETE', 'COMPLETED', 'IN_PROCESS') " +
             "GROUP BY od.product.id " +
             "ORDER BY quantitySold DESC")
     List<Object[]> findTopSellingProductsByDay(Date date, Pageable pageable);
@@ -25,6 +26,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE FUNCTION('YEARWEEK', o.orderDate, 1) = FUNCTION('YEARWEEK', :date, 1) " +
+            "AND o.status IN ('COMPLETE', 'COMPLETED', 'IN_PROCESS') " +
             "GROUP BY od.product.id " +
             "ORDER BY quantitySold DESC")
     List<Object[]> findTopSellingProductsByWeek(Date date, Pageable pageable);
@@ -34,6 +36,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE MONTH(o.orderDate) = MONTH(:date) AND YEAR(o.orderDate) = YEAR(:date) " +
+            "AND o.status IN ('COMPLETE', 'COMPLETED', 'IN_PROCESS') " +
             "GROUP BY od.product.id " +
             "ORDER BY quantitySold DESC")
     List<Object[]> findTopSellingProductsByMonth(Date date, Pageable pageable);
@@ -43,6 +46,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "FROM OrderDetail od " +
             "JOIN od.order o " +
             "WHERE YEAR(o.orderDate) = YEAR(:date) " +
+            "AND o.status IN ('COMPLETE', 'COMPLETED', 'IN_PROCESS') " +
             "GROUP BY od.product.id " +
             "ORDER BY quantitySold DESC")
     List<Object[]> findTopSellingProductsByYear(Date date, Pageable pageable);
