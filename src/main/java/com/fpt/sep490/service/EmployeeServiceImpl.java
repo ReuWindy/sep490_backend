@@ -74,10 +74,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         User existingEmail = userRepository.findUserByEmail(employee.getEmail());
 
         EmployeeRole newEmployeeRole = employeeRoleRepository.findById(employee.getEmployeeRoleId()).orElse(null);
-        if (existingEmail.getId() != employee.getId()){
+        if (existingEmail != null && existingEmail.getId() != employee.getId()){
             throw new RuntimeException("Đã có tài khoản được đăng ký bằng địa chỉ email này");
         }
-        if (existingPhone.getId() != employee.getId()){
+        if (existingPhone != null && existingPhone.getId() != employee.getId()){
             throw new RuntimeException("Đã có tài khoản được đăng ký bằng số điện thoại này");
         }
         if (employee.getFullName().isBlank()) {
