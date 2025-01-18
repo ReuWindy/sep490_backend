@@ -62,7 +62,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             @Param("statuses") List<StatusEnum> statuses
     );
 
-    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses) AND od.product.id = :productId AND od.productUnit = :unit AND od.weightPerUnit = :weight")
+    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses)")
     List<OrderDetail> findAllInProgressOrder(
             @Param("statuses") List<StatusEnum> statuses
     );
