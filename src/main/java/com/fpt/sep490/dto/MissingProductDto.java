@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MissingProductDto {
-    private long id;
+    private Long id;
     private String name;
     private String productCode;
     private String unit;
-    private double weightPerUnit;
+    private Double weightPerUnit;
     private Integer missingQuantity;
-    private double importPrice;
+    private Double importPrice;
     private Long categoryId;
     private String categoryName;
     private String supplierName;
