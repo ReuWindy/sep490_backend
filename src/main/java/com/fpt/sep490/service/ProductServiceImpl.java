@@ -790,7 +790,7 @@ public class ProductServiceImpl implements ProductService {
             product.setProductCode(RandomProductCodeGenerator.generateProductCode());
             product.setImportPrice(0.0);
             product.setCreateAt(new Date());
-            product.setIsDeleted(false);
+            product.setIsDeleted(true);
 
             Supplier supplier = supplierRepository.findById(1L)
                     .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy nhà cung cấp mặc định"));
