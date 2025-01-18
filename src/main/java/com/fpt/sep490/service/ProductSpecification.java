@@ -77,7 +77,6 @@ public class ProductSpecification {
                 predicates.add(criteriaBuilder.like(root.get("supplier").get("name"), "%" + supplierName.trim() + "%"));
             }
             predicates.add(criteriaBuilder.equal(root.get("isDeleted"), false));
-
             Join<Product, ProductWarehouse> productWarehouseJoin = root.join("productWarehouses", JoinType.LEFT);
             Predicate warehouseNamePredicate = criteriaBuilder.equal(productWarehouseJoin.get("warehouse").get("name"), "Kho Bán Hàng");
             if (    (name == null || name.isEmpty()) &&

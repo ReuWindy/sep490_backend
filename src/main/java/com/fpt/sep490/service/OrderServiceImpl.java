@@ -469,8 +469,8 @@ public class OrderServiceImpl implements OrderService {
                         orderDetail.getTotalPrice(),
                         orderDetail.getProduct().getSupplier().getName(),
                         getRemainingQuantity(orderDetail),
-                        getInProgressOrder(orderDetail.getProduct().getId()),
-                        getMissingQuantity(orderDetail.getProduct().getId(), orderDetail)
+                        getInProgressOrder(orderDetail.getProduct().getId(), orderDetail.getProductUnit(), orderDetail.getWeightPerUnit()),
+                        getMissingQuantity(orderDetail.getProduct().getId(), orderDetail.getProductUnit(), orderDetail.getWeightPerUnit(), orderDetail)
                 ))
                 .collect(Collectors.toSet());
         orderDTO.setOrderDetails(orderDetailDtos);
@@ -580,15 +580,15 @@ public class OrderServiceImpl implements OrderService {
         ).mapToInt(ProductWarehouse::getQuantity).sum();
     }
 
-    private int getInProgressOrder(Long productId) {
+    private int getInProgressOrder(Long productId, String unit, Double weight) {
         List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, unit, weight, statuses);
         return orderDetails.size();
     }
 
-    public int getMissingQuantity(Long productId, OrderDetail od) {
+    public int getMissingQuantity(Long productId, String unit, Double weight, OrderDetail od) {
         List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, unit, weight, statuses);
         int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
                 pw -> pw.getWeightPerUnit() == od.getWeightPerUnit() && Objects.equals(pw.getUnit(), od.getProductUnit())
         ).mapToInt(ProductWarehouse::getQuantity).sum();
@@ -602,7 +602,7 @@ public class OrderServiceImpl implements OrderService {
 
     public int getMissingQuantityByProduct(Long productId, OrderDetail od) {
         List<StatusEnum> statuses = List.of(StatusEnum.CONFIRMED);
-        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, statuses);
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByProductId(productId, od.getProductUnit(), od.getWeightPerUnit(), statuses);
         int remainQuantity = od.getProduct().getProductWarehouses().stream().filter(
                 pw -> pw.getWeightPerUnit() == od.getWeightPerUnit() && Objects.equals(pw.getUnit(), od.getProductUnit())
         ).mapToInt(ProductWarehouse::getQuantity).sum();

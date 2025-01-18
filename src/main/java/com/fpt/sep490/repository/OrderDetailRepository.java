@@ -54,13 +54,15 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             @Param("endDate") Date endDate
     );
 
-    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses) AND od.product.id = :productId")
+    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses) AND od.product.id = :productId AND od.productUnit = :unit AND od.weightPerUnit = :weight")
     List<OrderDetail> findAllByProductId(
             @Param("productId") Long productId,
+            @Param("unit") String unit,
+            @Param("weight") Double weight,
             @Param("statuses") List<StatusEnum> statuses
     );
 
-    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses)")
+    @Query("SELECT od FROM OrderDetail od WHERE od.order.status IN (:statuses) AND od.product.id = :productId AND od.productUnit = :unit AND od.weightPerUnit = :weight")
     List<OrderDetail> findAllInProgressOrder(
             @Param("statuses") List<StatusEnum> statuses
     );
