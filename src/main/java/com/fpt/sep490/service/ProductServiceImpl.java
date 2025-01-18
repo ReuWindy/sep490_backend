@@ -127,6 +127,7 @@ public class ProductServiceImpl implements ProductService {
             productWarehouse.setWarehouse(warehouse);
             productWarehouse.setUnit("Bao");
             productWarehouse.setWeightPerUnit(5.0);
+            productWarehouse.setWeight(0.0);
             productWarehouse.setQuantity(0);
             productWareHouseRepository.save(productWarehouse);
         }
