@@ -1,12 +1,10 @@
 package com.fpt.sep490.service;
 
-import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
 import com.fpt.sep490.model.ProductWarehouse;
 import org.springframework.data.domain.Page;
 
-import java.util.Date;
 import java.util.List;
 
 public interface ProductWarehouseService {
@@ -25,4 +23,6 @@ public interface ProductWarehouseService {
     void importProductWarehouseToProduction(List<ProductionCompleteDto> dtos);
 
     void exportProductWarehouseToProduction(long productWarehouseId, int quantity);
+
+    ProductWarehouse delete(Long id);
 }

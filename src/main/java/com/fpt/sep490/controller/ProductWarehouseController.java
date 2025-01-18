@@ -3,8 +3,10 @@ package com.fpt.sep490.controller;
 import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.exceptions.ApiExceptionResponse;
+import com.fpt.sep490.model.Product;
 import com.fpt.sep490.model.ProductWarehouse;
 import com.fpt.sep490.service.ProductWarehouseService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -80,5 +82,16 @@ public class ProductWarehouseController {
         }
         final ApiExceptionResponse response = new ApiExceptionResponse("Create Failed", HttpStatus.BAD_REQUEST, LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> disableProductWarehouse(@PathVariable long id) {
+        try {
+            ProductWarehouse productWarehouse = productWarehouseService.delete(id);
+            return ResponseEntity.status(HttpStatus.OK).body(productWarehouse);
+        } catch (Exception e) {
+            final ApiExceptionResponse response = new ApiExceptionResponse(e.getMessage(), HttpStatus.BAD_REQUEST, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 }

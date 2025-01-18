@@ -1,7 +1,6 @@
 package com.fpt.sep490.service;
 
 import com.fpt.sep490.Enum.ReceiptType;
-import com.fpt.sep490.dto.AdminProductDto;
 import com.fpt.sep490.dto.ProductDto;
 import com.fpt.sep490.dto.ProductWarehouseDto;
 import com.fpt.sep490.dto.ProductionCompleteDto;
@@ -124,8 +123,8 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
             productWarehouse.setWeight(productWarehouse.getQuantity() * productWarehouse.getWeightPerUnit());
             try {
                 productWareHouseRepository.save(productWarehouse);
-            }catch (Exception e){
-                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình lưu! "+e.getMessage());
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình lưu! " + e.getMessage());
             }
         }
     }
@@ -154,21 +153,37 @@ public class ProductWarehouseServiceImpl implements ProductWarehouseService {
         productWareHouseRepository.save(productWarehouse);
     }
 
+    @Override
+    public ProductWarehouse delete(Long id) {
+        ProductWarehouse productWarehouse = productWareHouseRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy quy cách"));
+        if (productWarehouse.getQuantity() > 0) {
+            throw new RuntimeException("Quy cách hiện vẫn còn hàng nên không thể xóa! Vui lòng thử lại sau.");
+        }
+        if (productWarehouse.getProduct().getProductWarehouses().size() <= 1) {
+            throw new RuntimeException("Mỗi sản phẩm phải có ít nhất một quy cách! Vui lòng kiểm tra lại");
+        }
+        productWarehouse.setWarehouse(null);
+        productWarehouse.setProduct(null);
+        productWareHouseRepository.save(productWarehouse);
+        productWareHouseRepository.delete(productWarehouse);
+        return productWarehouse;
+    }
+
     private Batch createNewBatch(Batch batch) {
         batch.setBatchCode(RandomBatchCodeGenerator.generateBatchCode());
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = userDetails.getUsername();
         User user = userService.findByUsername(username);
-        if(user == null){
+        if (user == null) {
             throw new RuntimeException("Lỗi : không tìm thấy thông tin người dùng!");
         }
         batch.setBatchCreator(user);
         try {
             batch = batchRepository.save(batch);
             return batch;
-        }catch (Exception e){
-            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!"+ e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo lô hàng!" + e.getMessage());
         }
     }
 
