@@ -360,7 +360,7 @@ public class ProductServiceImpl implements ProductService {
     public void createExcelTemplate(HttpServletResponse response, AdminOrderDto adminOrderDto) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Nhập Hàng");
-            String[] headers = {"Mã", "Tên", "Giá Nhập", "Số Lượng mong muốn", "Quy cách", "Trọng lượng (kg)", "Danh mục", "Nhà cung cấp", "Kho hàng", "Số lượng thực tế"};
+            String[] headers = {"Mã", "Tên", "Giá Nhập", "Số Lượng mong muốn", "Quy cách", "Trọng lượng (kg)", "Danh mục", "Nhà sản xuất", "Kho hàng", "Số lượng thực tế"};
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
                 headerRow.createCell(i).setCellValue(headers[i]);
