@@ -45,7 +45,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Supplier createSupplier(Supplier supplier) {
-        try {
+
         Supplier newSupplier = new Supplier();
         if(supplier.getName().trim().isEmpty()){
             throw new RuntimeException("Lỗi: Tên nhà cung cấp không được để trống!");
@@ -55,21 +55,25 @@ public class SupplierServiceImpl implements SupplierService {
         if(supplier.getEmail().isEmpty()){
             throw new RuntimeException("Lỗi: Email của nhà cung cấp không được để trống!");
         }
-        Optional<Supplier> existingSupplier = supplierRepository.findByEmail(supplier.getEmail());
-        if (existingSupplier.isPresent()) {
+        Optional<Supplier> existingSupplierEmail = supplierRepository.findByEmail(supplier.getEmail());
+        if (existingSupplierEmail.isPresent()) {
                 throw new RuntimeException("Lỗi: Email của nhà cung cấp đã tồn tại trong hệ thống!");
         }
         newSupplier.setEmail(supplier.getEmail());
+        Optional<Supplier> existingSupplierPhone = supplierRepository.findByPhoneNumber(supplier.getPhoneNumber());
+        if(existingSupplierPhone.isPresent()){
+            throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp đã tồn tại trong hệ thống!");
+        }
         if(!supplier.getPhoneNumber().matches("^[0-9]+$")){
             throw new RuntimeException("Lỗi: Số điện thoại của nhà cung cấp chỉ bao gồm số từ 0 đến 9 !");
         }
         newSupplier.setPhoneNumber(supplier.getPhoneNumber());
         newSupplier.setAddress(supplier.getAddress());
-
+        try {
             supplierRepository.save(newSupplier);
             return newSupplier;
         }catch (Exception e){
-            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới! "+ e.getMessage());
+            throw new RuntimeException("Lỗi: Xảy ra lỗi trong quá trình tạo nhà cung cấp mới! ");
         }
     }
 

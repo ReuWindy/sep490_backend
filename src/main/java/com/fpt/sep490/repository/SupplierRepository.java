@@ -20,6 +20,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long>, JpaSp
 
     Optional<Supplier> findByEmail(String email);
 
+    Optional<Supplier> findByPhoneNumber(String phoneNumber);
     @Query("SELECT s.name, s.id FROM Supplier s")
     List<Object[]> getSupplierNameAndId();
 
