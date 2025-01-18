@@ -227,7 +227,20 @@ public class OrderServiceImpl implements OrderService {
                 validateProductQuantity(updatedOrder);
                 processOrder(updatedOrder);
             }
-
+            if ( status == StatusEnum.COMPLETE) {
+                ReceiptVoucher receiptVoucher = new ReceiptVoucher();
+                receiptVoucher.setOrder(updatedOrder);
+                receiptVoucher.setTotalAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setPaidAmount(0);
+                receiptVoucher.setRemainAmount(updatedOrder.getTotalAmount());
+                receiptVoucher.setReceiptDate(new Date());
+                LocalDate currentDate = LocalDate.now();
+                LocalDate dueDateLocal = currentDate.plusMonths(1);
+                Date dueDate = Date.from(dueDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                receiptVoucher.setDueDate(dueDate);
+                receiptVoucher.setReceiptCode(RandomIncomeCodeGenerator.generateIncomeCode());
+                receiptVoucherRepository.save(receiptVoucher);
+            }
             updatedOrder.setStatus(status);
             updatedOrder.setCreateBy(user.getFullName());
         } else {

@@ -173,7 +173,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee createDayActive(long id, String date, int mass, String note) {
+    public Employee createDayActive(long id, String date, double mass, String note) {
         SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -204,7 +204,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee updateDayActive(long id, String date, int mass, String note) {
+    public Employee updateDayActive(long id, String date, double mass, String note) {
         SimpleDateFormat inputFormat = new SimpleDateFormat("MM/dd/yyyy");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {

@@ -45,7 +45,7 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
     }
 
     @Override
-    public void createActiveDate(long id, Date date, int mass, String note) {
+    public void createActiveDate(long id, Date date, double mass, String note) {
         Employee employee = entityManager.find(Employee.class, id);
         if (employee == null) {
             throw new ApiRequestException("Employee not found");
@@ -67,7 +67,7 @@ public class EmployeeCustomRepositoryImpl implements EmployeeCustomRepository {
     }
 
     @Override
-    public Employee updateActiveDate(long id, Date date, int mass, String note) {
+    public Employee updateActiveDate(long id, Date date, double mass, String note) {
         DayActive dayActive = getDayActive(id, date);
         dayActive.setMass(mass);
         dayActive.setNote(note);
