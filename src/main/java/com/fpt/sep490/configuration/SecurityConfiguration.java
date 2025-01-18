@@ -50,7 +50,7 @@ public class SecurityConfiguration {
             "/order/details/*", "/order/admin/UpdateOrderDetail/*", "/order/admin/UpdateOrder/*", "/WarehouseReceipt/", "/order/admin/CreateOrder", "/suppliers/all", "/warehouses/all",
             "/batchproducts/batchCode/*", "/batchproducts/update/*", "/batchproducts/productId/*", "/batches/batchCode/*", "/inventory/getAll", "/inventory/createInventory", "/inventory/delete/*", "/inventory/getInventory/*", "/productwarehouse/getAllProductsWarehouse",
             "/productionOrder/getAll", "/productionOrder/getById/*", "/productionOrder/getWithFilter", "/productionOrder/createProductionOrder", "/productionOrder/update/*", "/productionOrder/finishProduction/*",
-            "/productwarehouse/getAllIngredients");
+            "/productwarehouse/getAllIngredients", "/products/admin/order/missingProducts", "/products/admin/order/productsAndIngredients", "products/generateTemplate");
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
